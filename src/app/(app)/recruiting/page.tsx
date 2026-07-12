@@ -6,6 +6,7 @@ import { DocumentsSection } from "@/components/recruiting/documents-section";
 import { ContactsSection } from "@/components/recruiting/contacts-section";
 import { AnalyticsSection } from "@/components/recruiting/analytics-section";
 import { SourcesSection } from "@/components/recruiting/sources-section";
+import { DiscoveryQueue } from "@/components/recruiting/discovery-queue";
 import type { ApplicationWithOpportunity } from "@/components/recruiting/types";
 
 const APPLICATIONS_SELECT = `
@@ -15,7 +16,7 @@ const APPLICATIONS_SELECT = `
     unsupported_claims, status
   ),
   opportunity:opportunities(
-    id, title, location, url, role_family, deadline, active,
+    id, title, location, url, role_family, deadline, active, source, feedback,
     company:companies(id, name, established),
     job_scores(
       role_family_score, skills_experience_score, eligibility_score,
@@ -29,10 +30,19 @@ const APPLICATIONS_SELECT = `
 export default async function RecruitingPage() {
   const supabase = await createClient();
 
-  const { data: applications } = await supabase
+  const { data: allApplications } = await supabase
     .from("applications")
     .select(APPLICATIONS_SELECT)
     .order("created_at", { ascending: false });
+
+  const applications = (allApplications ?? []) as ApplicationWithOpportunity[];
+  // Discovered-but-untriaged opportunities stay out of the main pipeline
+  // (board/table/follow-ups) — mixing an automated firehose in with roles
+  // the user already decided to pursue is exactly the clutter PLAN.md's
+  // anxiety-aware UX principle warns against. They live in their own queue
+  // (task 5.5) until promoted to "saved" or dismissed.
+  const pipelineApplications = applications.filter((a) => a.stage !== "discovered");
+  const discoveredApplications = applications.filter((a) => a.stage === "discovered");
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -47,13 +57,10 @@ export default async function RecruitingPage() {
         <OpportunityForm />
       </div>
       <SourcesSection />
-      <FollowUpsDue
-        applications={(applications ?? []) as ApplicationWithOpportunity[]}
-      />
+      <DiscoveryQueue applications={discoveredApplications} />
+      <FollowUpsDue applications={pipelineApplications} />
       <AnalyticsSection />
-      <ApplicationsView
-        applications={(applications ?? []) as ApplicationWithOpportunity[]}
-      />
+      <ApplicationsView applications={pipelineApplications} />
       <DocumentsSection />
       <ContactsSection />
     </main>

@@ -47,6 +47,8 @@ export type ApplicationWithOpportunity = {
     role_family: RoleFamily;
     deadline: string | null;
     active: boolean;
+    source: string;
+    feedback: "up" | "down" | "not_relevant" | null;
     company: { id: string; name: string; established: boolean } | null;
     job_scores: JobScoreRow | JobScoreRow[] | null;
   } | null;
