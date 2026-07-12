@@ -14,7 +14,7 @@ vi.mock("@/app/login/actions", () => ({
 describe("AppShell", () => {
   it("renders every nav destination and the page content", () => {
     render(
-      <AppShell email="test@example.com">
+      <AppShell email="test@example.com" notifications={[]}>
         <p>page content</p>
       </AppShell>,
     );

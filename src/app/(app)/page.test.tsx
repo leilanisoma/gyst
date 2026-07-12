@@ -7,6 +7,9 @@ function queryBuilder(result: { data: unknown }) {
   builder.select = chain;
   builder.eq = chain;
   builder.neq = chain;
+  builder.is = chain;
+  builder.lt = chain;
+  builder.gt = chain;
   builder.order = chain;
   builder.limit = chain;
   builder.maybeSingle = async () => result;

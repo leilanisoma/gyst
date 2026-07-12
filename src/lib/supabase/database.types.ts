@@ -130,6 +130,77 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          all_day: boolean
+          calendar_id: string | null
+          created_at: string
+          deleted_at: string | null
+          end_at: string
+          id: string
+          is_fixed_commitment: boolean
+          kind: string
+          location: string | null
+          recurring_source_id: string | null
+          source: string
+          source_id: string | null
+          start_at: string
+          time_zone: string | null
+          title: string
+          travel_buffer_minutes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          all_day?: boolean
+          calendar_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          end_at: string
+          id?: string
+          is_fixed_commitment?: boolean
+          kind?: string
+          location?: string | null
+          recurring_source_id?: string | null
+          source?: string
+          source_id?: string | null
+          start_at: string
+          time_zone?: string | null
+          title: string
+          travel_buffer_minutes?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          all_day?: boolean
+          calendar_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          end_at?: string
+          id?: string
+          is_fixed_commitment?: boolean
+          kind?: string
+          location?: string | null
+          recurring_source_id?: string | null
+          source?: string
+          source_id?: string | null
+          start_at?: string
+          time_zone?: string | null
+          title?: string
+          travel_buffer_minutes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           created_at: string
@@ -214,6 +285,141 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "inbox_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integrations: {
+        Row: {
+          account_email: string | null
+          created_at: string
+          error: string | null
+          granted_scopes: string[]
+          id: string
+          last_synced_at: string | null
+          provider: string
+          settings: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_email?: string | null
+          created_at?: string
+          error?: string | null
+          granted_scopes?: string[]
+          id?: string
+          last_synced_at?: string | null
+          provider: string
+          settings?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_email?: string | null
+          created_at?: string
+          error?: string | null
+          granted_scopes?: string[]
+          id?: string
+          last_synced_at?: string | null
+          provider?: string
+          settings?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oauth_tokens: {
+        Row: {
+          access_token_encrypted: string
+          created_at: string
+          expires_at: string
+          id: string
+          provider: string
+          refresh_token_encrypted: string | null
+          scope: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          provider: string
+          refresh_token_encrypted?: string | null
+          scope?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          provider?: string
+          refresh_token_encrypted?: string | null
+          scope?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_tokens_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -336,6 +542,41 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recurring_schedules: {
         Row: {
           active: boolean
@@ -379,6 +620,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "recurring_schedules_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_runs: {
+        Row: {
+          error: string | null
+          events_created: number
+          events_deleted: number
+          events_updated: number
+          finished_at: string | null
+          id: string
+          provider: string
+          retry_count: number
+          started_at: string
+          status: string
+          sync_token: string | null
+          user_id: string
+        }
+        Insert: {
+          error?: string | null
+          events_created?: number
+          events_deleted?: number
+          events_updated?: number
+          finished_at?: string | null
+          id?: string
+          provider: string
+          retry_count?: number
+          started_at?: string
+          status?: string
+          sync_token?: string | null
+          user_id: string
+        }
+        Update: {
+          error?: string | null
+          events_created?: number
+          events_deleted?: number
+          events_updated?: number
+          finished_at?: string | null
+          id?: string
+          provider?: string
+          retry_count?: number
+          started_at?: string
+          status?: string
+          sync_token?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_runs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -483,6 +777,7 @@ export type Database = {
           created_at: string
           end_at: string
           explanation: string | null
+          google_event_id: string | null
           id: string
           score: number
           start_at: string
@@ -496,6 +791,7 @@ export type Database = {
           created_at?: string
           end_at: string
           explanation?: string | null
+          google_event_id?: string | null
           id?: string
           score?: number
           start_at: string
@@ -509,6 +805,7 @@ export type Database = {
           created_at?: string
           end_at?: string
           explanation?: string | null
+          google_event_id?: string | null
           id?: string
           score?: number
           start_at?: string

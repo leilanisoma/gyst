@@ -638,6 +638,7 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 
 **Goal:** detect actionable recruiting and school messages without copying an entire inbox.
 
+- [ ] Confirm whether Gmail and Google Calendar live on the same Google account. If not, this is a second, separate OAuth connection — one token is tied to exactly one Google account, so Calendar (Phase 3) and Gmail can't share a token if they're different accounts. The `integrations`/`oauth_tokens` schema built in Phase 3 only supports one Google connection per user (`unique (user_id, provider)` with `provider = 'google'`); extend it (e.g. distinguish connections by account or by purpose) before or as part of wiring up Gmail OAuth here.
 - [ ] Configure Gmail OAuth and narrow read scopes.
 - [ ] Begin with user-created Gmail labels or strict searches.
 - [ ] Extract interview dates, application confirmations, deadlines, and requested actions.

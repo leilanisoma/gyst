@@ -12,45 +12,57 @@ import {
 } from "@/components/ui/sheet";
 import { NAV_ITEMS } from "./nav-items";
 import { NavLink } from "./nav-link";
+import { NotificationBell, type NotificationItem } from "./notification-bell";
 import { SignOutButton } from "./sign-out-button";
 
-export function MobileNav({ email }: { email: string | undefined }) {
+export function MobileNav({
+  email,
+  notifications,
+}: {
+  email: string | undefined;
+  notifications: NotificationItem[];
+}) {
   const [open, setOpen] = useState(false);
 
   return (
     <header className="border-border bg-background flex items-center justify-between border-b p-3 md:hidden">
       <p className="text-lg font-semibold tracking-tight">gyst</p>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Open navigation menu"
-            />
-          }
-        >
-          <Menu className="size-5" />
-        </SheetTrigger>
-        <SheetContent side="left" className="flex w-64 flex-col p-4">
-          <SheetHeader>
-            <SheetTitle>gyst</SheetTitle>
-            {email && (
-              <p className="text-muted-foreground truncate text-xs">{email}</p>
-            )}
-          </SheetHeader>
-          <nav className="flex flex-1 flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.href}
-                item={item}
-                onNavigate={() => setOpen(false)}
+      <div className="flex items-center gap-1">
+        <NotificationBell notifications={notifications} />
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open navigation menu"
               />
-            ))}
-          </nav>
-          <SignOutButton />
-        </SheetContent>
-      </Sheet>
+            }
+          >
+            <Menu className="size-5" />
+          </SheetTrigger>
+          <SheetContent side="left" className="flex w-64 flex-col p-4">
+            <SheetHeader>
+              <SheetTitle>gyst</SheetTitle>
+              {email && (
+                <p className="text-muted-foreground truncate text-xs">
+                  {email}
+                </p>
+              )}
+            </SheetHeader>
+            <nav className="flex flex-1 flex-col gap-1">
+              {NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.href}
+                  item={item}
+                  onNavigate={() => setOpen(false)}
+                />
+              ))}
+            </nav>
+            <SignOutButton />
+          </SheetContent>
+        </Sheet>
+      </div>
     </header>
   );
 }

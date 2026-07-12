@@ -8,5 +8,6 @@ export type TimeBlockSuggestion = {
   status: SuggestionStatus;
   explanation: string | null;
   score: number;
+  google_event_id: string | null;
   tasks: { title: string; area: string } | null;
 };

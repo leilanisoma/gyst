@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   generateTimeBlockSuggestions,
+  undoTimeBlockSuggestionCalendarWrite,
   updateTimeBlockSuggestionStatus,
   updateTimeBlockSuggestionTime,
 } from "@/app/(app)/actions";
@@ -51,6 +52,14 @@ function SuggestionRow({ suggestion }: { suggestion: TimeBlockSuggestion }) {
         "dismissed",
       );
       if (!result.ok) toast.error(result.error);
+    });
+  }
+
+  function undoCalendarWrite() {
+    startTransition(async () => {
+      const result = await undoTimeBlockSuggestionCalendarWrite(suggestion.id);
+      if (!result.ok) toast.error(result.error);
+      else toast.success("Removed from Google Calendar.");
     });
   }
 
@@ -112,6 +121,9 @@ function SuggestionRow({ suggestion }: { suggestion: TimeBlockSuggestion }) {
             <Badge variant="secondary">{suggestion.tasks.area}</Badge>
           )}
           {suggestion.status === "accepted" && <Badge>Accepted</Badge>}
+          {suggestion.google_event_id && (
+            <Badge variant="secondary">On Google Calendar</Badge>
+          )}
         </div>
       </div>
       <div className="flex gap-2">
@@ -142,6 +154,16 @@ function SuggestionRow({ suggestion }: { suggestion: TimeBlockSuggestion }) {
             >
               Dismiss
             </Button>
+            {suggestion.google_event_id && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={undoCalendarWrite}
+                disabled={isPending}
+              >
+                Undo Google Calendar write
+              </Button>
+            )}
           </>
         )}
       </div>

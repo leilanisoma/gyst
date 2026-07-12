@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
 import { CheckInCard } from "@/components/today/check-in-card";
+import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
 import { RolloverReviewList } from "@/components/today/rollover-review-list";
 import { TaskSummaryList } from "@/components/today/task-summary-list";
@@ -10,9 +11,14 @@ import { TopOutcomesCard } from "@/components/today/top-outcomes-card";
 import { WeeklyGoalsList } from "@/components/today/weekly-goals-list";
 import { XpIndicator } from "@/components/today/xp-indicator";
 import { buttonVariants } from "@/components/ui/button";
-import { getLocalDateString } from "@/lib/date-range";
+import {
+  getLocalDateString,
+  getLocalDayOfWeek,
+  getLocalDayRange,
+} from "@/lib/date-range";
 import { daysEngagedThisWeek, totalXp } from "@/lib/gamification";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
+import { buildDailyTimeline } from "@/lib/timeline";
 import { cn } from "@/lib/utils";
 import type { CheckIn } from "@/lib/check-ins";
 import type { DailyPlan } from "@/lib/daily-plans";
@@ -61,7 +67,7 @@ export default async function TodayPage({
   const { data: suggestions } = await supabase
     .from("time_block_suggestions")
     .select(
-      "id, task_id, start_at, end_at, status, explanation, score, tasks(title, area)",
+      "id, task_id, start_at, end_at, status, explanation, score, google_event_id, tasks(title, area)",
     )
     .eq("suggestion_date", todayString)
     .neq("status", "dismissed")
@@ -86,22 +92,44 @@ export default async function TodayPage({
     .order("occurred_on", { ascending: false })
     .limit(500);
 
+  const todayRange = getLocalDayRange(now, timeZone);
+  const { data: todayEvents } = await supabase
+    .from("events")
+    .select("id, title, start_at, end_at, all_day, location")
+    .is("deleted_at", null)
+    .lt("start_at", todayRange.end.toISOString())
+    .gt("end_at", todayRange.start.toISOString())
+    .order("start_at", { ascending: true });
+
+  const { data: todaySchedules } = await supabase
+    .from("recurring_schedules")
+    .select("id, title, start_time, end_time, location")
+    .eq("day_of_week", getLocalDayOfWeek(now, timeZone))
+    .eq("active", true);
+
+  const timeline = buildDailyTimeline(
+    todayEvents ?? [],
+    todaySchedules ?? [],
+    now,
+    timeZone,
+  );
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           Hi, {firstName}.
         </h1>
-        <p className="text-muted-foreground max-w-sm text-sm">
-          The fixed timeline lands here once Google Calendar syncs (Phase 3).
-          For now, capture a thought, check in, and see what&rsquo;s overdue or
-          coming up below.
-        </p>
         <XpIndicator
           xp={totalXp(xpEvents ?? [])}
           daysEngaged={daysEngagedThisWeek(xpEvents ?? [], todayString)}
         />
       </div>
+
+      <section className="flex max-w-xl flex-col gap-2">
+        <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
+        <FixedTimeline items={timeline} timeZone={timeZone} />
+      </section>
 
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-2">

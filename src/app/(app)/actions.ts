@@ -10,6 +10,10 @@ import {
 } from "@/lib/date-range";
 import { logXpEvent } from "@/lib/gamification-log";
 import {
+  deleteGoogleBlockEvent,
+  writeApprovedBlockToGoogle,
+} from "@/lib/google/blocks";
+import {
   buildFreeIntervals,
   clipToCapacity,
   placeTasks,
@@ -109,10 +113,27 @@ export async function generateTimeBlockSuggestions(): Promise<GenerateSuggestion
     .eq("day_of_week", dayOfWeek)
     .eq("active", true);
 
-  const fixedCommitments = (schedules ?? []).map((schedule) => ({
-    start: getLocalTimeUtc(now, timeZone, schedule.start_time),
-    end: getLocalTimeUtc(now, timeZone, schedule.end_time),
-  }));
+  // Fixed commitments synced from Google Calendar (class/fencing calendars
+  // marked as such in Settings — Phase 3) layer on top of manually entered
+  // recurring schedules rather than replacing them.
+  const { data: fixedEvents } = await supabase
+    .from("events")
+    .select("start_at, end_at")
+    .eq("is_fixed_commitment", true)
+    .is("deleted_at", null)
+    .lt("start_at", dayRange.end.toISOString())
+    .gt("end_at", dayRange.start.toISOString());
+
+  const fixedCommitments = [
+    ...(schedules ?? []).map((schedule) => ({
+      start: getLocalTimeUtc(now, timeZone, schedule.start_time),
+      end: getLocalTimeUtc(now, timeZone, schedule.end_time),
+    })),
+    ...(fixedEvents ?? []).map((event) => ({
+      start: new Date(event.start_at),
+      end: new Date(event.end_at),
+    })),
+  ];
 
   const { data: checkIn } = await supabase
     .from("check_ins")
@@ -214,14 +235,97 @@ export async function updateTimeBlockSuggestionStatus(
 
   if (status === "accepted") {
     const { data: userData } = await supabase.auth.getUser();
-    if (userData.user) {
+    const user = userData.user;
+    if (user) {
       await logXpEvent(
         supabase,
-        userData.user.id,
+        user.id,
         "accept_block",
         new Date().toISOString().slice(0, 10),
       );
+
+      // Write-back only happens on explicit acceptance — that's the
+      // approval step PLAN.md §3/§8 require before touching Google Calendar.
+      const { data: suggestion } = await supabase
+        .from("time_block_suggestions")
+        .select("start_at, end_at, tasks(title)")
+        .eq("id", id)
+        .maybeSingle();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("timezone")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (suggestion) {
+        try {
+          const googleEventId = await writeApprovedBlockToGoogle(
+            supabase,
+            user.id,
+            {
+              title: suggestion.tasks?.title ?? "Focus block",
+              startAt: suggestion.start_at,
+              endAt: suggestion.end_at,
+              timeZone: profile?.timezone ?? "UTC",
+            },
+          );
+          if (googleEventId) {
+            await supabase
+              .from("time_block_suggestions")
+              .update({ google_event_id: googleEventId })
+              .eq("id", id);
+          }
+        } catch {
+          // Google write-back is best-effort: the accepted block still
+          // stands locally even if the calendar write fails.
+        }
+      }
     }
+  }
+
+  revalidatePath("/");
+  return { ok: true };
+}
+
+/** Deletes a previously written GYST-calendar event and clears the link, without changing the suggestion's accepted/dismissed status (PLAN.md §3's "undo for created blocks"). */
+export async function undoTimeBlockSuggestionCalendarWrite(
+  id: string,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const { data: suggestion } = await supabase
+    .from("time_block_suggestions")
+    .select("google_event_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!suggestion?.google_event_id) {
+    return { ok: true };
+  }
+
+  try {
+    await deleteGoogleBlockEvent(supabase, user.id, suggestion.google_event_id);
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to remove the calendar event.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("time_block_suggestions")
+    .update({ google_event_id: null })
+    .eq("id", id);
+  if (error) {
+    return { ok: false, error: error.message };
   }
 
   revalidatePath("/");

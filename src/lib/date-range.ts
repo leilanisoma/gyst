@@ -127,3 +127,9 @@ export function getLocalDateString(reference: Date, timeZone: string): string {
     day: "2-digit",
   }).format(reference);
 }
+
+/** `reference`'s local wall-clock time of day in `timeZone`, as `HH:MM`. */
+export function getLocalTimeOfDay(reference: Date, timeZone: string): string {
+  const { hour, minute } = localPartsInZone(reference, timeZone);
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
