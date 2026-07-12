@@ -55,4 +55,12 @@ describe("Today page", () => {
     render(await Page({ searchParams: Promise.resolve({}) }));
     expect(screen.getByText("Suggested time blocks")).toBeInTheDocument();
   });
+
+  it("shows the top-outcomes prompt and weekly goals section in today view", async () => {
+    render(await Page({ searchParams: Promise.resolve({}) }));
+    expect(
+      screen.getByText(/if today goes well, what.s true/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/this week.s goals/i)).toBeInTheDocument();
+  });
 });

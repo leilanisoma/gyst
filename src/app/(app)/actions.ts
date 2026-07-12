@@ -213,6 +213,42 @@ export async function updateTimeBlockSuggestionStatus(
   return { ok: true };
 }
 
+export type DailyPlanInput = {
+  plan_date: string;
+  outcome_1: string | null;
+  outcome_2: string | null;
+  outcome_3: string | null;
+};
+
+export async function upsertDailyPlan(
+  input: DailyPlanInput,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const { error } = await supabase.from("daily_plans").upsert(
+    {
+      user_id: user.id,
+      plan_date: input.plan_date,
+      outcome_1: input.outcome_1?.trim() || null,
+      outcome_2: input.outcome_2?.trim() || null,
+      outcome_3: input.outcome_3?.trim() || null,
+    },
+    { onConflict: "user_id,plan_date" },
+  );
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/");
+  return { ok: true };
+}
+
 export async function updateTimeBlockSuggestionTime(
   id: string,
   startAt: string,

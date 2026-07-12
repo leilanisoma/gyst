@@ -6,11 +6,14 @@ import { OverwhelmMode } from "@/components/today/overwhelm-mode";
 import { RolloverReviewList } from "@/components/today/rollover-review-list";
 import { TaskSummaryList } from "@/components/today/task-summary-list";
 import { TimeBlockSuggestions } from "@/components/today/time-block-suggestions";
+import { TopOutcomesCard } from "@/components/today/top-outcomes-card";
+import { WeeklyGoalsList } from "@/components/today/weekly-goals-list";
 import { buttonVariants } from "@/components/ui/button";
 import { getLocalDateString } from "@/lib/date-range";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
 import { cn } from "@/lib/utils";
 import type { CheckIn } from "@/lib/check-ins";
+import type { DailyPlan } from "@/lib/daily-plans";
 import type { Task } from "@/lib/tasks";
 import type { TimeBlockSuggestion } from "@/lib/time-block-suggestions";
 
@@ -62,6 +65,19 @@ export default async function TodayPage({
     .neq("status", "dismissed")
     .order("start_at", { ascending: true });
 
+  const { data: dailyPlan } = await supabase
+    .from("daily_plans")
+    .select("id, plan_date, outcome_1, outcome_2, outcome_3")
+    .eq("plan_date", todayString)
+    .maybeSingle();
+
+  const { data: weeklyGoals } = await supabase
+    .from("goals")
+    .select("id, title, target_date")
+    .eq("horizon", "weekly")
+    .eq("status", "active")
+    .order("target_date", { ascending: true });
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div>
@@ -105,6 +121,10 @@ export default async function TodayPage({
 
       {view === "today" ? (
         <div className="flex max-w-xl flex-col gap-5">
+          <TopOutcomesCard
+            plan={(dailyPlan as DailyPlan | null) ?? null}
+            dateString={todayString}
+          />
           <CheckInCard
             checkIn={(checkIn as CheckIn | null) ?? null}
             dateString={todayString}
@@ -117,6 +137,7 @@ export default async function TodayPage({
             now={now}
             timeZone={timeZone}
           />
+          <WeeklyGoalsList goals={weeklyGoals ?? []} />
         </div>
       ) : (
         <WeekView

@@ -89,6 +89,47 @@ export type Database = {
           },
         ]
       }
+      daily_plans: {
+        Row: {
+          created_at: string
+          id: string
+          outcome_1: string | null
+          outcome_2: string | null
+          outcome_3: string | null
+          plan_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          outcome_1?: string | null
+          outcome_2?: string | null
+          outcome_3?: string | null
+          plan_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          outcome_1?: string | null
+          outcome_2?: string | null
+          outcome_3?: string | null
+          plan_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           created_at: string
