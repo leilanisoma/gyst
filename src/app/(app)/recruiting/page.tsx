@@ -4,6 +4,7 @@ import { ApplicationsView } from "@/components/recruiting/applications-view";
 import { FollowUpsDue } from "@/components/recruiting/follow-ups-due";
 import { DocumentsSection } from "@/components/recruiting/documents-section";
 import { ContactsSection } from "@/components/recruiting/contacts-section";
+import { AnalyticsSection } from "@/components/recruiting/analytics-section";
 import type { ApplicationWithOpportunity } from "@/components/recruiting/types";
 
 const APPLICATIONS_SELECT = `
@@ -47,6 +48,7 @@ export default async function RecruitingPage() {
       <FollowUpsDue
         applications={(applications ?? []) as ApplicationWithOpportunity[]}
       />
+      <AnalyticsSection />
       <ApplicationsView
         applications={(applications ?? []) as ApplicationWithOpportunity[]}
       />
