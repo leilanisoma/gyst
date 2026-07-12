@@ -8,7 +8,7 @@ Goal: replace scattered mental notes with one trusted inbox. Source: `PLAN.md` Â
 - [x] Implement single-user authentication and RLS.
 - [x] Build responsive navigation and cozy design tokens.
 - [x] Create Inbox, tasks, projects, goals, and settings schema.
-- [ ] Build instant raw brain-dump capture.
+- [x] Build instant raw brain-dump capture.
 - [ ] Add deterministic manual conversion from inbox item to task/note/goal.
 - [ ] Add AI extraction behind a feature flag with confirmation UI.
 - [ ] Build task list, quick edit, due date, duration, status, and area.
