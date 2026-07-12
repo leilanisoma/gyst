@@ -17,7 +17,7 @@ export default async function AuthErrorPage({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-      <p className="text-sm text-muted-foreground">{message}</p>
+      <p className="text-muted-foreground text-sm">{message}</p>
       <Button render={<Link href="/login">Back to sign in</Link>} />
     </main>
   );

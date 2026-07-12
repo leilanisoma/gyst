@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { signOut } from "./login/actions";
+import { signOut } from "@/app/login/actions";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -18,7 +18,13 @@ export function SignOutButton() {
   }
 
   return (
-    <Button variant="outline" onClick={handleSignOut} disabled={isPending}>
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleSignOut}
+      disabled={isPending}
+      className="w-full justify-start"
+    >
       {isPending ? "Signing out…" : "Sign out"}
     </Button>
   );

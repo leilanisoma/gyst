@@ -6,7 +6,7 @@ Goal: replace scattered mental notes with one trusted inbox. Source: `PLAN.md` Â
 
 - [x] Scaffold Next.js, TypeScript, Tailwind, component library, linting, formatting, and tests.
 - [x] Implement single-user authentication and RLS.
-- [ ] Build responsive navigation and cozy design tokens.
+- [x] Build responsive navigation and cozy design tokens.
 - [ ] Create Inbox, tasks, projects, goals, and settings schema.
 - [ ] Build instant raw brain-dump capture.
 - [ ] Add deterministic manual conversion from inbox item to task/note/goal.

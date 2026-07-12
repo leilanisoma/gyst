@@ -34,18 +34,18 @@ export function LoginCard() {
       <CardHeader>
         <CardTitle>gyst</CardTitle>
         <CardDescription>
-          A private, single-user space. Sign in with a magic link sent to
-          your inbox.
+          A private, single-user space. Sign in with a magic link sent to your
+          inbox.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {status === "sent" && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Check your email for a sign-in link.
           </p>
         )}
         {status === "error" && (
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-destructive text-sm">{error}</p>
         )}
       </CardContent>
       <CardFooter>

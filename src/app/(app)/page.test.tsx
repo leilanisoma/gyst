@@ -9,16 +9,12 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-}));
-
 const { default: Page } = await import("./page");
 
-describe("Home page", () => {
-  it("renders the signed-in user's email", async () => {
+describe("Today page", () => {
+  it("greets the signed-in user", async () => {
     render(await Page());
     expect(screen.getByRole("main")).toBeInTheDocument();
-    expect(screen.getByText(/test@example.com/)).toBeInTheDocument();
+    expect(screen.getByText(/hi, test/i)).toBeInTheDocument();
   });
 });
