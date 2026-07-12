@@ -1,10 +1,41 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
+import { TaskSummaryList } from "@/components/today/task-summary-list";
+import { buttonVariants } from "@/components/ui/button";
+import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
+import { cn } from "@/lib/utils";
+import type { Task } from "@/lib/tasks";
 
-export default async function TodayPage() {
+const WEEK_DAYS = 7;
+
+export default async function TodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view: rawView } = await searchParams;
+  const view = rawView === "week" ? "week" : "today";
+
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const firstName = data.user?.email?.split("@")[0] ?? "there";
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", data.user?.id ?? "")
+    .maybeSingle();
+  const timeZone = profile?.timezone ?? "UTC";
+
+  const { data: tasks } = await supabase
+    .from("tasks")
+    .select(
+      "id, title, notes, area, status, priority, estimated_minutes, due_date",
+    )
+    .order("due_date", { ascending: true });
+
+  const now = new Date();
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -13,13 +44,112 @@ export default async function TodayPage() {
           Hi, {firstName}.
         </h1>
         <p className="text-muted-foreground max-w-sm text-sm">
-          The daily plan, timeline, and top-three outcomes land here in Phase 2.
-          For now, capture a thought below or head to Tasks to see the board.
+          The fixed timeline, proposed time blocks, and top-three outcomes land
+          here later in Phase 2. For now, see what&rsquo;s overdue or coming up,
+          or capture a thought below.
         </p>
       </div>
+
+      <div className="flex gap-2">
+        <Link
+          href="/"
+          className={cn(
+            buttonVariants({
+              variant: view === "today" ? "default" : "outline",
+              size: "sm",
+            }),
+          )}
+        >
+          Today
+        </Link>
+        <Link
+          href="/?view=week"
+          className={cn(
+            buttonVariants({
+              variant: view === "week" ? "default" : "outline",
+              size: "sm",
+            }),
+          )}
+        >
+          This Week
+        </Link>
+      </div>
+
+      {view === "today" ? (
+        <TodayView
+          tasks={(tasks ?? []) as Task[]}
+          now={now}
+          timeZone={timeZone}
+        />
+      ) : (
+        <WeekView
+          tasks={(tasks ?? []) as Task[]}
+          now={now}
+          timeZone={timeZone}
+        />
+      )}
+
       <div className="max-w-xl">
         <CaptureForm />
       </div>
     </main>
+  );
+}
+
+function TodayView({
+  tasks,
+  now,
+  timeZone,
+}: {
+  tasks: Task[];
+  now: Date;
+  timeZone: string;
+}) {
+  const { overdue, dueToday } = bucketTodayTasks(tasks, now, timeZone);
+
+  return (
+    <div className="flex max-w-xl flex-col gap-5">
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold">Overdue</h2>
+        <TaskSummaryList tasks={overdue} emptyMessage="Nothing overdue." />
+      </section>
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold">Due today</h2>
+        <TaskSummaryList tasks={dueToday} emptyMessage="Nothing due today." />
+      </section>
+    </div>
+  );
+}
+
+function WeekView({
+  tasks,
+  now,
+  timeZone,
+}: {
+  tasks: Task[];
+  now: Date;
+  timeZone: string;
+}) {
+  const days = bucketWeekTasks(tasks, now, timeZone, WEEK_DAYS);
+
+  return (
+    <div className="flex max-w-xl flex-col gap-5">
+      {days.map((day) => (
+        <section key={day.start.toISOString()} className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold">
+            {day.start.toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+              timeZone,
+            })}
+          </h2>
+          <TaskSummaryList
+            tasks={day.tasks}
+            emptyMessage="Nothing due this day."
+          />
+        </section>
+      ))}
+    </div>
   );
 }
