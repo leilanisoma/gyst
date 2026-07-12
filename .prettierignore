@@ -1,0 +1,11 @@
+.next/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+public/
+package-lock.json
+
+# Planning/decision docs are hand-formatted; don't auto-reflow.
+*.md
+!README.md

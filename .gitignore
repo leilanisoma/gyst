@@ -31,3 +31,11 @@ coverage/
 # Supabase local
 supabase/.branches
 supabase/.temp
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Playwright
+/test-results/
+/playwright-report/
