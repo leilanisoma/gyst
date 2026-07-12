@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getAIClient } from "@/ai";
 import { ExtractionResultSchema, type ExtractedItem } from "@/ai/types";
+import { logXpEvent } from "@/lib/gamification-log";
 
 export type CaptureResult = { ok: true } | { ok: false; error: string };
 
@@ -29,6 +30,13 @@ export async function captureInboxItem(
   if (error) {
     return { ok: false, error: error.message };
   }
+
+  await logXpEvent(
+    supabase,
+    user.id,
+    "capture",
+    new Date().toISOString().slice(0, 10),
+  );
 
   revalidatePath("/inbox");
   revalidatePath("/");

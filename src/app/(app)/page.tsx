@@ -8,8 +8,10 @@ import { TaskSummaryList } from "@/components/today/task-summary-list";
 import { TimeBlockSuggestions } from "@/components/today/time-block-suggestions";
 import { TopOutcomesCard } from "@/components/today/top-outcomes-card";
 import { WeeklyGoalsList } from "@/components/today/weekly-goals-list";
+import { XpIndicator } from "@/components/today/xp-indicator";
 import { buttonVariants } from "@/components/ui/button";
 import { getLocalDateString } from "@/lib/date-range";
+import { daysEngagedThisWeek, totalXp } from "@/lib/gamification";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
 import { cn } from "@/lib/utils";
 import type { CheckIn } from "@/lib/check-ins";
@@ -78,6 +80,12 @@ export default async function TodayPage({
     .eq("status", "active")
     .order("target_date", { ascending: true });
 
+  const { data: xpEvents } = await supabase
+    .from("xp_events")
+    .select("points, occurred_on")
+    .order("occurred_on", { ascending: false })
+    .limit(500);
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div>
@@ -85,10 +93,14 @@ export default async function TodayPage({
           Hi, {firstName}.
         </h1>
         <p className="text-muted-foreground max-w-sm text-sm">
-          The fixed timeline, proposed time blocks, and top-three outcomes land
-          here later in Phase 2. For now, see what&rsquo;s overdue or coming up,
-          or capture a thought below.
+          The fixed timeline lands here once Google Calendar syncs (Phase 3).
+          For now, capture a thought, check in, and see what&rsquo;s overdue or
+          coming up below.
         </p>
+        <XpIndicator
+          xp={totalXp(xpEvents ?? [])}
+          daysEngaged={daysEngagedThisWeek(xpEvents ?? [], todayString)}
+        />
       </div>
 
       <div className="flex items-center justify-between gap-2">

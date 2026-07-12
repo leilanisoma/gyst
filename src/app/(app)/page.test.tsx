@@ -8,6 +8,7 @@ function queryBuilder(result: { data: unknown }) {
   builder.eq = chain;
   builder.neq = chain;
   builder.order = chain;
+  builder.limit = chain;
   builder.maybeSingle = async () => result;
   builder.then = (resolve: (value: { data: unknown }) => void) =>
     resolve(result);

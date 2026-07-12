@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logXpEvent } from "@/lib/gamification-log";
 import {
   nextFeasibleSlot,
   reducedEstimate,
@@ -10,6 +11,10 @@ import {
 import type { TaskPriority, TaskStatus } from "@/lib/tasks";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
+
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export async function updateTaskStatus(
   taskId: string,
@@ -23,6 +28,13 @@ export async function updateTaskStatus(
 
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  if (status === "completed") {
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData.user) {
+      await logXpEvent(supabase, userData.user.id, "finish_block", todayUtc());
+    }
   }
 
   revalidatePath("/tasks");
@@ -93,6 +105,11 @@ export async function rescheduleTaskToNextSlot(
     return { ok: false, error: error.message };
   }
 
+  const { data: userData } = await supabase.auth.getUser();
+  if (userData.user) {
+    await logXpEvent(supabase, userData.user.id, "review_overdue", todayUtc());
+  }
+
   revalidatePath("/tasks");
   revalidatePath("/");
   return { ok: true };
@@ -122,6 +139,11 @@ export async function reduceTaskScope(taskId: string): Promise<ActionResult> {
     return { ok: false, error: error.message };
   }
 
+  const { data: userData } = await supabase.auth.getUser();
+  if (userData.user) {
+    await logXpEvent(supabase, userData.user.id, "review_overdue", todayUtc());
+  }
+
   revalidatePath("/tasks");
   revalidatePath("/");
   return { ok: true };
@@ -133,6 +155,11 @@ export async function deleteTask(taskId: string): Promise<ActionResult> {
 
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  const { data: userData } = await supabase.auth.getUser();
+  if (userData.user) {
+    await logXpEvent(supabase, userData.user.id, "review_overdue", todayUtc());
   }
 
   revalidatePath("/tasks");

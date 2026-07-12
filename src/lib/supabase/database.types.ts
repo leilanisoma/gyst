@@ -535,6 +535,41 @@ export type Database = {
           },
         ]
       }
+      xp_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          occurred_on: string
+          points: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          occurred_on?: string
+          points: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          occurred_on?: string
+          points?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xp_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

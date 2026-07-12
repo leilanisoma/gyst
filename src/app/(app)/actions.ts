@@ -8,6 +8,7 @@ import {
   getLocalDayOfWeek,
   getLocalTimeUtc,
 } from "@/lib/date-range";
+import { logXpEvent } from "@/lib/gamification-log";
 import {
   buildFreeIntervals,
   clipToCapacity,
@@ -54,6 +55,8 @@ export async function upsertCheckIn(
   if (error) {
     return { ok: false, error: error.message };
   }
+
+  await logXpEvent(supabase, user.id, "check_in", input.check_in_date);
 
   revalidatePath("/");
   return { ok: true };
@@ -209,6 +212,18 @@ export async function updateTimeBlockSuggestionStatus(
     return { ok: false, error: error.message };
   }
 
+  if (status === "accepted") {
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData.user) {
+      await logXpEvent(
+        supabase,
+        userData.user.id,
+        "accept_block",
+        new Date().toISOString().slice(0, 10),
+      );
+    }
+  }
+
   revalidatePath("/");
   return { ok: true };
 }
@@ -244,6 +259,8 @@ export async function upsertDailyPlan(
   if (error) {
     return { ok: false, error: error.message };
   }
+
+  await logXpEvent(supabase, user.id, "set_outcomes", input.plan_date);
 
   revalidatePath("/");
   return { ok: true };
