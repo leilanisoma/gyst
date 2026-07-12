@@ -1,0 +1,26 @@
+[
+  {
+    "id": "aaaa-1111",
+    "text": "Growth Marketing Intern, Summer 2027",
+    "hostedUrl": "https://jobs.lever.co/example/aaaa-1111",
+    "categories": { "location": "Austin, TX" },
+    "createdAt": 1782000000000,
+    "descriptionBodyPlain": "Drive growth experiments."
+  },
+  {
+    "id": "bbbb-2222",
+    "text": "Machine Learning Engineer Intern",
+    "hostedUrl": "https://jobs.lever.co/example/bbbb-2222",
+    "categories": { "location": "Seattle, WA" },
+    "createdAt": 1782000100000,
+    "descriptionBodyPlain": "Train models."
+  },
+  {
+    "id": "cccc-3333",
+    "text": "Staff Software Engineer",
+    "hostedUrl": "https://jobs.lever.co/example/cccc-3333",
+    "categories": { "location": "Remote" },
+    "createdAt": 1782000200000,
+    "descriptionBodyPlain": "Not an internship, should be filtered out at discover time."
+  }
+]

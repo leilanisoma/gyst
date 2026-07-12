@@ -881,10 +881,13 @@ export type Database = {
           deadline: string | null
           description: string | null
           eligible_grad_years: number[]
+          external_id: string | null
+          feedback: string | null
           fingerprint: string
           id: string
           is_finance: boolean
           is_swe: boolean
+          last_seen_at: string | null
           location: string | null
           posted_at: string | null
           role_family: string
@@ -901,10 +904,13 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           eligible_grad_years?: number[]
+          external_id?: string | null
+          feedback?: string | null
           fingerprint: string
           id?: string
           is_finance?: boolean
           is_swe?: boolean
+          last_seen_at?: string | null
           location?: string | null
           posted_at?: string | null
           role_family?: string
@@ -921,10 +927,13 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           eligible_grad_years?: number[]
+          external_id?: string | null
+          feedback?: string | null
           fingerprint?: string
           id?: string
           is_finance?: boolean
           is_swe?: boolean
+          last_seen_at?: string | null
           location?: string | null
           posted_at?: string | null
           role_family?: string
@@ -1150,6 +1159,94 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_configs: {
+        Row: {
+          adapter_id: string
+          config: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          label: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          adapter_id: string
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          label: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          adapter_id?: string
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          label?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_configs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_runs: {
+        Row: {
+          error: string | null
+          finished_at: string | null
+          id: string
+          items_created: number
+          items_expired: number
+          items_found: number
+          items_updated: number
+          source_config_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_created?: number
+          items_expired?: number
+          items_found?: number
+          items_updated?: number
+          source_config_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_created?: number
+          items_expired?: number
+          items_found?: number
+          items_updated?: number
+          source_config_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_runs_source_config_id_fkey"
+            columns: ["source_config_id"]
+            isOneToOne: false
+            referencedRelation: "source_configs"
             referencedColumns: ["id"]
           },
         ]

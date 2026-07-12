@@ -1,0 +1,46 @@
+[
+  {
+    "id": "feed-1",
+    "category": "Product",
+    "company_name": "Acme Corp",
+    "title": "Product Management Intern",
+    "active": true,
+    "terms": ["Summer 2027"],
+    "date_posted": 1782000000,
+    "url": "https://example.com/jobs/feed-1",
+    "locations": ["Remote in USA"]
+  },
+  {
+    "id": "feed-2",
+    "category": "Product",
+    "company_name": "Old Postings Inc",
+    "title": "Product Intern",
+    "active": true,
+    "terms": ["Summer 2026"],
+    "date_posted": 1750000000,
+    "url": "https://example.com/jobs/feed-2",
+    "locations": ["New York, NY"]
+  },
+  {
+    "id": "feed-3",
+    "category": "Software",
+    "company_name": "SWE Co",
+    "title": "Software Engineering Intern",
+    "active": true,
+    "terms": ["Summer 2027"],
+    "date_posted": 1782000500,
+    "url": "https://example.com/jobs/feed-3",
+    "locations": ["Remote"]
+  },
+  {
+    "id": "feed-4",
+    "category": "Product",
+    "company_name": "Closed Role LLC",
+    "title": "Product Intern",
+    "active": false,
+    "terms": ["Summer 2027"],
+    "date_posted": 1782000600,
+    "url": "https://example.com/jobs/feed-4",
+    "locations": ["Chicago, IL"]
+  }
+]

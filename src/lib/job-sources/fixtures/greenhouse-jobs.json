@@ -1,0 +1,28 @@
+{
+  "jobs": [
+    {
+      "id": 1001,
+      "title": "Business Operations Intern, Summer 2027",
+      "absolute_url": "https://careers.example.com/positions/1001",
+      "location": { "name": "San Francisco, CA" },
+      "first_published": "2026-07-01T00:00:00-07:00",
+      "content": "<p>Support the ops team.</p><p>Requires Excel.</p>"
+    },
+    {
+      "id": 1002,
+      "title": "Software Engineer Intern, Summer 2027",
+      "absolute_url": "https://careers.example.com/positions/1002",
+      "location": { "name": "Remote" },
+      "first_published": "2026-07-02T00:00:00-07:00",
+      "content": "<p>Ship code.</p>"
+    },
+    {
+      "id": 1003,
+      "title": "Senior Account Executive",
+      "absolute_url": "https://careers.example.com/positions/1003",
+      "location": { "name": "New York, NY" },
+      "first_published": "2026-07-03T00:00:00-07:00",
+      "content": "<p>Not an internship, should be filtered out at discover time.</p>"
+    }
+  ]
+}
