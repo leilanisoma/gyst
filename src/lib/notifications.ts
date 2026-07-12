@@ -1,11 +1,13 @@
 import type { createClient } from "@/lib/supabase/server";
+import type { SupabaseServiceClient } from "@/lib/supabase/service";
 import { isWithinQuietHours } from "./quiet-hours";
 import { sendPush } from "./webpush";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type AnySupabaseClient = SupabaseServerClient | SupabaseServiceClient;
 
 export type NotificationKind =
-  "info" | "sync_error" | "deadline" | "block_reminder";
+  "info" | "sync_error" | "deadline" | "block_reminder" | "digest";
 
 export type NotificationRules = {
   push_enabled?: boolean;
@@ -27,7 +29,7 @@ export type CreateNotificationInput = {
  * not block the notification itself from being recorded.
  */
 export async function createNotification(
-  supabase: SupabaseServerClient,
+  supabase: AnySupabaseClient,
   userId: string,
   input: CreateNotificationInput,
 ): Promise<void> {
@@ -43,7 +45,7 @@ export async function createNotification(
 }
 
 async function pushIfAllowed(
-  supabase: SupabaseServerClient,
+  supabase: AnySupabaseClient,
   userId: string,
   input: CreateNotificationInput,
 ) {

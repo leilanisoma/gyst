@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { OpportunityForm } from "@/components/recruiting/opportunity-form";
 import { ApplicationsView } from "@/components/recruiting/applications-view";
 import { FollowUpsDue } from "@/components/recruiting/follow-ups-due";
+import { ClosingSoon } from "@/components/recruiting/closing-soon";
 import { DocumentsSection } from "@/components/recruiting/documents-section";
 import { ContactsSection } from "@/components/recruiting/contacts-section";
 import { AnalyticsSection } from "@/components/recruiting/analytics-section";
@@ -61,6 +62,7 @@ export default async function RecruitingPage() {
       <BookmarkletCard />
       <DiscoveryQueue applications={discoveredApplications} />
       <FollowUpsDue applications={pipelineApplications} />
+      <ClosingSoon applications={pipelineApplications} />
       <AnalyticsSection />
       <ApplicationsView applications={pipelineApplications} />
       <DocumentsSection />
