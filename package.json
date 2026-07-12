@@ -11,7 +11,8 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:types": "supabase gen types typescript --project-id iygdvkgvjtiiyyfqlnfo > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

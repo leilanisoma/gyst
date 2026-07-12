@@ -15,7 +15,7 @@ This is the **planned** schema (from `PLAN.md` §6). Tables marked **Implemented
 | Table | Purpose |
 |---|---|
 | `profiles` | **Implemented.** User identity, email, timezone. One row, created by a DB trigger on `auth.users` insert. The trigger rejects sign-ups for any email other than `ALLOWED_USER_EMAIL`; the app's proxy (`src/lib/supabase/middleware.ts`) enforces the same allowlist as a second layer. RLS: a user can only select/update the row where `auth.uid() = id`. See `supabase/migrations/20260712000001_profiles.sql`. |
-| `preferences` | Working hours, buffer defaults, notification rules, AI limits, theme. |
+| `preferences` | **Implemented.** Working hours, buffer minutes, notification rules (jsonb), AI daily token/dollar limits, theme. One row per profile, seeded automatically by a trigger on `profiles` insert. RLS: `auth.uid() = id`. See `supabase/migrations/20260712010001_core_schema.sql`. |
 | `integrations` | Provider, status, granted scopes, last sync, error state. |
 | `oauth_tokens` | Encrypted, server-only provider tokens; never readable by the browser. |
 | `sync_runs` | Provider, cursor, start/end, counts, error, retry state. |
@@ -24,11 +24,11 @@ This is the **planned** schema (from `PLAN.md` §6). Tables marked **Implemented
 
 | Table | Purpose |
 |---|---|
-| `inbox_items` | Raw capture, parsed status, source, original text. |
-| `tasks` | Title, notes, area, status, priority, estimated minutes, energy, due date, earliest start, source, rollover count. |
+| `inbox_items` | **Implemented.** Raw capture, `status` (`inbox`/`converted`/`archived`), `source` (default `manual`), and `converted_to`/`converted_id` provenance once manually converted. RLS: `auth.uid() = user_id`. |
+| `tasks` | **Implemented.** Title, notes, area, `status` (`not_started`/`in_progress`/`completed`), priority, estimated minutes, energy, due date, earliest start, source, `source_inbox_item_id` provenance, optional `project_id`/`goal_id`, rollover count. RLS: `auth.uid() = user_id`. |
 | `task_dependencies` | Blocking relationships between tasks. |
-| `projects` | Goal, area, status, target date. |
-| `goals` | Horizon, success definition, progress type. |
+| `projects` | **Implemented.** Title, description, area, status, target date. RLS: `auth.uid() = user_id`. |
+| `goals` | **Implemented.** Title, horizon, success definition, progress type, target date, status. RLS: `auth.uid() = user_id`. |
 | `events` | Fixed/flexible, start/end, location, travel buffer, external calendar ID. |
 | `time_block_suggestions` | Task, proposed interval, score, status, explanation. |
 | `daily_plans` | Capacity, top outcomes, mode, accepted version. |
