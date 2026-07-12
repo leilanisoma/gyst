@@ -17,6 +17,8 @@ export type JobScoreRow = {
 export type ApplicationWithOpportunity = {
   id: string;
   stage: ApplicationStage;
+  notes: string | null;
+  prep_notes: string | null;
   next_action: string | null;
   next_action_date: string | null;
   created_at: string;

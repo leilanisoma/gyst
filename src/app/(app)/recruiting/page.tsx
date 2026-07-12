@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { OpportunityForm } from "@/components/recruiting/opportunity-form";
 import { ApplicationsView } from "@/components/recruiting/applications-view";
+import { FollowUpsDue } from "@/components/recruiting/follow-ups-due";
 import type { ApplicationWithOpportunity } from "@/components/recruiting/types";
 
 const APPLICATIONS_SELECT = `
-  id, stage, next_action, next_action_date, created_at,
+  id, stage, notes, prep_notes, next_action, next_action_date, created_at,
   opportunity:opportunities(
     id, title, location, url, role_family, deadline, active,
     company:companies(id, name, established),
@@ -37,6 +38,9 @@ export default async function RecruitingPage() {
         </div>
         <OpportunityForm />
       </div>
+      <FollowUpsDue
+        applications={(applications ?? []) as ApplicationWithOpportunity[]}
+      />
       <ApplicationsView
         applications={(applications ?? []) as ApplicationWithOpportunity[]}
       />

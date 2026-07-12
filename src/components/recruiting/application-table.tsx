@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ApplicationDetailSheet } from "./application-detail-sheet";
 import { updateApplicationStage } from "@/app/(app)/recruiting/actions";
 import {
   APPLICATION_STAGES,
@@ -26,6 +27,7 @@ export function ApplicationTable({
 }) {
   const [prevServer, setPrevServer] = useState(serverApplications);
   const [applications, setApplications] = useState(serverApplications);
+  const [detailApplicationId, setDetailApplicationId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   if (serverApplications !== prevServer) {
@@ -48,6 +50,7 @@ export function ApplicationTable({
   }
 
   const sorted = sortByScore(applications);
+  const detailApplication = applications.find((a) => a.id === detailApplicationId);
 
   return (
     <div className="overflow-x-auto rounded-xl border">
@@ -71,7 +74,15 @@ export function ApplicationTable({
 
             return (
               <tr key={application.id} className="border-t">
-                <td className="p-3 font-medium">{opportunity.title}</td>
+                <td className="p-3 font-medium">
+                  <button
+                    type="button"
+                    onClick={() => setDetailApplicationId(application.id)}
+                    className="text-left hover:underline"
+                  >
+                    {opportunity.title}
+                  </button>
+                </td>
                 <td className="p-3">{opportunity.company?.name ?? "—"}</td>
                 <td className="p-3">{ROLE_FAMILY_LABELS[opportunity.role_family]}</td>
                 <td className="p-3">
@@ -113,6 +124,13 @@ export function ApplicationTable({
           })}
         </tbody>
       </table>
+      {detailApplication && (
+        <ApplicationDetailSheet
+          application={detailApplication}
+          open={detailApplicationId !== null}
+          onOpenChange={(open) => !open && setDetailApplicationId(null)}
+        />
+      )}
     </div>
   );
 }

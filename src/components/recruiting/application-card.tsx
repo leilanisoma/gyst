@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useDraggable } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScoreEditForm } from "./score-edit-form";
+import { ApplicationDetailSheet } from "./application-detail-sheet";
 import { firstScore, type ApplicationWithOpportunity } from "./types";
 import { ROLE_FAMILY_LABELS } from "@/lib/recruiting";
 
@@ -15,6 +17,7 @@ export function ApplicationCard({
   application: ApplicationWithOpportunity;
   draggable?: boolean;
 }) {
+  const [detailOpen, setDetailOpen] = useState(false);
   const opportunity = application.opportunity;
   const drag = useDraggable({ id: application.id, disabled: !draggable });
 
@@ -36,13 +39,17 @@ export function ApplicationCard({
       <CardContent className="flex flex-col gap-2 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="font-medium">
+            <button
+              type="button"
+              onClick={() => setDetailOpen(true)}
+              className="text-left font-medium hover:underline"
+            >
               {opportunity.title}
               <span className="text-muted-foreground font-normal">
                 {" "}
                 @ {opportunity.company?.name ?? "Unknown company"}
               </span>
-            </p>
+            </button>
             <p className="text-muted-foreground text-xs">
               {ROLE_FAMILY_LABELS[opportunity.role_family]}
               {opportunity.location ? ` · ${opportunity.location}` : ""}
@@ -59,6 +66,14 @@ export function ApplicationCard({
         </div>
         {score && !score.excluded && (
           <p className="text-muted-foreground text-xs">{score.explanation}</p>
+        )}
+        {application.next_action && (
+          <p className="text-xs">
+            Next: {application.next_action}
+            {application.next_action_date
+              ? ` by ${new Date(application.next_action_date).toLocaleDateString()}`
+              : ""}
+          </p>
         )}
         <div className="flex items-center gap-3">
           {score && <ScoreEditForm opportunityId={opportunity.id} score={score} />}
@@ -85,6 +100,11 @@ export function ApplicationCard({
           </button>
         )}
       </CardContent>
+      <ApplicationDetailSheet
+        application={application}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </Card>
   );
 }

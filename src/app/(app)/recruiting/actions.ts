@@ -290,3 +290,34 @@ function clampScore(value: number, min: number, max: number): number {
   if (Number.isNaN(value)) return min;
   return Math.min(max, Math.max(min, Math.round(value)));
 }
+
+export type ApplicationDetailsInput = {
+  notes: string | null;
+  prepNotes: string | null;
+  nextAction: string | null;
+  nextActionDate: string | null;
+};
+
+/** Covers task 4.6 (next action/follow-up) and 4.9 (prep notes) — both live on the same application detail sheet. */
+export async function updateApplicationDetails(
+  applicationId: string,
+  input: ApplicationDetailsInput,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("applications")
+    .update({
+      notes: input.notes?.trim() || null,
+      prep_notes: input.prepNotes?.trim() || null,
+      next_action: input.nextAction?.trim() || null,
+      next_action_date: input.nextActionDate,
+    })
+    .eq("id", applicationId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/recruiting");
+  return { ok: true };
+}
