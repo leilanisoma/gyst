@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { InstallInstructions } from "@/components/pwa/install-instructions";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -27,6 +28,7 @@ export default async function SettingsPage() {
         Working hours, notification rules, and AI limits arrive with
         `preferences` in a later phase.
       </p>
+      <InstallInstructions />
     </main>
   );
 }

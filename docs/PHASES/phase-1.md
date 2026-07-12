@@ -13,7 +13,7 @@ Goal: replace scattered mental notes with one trusted inbox. Source: `PLAN.md` Â
 - [x] Add AI extraction behind a feature flag with confirmation UI.
 - [x] Build task list, quick edit, due date, duration, status, and area.
 - [x] Build the draggable Kanban board with Not Started, In Progress, and Completed columns, plus keyboard/mobile status controls.
-- [ ] Add PWA manifest, icons, install instructions, and offline shell.
+- [x] Add PWA manifest, icons, install instructions, and offline shell.
 
 ## Notes
 
