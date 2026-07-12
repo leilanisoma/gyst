@@ -959,6 +959,7 @@ export type Database = {
           created_at: string
           id: string
           notification_rules: Json
+          recruiting_preferences: Json
           theme: string
           updated_at: string
           working_hours_end: string
@@ -971,6 +972,7 @@ export type Database = {
           created_at?: string
           id: string
           notification_rules?: Json
+          recruiting_preferences?: Json
           theme?: string
           updated_at?: string
           working_hours_end?: string
@@ -983,6 +985,7 @@ export type Database = {
           created_at?: string
           id?: string
           notification_rules?: Json
+          recruiting_preferences?: Json
           theme?: string
           updated_at?: string
           working_hours_end?: string
