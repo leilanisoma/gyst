@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Environment variables (never commit real secrets)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor/OS
+.DS_Store
+.vscode/
+.idea/
+
+# Claude Code local settings (machine-specific permissions)
+.claude/settings.local.json
+
+# Test/coverage
+coverage/
+
+# Vercel
+.vercel
+
+# Supabase local
+supabase/.branches
+supabase/.temp
