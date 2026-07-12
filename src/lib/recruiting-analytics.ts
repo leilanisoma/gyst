@@ -11,6 +11,7 @@ export type AnalyticsApplication = {
   created_at: string;
   source: string;
   role_family: RoleFamily;
+  excluded: boolean;
 };
 
 export type AnalyticsEvent = {
@@ -142,4 +143,36 @@ export function computeRoleFamilyConversion(
   applications: AnalyticsApplication[],
 ): GroupEffectiveness[] {
   return groupBy(applications, (app) => app.role_family);
+}
+
+export type SourceCoverage = {
+  key: string;
+  total: number;
+  excluded: number;
+  relevanceRate: number;
+};
+
+/**
+ * PLAN.md §15 Phase 5 exit criteria: "at least 80% of surfaced roles are
+ * plausibly relevant." `excluded` here is the same hard-exclusion flag
+ * `scoreOpportunity` already computes (closed/pure-SWE/pure-finance/
+ * ineligible-grad-year) — this is the measurement task 5.9 asks for before
+ * evaluating a paid search API, not a new relevance heuristic.
+ */
+export function computeSourceCoverage(applications: AnalyticsApplication[]): SourceCoverage[] {
+  const groups = new Map<string, { total: number; excluded: number }>();
+  for (const app of applications) {
+    const group = groups.get(app.source) ?? { total: 0, excluded: 0 };
+    group.total += 1;
+    if (app.excluded) group.excluded += 1;
+    groups.set(app.source, group);
+  }
+  return Array.from(groups.entries())
+    .map(([key, { total, excluded }]) => ({
+      key,
+      total,
+      excluded,
+      relevanceRate: total > 0 ? (total - excluded) / total : 0,
+    }))
+    .sort((a, b) => b.total - a.total);
 }

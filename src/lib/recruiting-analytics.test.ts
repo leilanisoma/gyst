@@ -3,6 +3,7 @@ import {
   computeApplicationsPerWeek,
   computeMedianResponseDays,
   computeRoleFamilyConversion,
+  computeSourceCoverage,
   computeSourceEffectiveness,
   computeStageFunnel,
   type AnalyticsApplication,
@@ -12,10 +13,26 @@ import {
 describe("computeStageFunnel", () => {
   it("counts distinct applications reaching each milestone", () => {
     const events: AnalyticsEvent[] = [
-      { application_id: "a", to_stage: "saved", occurred_at: "2026-07-01T00:00:00Z" },
-      { application_id: "a", to_stage: "applied", occurred_at: "2026-07-02T00:00:00Z" },
-      { application_id: "a", to_stage: "rejected", occurred_at: "2026-07-05T00:00:00Z" },
-      { application_id: "b", to_stage: "saved", occurred_at: "2026-07-01T00:00:00Z" },
+      {
+        application_id: "a",
+        to_stage: "saved",
+        occurred_at: "2026-07-01T00:00:00Z",
+      },
+      {
+        application_id: "a",
+        to_stage: "applied",
+        occurred_at: "2026-07-02T00:00:00Z",
+      },
+      {
+        application_id: "a",
+        to_stage: "rejected",
+        occurred_at: "2026-07-05T00:00:00Z",
+      },
+      {
+        application_id: "b",
+        to_stage: "saved",
+        occurred_at: "2026-07-01T00:00:00Z",
+      },
     ];
     const funnel = computeStageFunnel(events);
     expect(funnel.find((f) => f.stage === "saved")?.reached).toBe(2);
@@ -27,9 +44,30 @@ describe("computeStageFunnel", () => {
 describe("computeApplicationsPerWeek", () => {
   it("buckets applications into ISO weeks", () => {
     const apps: AnalyticsApplication[] = [
-      { id: "1", stage: "saved", created_at: "2026-07-06T00:00:00Z", source: "manual", role_family: "other" },
-      { id: "2", stage: "saved", created_at: "2026-07-08T00:00:00Z", source: "manual", role_family: "other" },
-      { id: "3", stage: "saved", created_at: "2026-06-29T00:00:00Z", source: "manual", role_family: "other" },
+      {
+        id: "1",
+        stage: "saved",
+        created_at: "2026-07-06T00:00:00Z",
+        source: "manual",
+        role_family: "other",
+        excluded: false,
+      },
+      {
+        id: "2",
+        stage: "saved",
+        created_at: "2026-07-08T00:00:00Z",
+        source: "manual",
+        role_family: "other",
+        excluded: false,
+      },
+      {
+        id: "3",
+        stage: "saved",
+        created_at: "2026-06-29T00:00:00Z",
+        source: "manual",
+        role_family: "other",
+        excluded: false,
+      },
     ];
     const now = new Date("2026-07-12T00:00:00Z");
     const weeks = computeApplicationsPerWeek(apps, 3, now);
@@ -47,19 +85,47 @@ describe("computeMedianResponseDays", () => {
 
   it("computes the median days between applied and the next event", () => {
     const events: AnalyticsEvent[] = [
-      { application_id: "a", to_stage: "saved", occurred_at: "2026-07-01T00:00:00Z" },
-      { application_id: "a", to_stage: "applied", occurred_at: "2026-07-02T00:00:00Z" },
-      { application_id: "a", to_stage: "interview", occurred_at: "2026-07-06T00:00:00Z" },
-      { application_id: "b", to_stage: "applied", occurred_at: "2026-07-01T00:00:00Z" },
-      { application_id: "b", to_stage: "rejected", occurred_at: "2026-07-03T00:00:00Z" },
+      {
+        application_id: "a",
+        to_stage: "saved",
+        occurred_at: "2026-07-01T00:00:00Z",
+      },
+      {
+        application_id: "a",
+        to_stage: "applied",
+        occurred_at: "2026-07-02T00:00:00Z",
+      },
+      {
+        application_id: "a",
+        to_stage: "interview",
+        occurred_at: "2026-07-06T00:00:00Z",
+      },
+      {
+        application_id: "b",
+        to_stage: "applied",
+        occurred_at: "2026-07-01T00:00:00Z",
+      },
+      {
+        application_id: "b",
+        to_stage: "rejected",
+        occurred_at: "2026-07-03T00:00:00Z",
+      },
     ];
     expect(computeMedianResponseDays(events)).toBe(3);
   });
 
   it("ignores applications where applied is the most recent event", () => {
     const events: AnalyticsEvent[] = [
-      { application_id: "a", to_stage: "saved", occurred_at: "2026-07-01T00:00:00Z" },
-      { application_id: "a", to_stage: "applied", occurred_at: "2026-07-02T00:00:00Z" },
+      {
+        application_id: "a",
+        to_stage: "saved",
+        occurred_at: "2026-07-01T00:00:00Z",
+      },
+      {
+        application_id: "a",
+        to_stage: "applied",
+        occurred_at: "2026-07-02T00:00:00Z",
+      },
     ];
     expect(computeMedianResponseDays(events)).toBeNull();
   });
@@ -67,9 +133,30 @@ describe("computeMedianResponseDays", () => {
 
 describe("group effectiveness", () => {
   const apps: AnalyticsApplication[] = [
-    { id: "1", stage: "offer", created_at: "2026-07-01T00:00:00Z", source: "manual", role_family: "product_management" },
-    { id: "2", stage: "saved", created_at: "2026-07-01T00:00:00Z", source: "manual", role_family: "product_management" },
-    { id: "3", stage: "applied", created_at: "2026-07-01T00:00:00Z", source: "referral", role_family: "other" },
+    {
+      id: "1",
+      stage: "offer",
+      created_at: "2026-07-01T00:00:00Z",
+      source: "manual",
+      role_family: "product_management",
+      excluded: false,
+    },
+    {
+      id: "2",
+      stage: "saved",
+      created_at: "2026-07-01T00:00:00Z",
+      source: "manual",
+      role_family: "product_management",
+      excluded: false,
+    },
+    {
+      id: "3",
+      stage: "applied",
+      created_at: "2026-07-01T00:00:00Z",
+      source: "referral",
+      role_family: "other",
+      excluded: false,
+    },
   ];
 
   it("groups by source", () => {
@@ -85,5 +172,75 @@ describe("group effectiveness", () => {
     const pm = byFamily.find((g) => g.key === "product_management");
     expect(pm?.total).toBe(2);
     expect(pm?.offers).toBe(1);
+  });
+});
+
+describe("computeSourceCoverage", () => {
+  it("computes a relevance rate per source from the excluded flag", () => {
+    const apps: AnalyticsApplication[] = [
+      {
+        id: "1",
+        stage: "discovered",
+        created_at: "2026-07-01T00:00:00Z",
+        source: "greenhouse",
+        role_family: "other",
+        excluded: false,
+      },
+      {
+        id: "2",
+        stage: "discovered",
+        created_at: "2026-07-01T00:00:00Z",
+        source: "greenhouse",
+        role_family: "other",
+        excluded: true,
+      },
+      {
+        id: "3",
+        stage: "discovered",
+        created_at: "2026-07-01T00:00:00Z",
+        source: "greenhouse",
+        role_family: "other",
+        excluded: true,
+      },
+      {
+        id: "4",
+        stage: "discovered",
+        created_at: "2026-07-01T00:00:00Z",
+        source: "greenhouse",
+        role_family: "other",
+        excluded: true,
+      },
+      {
+        id: "5",
+        stage: "discovered",
+        created_at: "2026-07-01T00:00:00Z",
+        source: "greenhouse",
+        role_family: "other",
+        excluded: true,
+      },
+      {
+        id: "6",
+        stage: "discovered",
+        created_at: "2026-07-01T00:00:00Z",
+        source: "curated_feed",
+        role_family: "other",
+        excluded: false,
+      },
+    ];
+
+    const coverage = computeSourceCoverage(apps);
+    const greenhouse = coverage.find((c) => c.key === "greenhouse");
+    const curated = coverage.find((c) => c.key === "curated_feed");
+
+    expect(greenhouse).toMatchObject({
+      total: 5,
+      excluded: 4,
+      relevanceRate: 0.2,
+    });
+    expect(curated).toMatchObject({ total: 1, excluded: 0, relevanceRate: 1 });
+  });
+
+  it("returns an empty array for no applications", () => {
+    expect(computeSourceCoverage([])).toEqual([]);
   });
 });

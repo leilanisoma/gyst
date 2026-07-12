@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   computeApplicationsPerWeek,
   computeMedianResponseDays,
   computeRoleFamilyConversion,
+  computeSourceCoverage,
   computeSourceEffectiveness,
   computeStageFunnel,
   type AnalyticsApplication,
@@ -20,7 +22,9 @@ export async function AnalyticsSection() {
 
   const { data: applications } = await supabase
     .from("applications")
-    .select("id, stage, created_at, opportunity:opportunities(source, role_family)");
+    .select(
+      "id, stage, created_at, opportunity:opportunities(source, role_family, job_scores(excluded))",
+    );
 
   const { data: applicationIds } = await supabase.from("applications").select("id");
   const ids = (applicationIds ?? []).map((a) => a.id);
@@ -33,13 +37,18 @@ export async function AnalyticsSection() {
           .in("application_id", ids)
       : { data: [] };
 
-  const analyticsApps: AnalyticsApplication[] = (applications ?? []).map((app) => ({
-    id: app.id,
-    stage: app.stage as ApplicationStage,
-    created_at: app.created_at,
-    source: app.opportunity?.source ?? "manual",
-    role_family: (app.opportunity?.role_family ?? "other") as RoleFamily,
-  }));
+  const analyticsApps: AnalyticsApplication[] = (applications ?? []).map((app) => {
+    const jobScores = app.opportunity?.job_scores;
+    const score = Array.isArray(jobScores) ? jobScores[0] : jobScores;
+    return {
+      id: app.id,
+      stage: app.stage as ApplicationStage,
+      created_at: app.created_at,
+      source: app.opportunity?.source ?? "manual",
+      role_family: (app.opportunity?.role_family ?? "other") as RoleFamily,
+      excluded: score?.excluded ?? false,
+    };
+  });
   const analyticsEvents: AnalyticsEvent[] = events ?? [];
 
   if (analyticsApps.length === 0) return null;
@@ -49,6 +58,7 @@ export async function AnalyticsSection() {
   const medianResponseDays = computeMedianResponseDays(analyticsEvents);
   const bySource = computeSourceEffectiveness(analyticsApps);
   const byRoleFamily = computeRoleFamilyConversion(analyticsApps);
+  const sourceCoverage = computeSourceCoverage(analyticsApps);
 
   return (
     <Card>
@@ -126,6 +136,25 @@ export async function AnalyticsSection() {
               ))}
             </ul>
           </div>
+        </div>
+
+        <div>
+          <p className="text-muted-foreground text-xs">
+            Source coverage
+            <span className="font-normal"> — target: at least 80% plausibly relevant per source</span>
+          </p>
+          <ul className="mt-1 flex flex-col gap-1 text-xs">
+            {sourceCoverage.map((coverage) => (
+              <li key={coverage.key} className="flex items-center gap-2">
+                <span>
+                  {coverage.key}: {coverage.total} surfaced, {coverage.excluded} excluded
+                </span>
+                <Badge variant={coverage.relevanceRate >= 0.8 ? "outline" : "destructive"}>
+                  {Math.round(coverage.relevanceRate * 100)}% relevant
+                </Badge>
+              </li>
+            ))}
+          </ul>
         </div>
       </CardContent>
     </Card>
