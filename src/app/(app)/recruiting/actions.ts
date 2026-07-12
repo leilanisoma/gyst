@@ -8,6 +8,7 @@ import {
   type RoleFamily,
 } from "@/lib/recruiting";
 import { scoreOpportunity } from "@/lib/job-scoring";
+import { findOrCreateCompany } from "./company-helpers";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -41,37 +42,16 @@ export async function createOpportunity(
     return { ok: false, error: "Not signed in." };
   }
 
-  const { data: existingCompany } = await supabase
-    .from("companies")
-    .select("id, established")
-    .eq("user_id", user.id)
-    .ilike("name", companyName)
-    .maybeSingle();
-
-  let companyId = existingCompany?.id ?? null;
-  if (!companyId) {
-    const { data: newCompany, error: companyError } = await supabase
-      .from("companies")
-      .insert({
-        user_id: user.id,
-        name: companyName,
-        established: input.established,
-      })
-      .select("id")
-      .single();
-    if (companyError || !newCompany) {
-      return {
-        ok: false,
-        error: companyError?.message ?? "Could not create company.",
-      };
-    }
-    companyId = newCompany.id;
-  } else if (existingCompany && existingCompany.established !== input.established) {
-    await supabase
-      .from("companies")
-      .update({ established: input.established })
-      .eq("id", companyId);
+  const company = await findOrCreateCompany(
+    supabase,
+    user.id,
+    companyName,
+    input.established,
+  );
+  if ("error" in company) {
+    return { ok: false, error: company.error };
   }
+  const companyId = company.id;
 
   const fingerprint = opportunityFingerprint({
     companyName,

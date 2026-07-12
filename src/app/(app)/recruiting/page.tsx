@@ -3,6 +3,7 @@ import { OpportunityForm } from "@/components/recruiting/opportunity-form";
 import { ApplicationsView } from "@/components/recruiting/applications-view";
 import { FollowUpsDue } from "@/components/recruiting/follow-ups-due";
 import { DocumentsSection } from "@/components/recruiting/documents-section";
+import { ContactsSection } from "@/components/recruiting/contacts-section";
 import type { ApplicationWithOpportunity } from "@/components/recruiting/types";
 
 const APPLICATIONS_SELECT = `
@@ -46,6 +47,7 @@ export default async function RecruitingPage() {
         applications={(applications ?? []) as ApplicationWithOpportunity[]}
       />
       <DocumentsSection />
+      <ContactsSection />
     </main>
   );
 }

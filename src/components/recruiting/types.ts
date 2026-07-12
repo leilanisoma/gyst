@@ -1,4 +1,9 @@
-import type { ApplicationStage, RoleFamily } from "@/lib/recruiting";
+import type {
+  ApplicationStage,
+  ContactRelationship,
+  InteractionKind,
+  RoleFamily,
+} from "@/lib/recruiting";
 
 export type JobScoreRow = {
   role_family_score: number;
@@ -33,6 +38,27 @@ export type ApplicationWithOpportunity = {
     company: { id: string; name: string; established: boolean } | null;
     job_scores: JobScoreRow | JobScoreRow[] | null;
   } | null;
+};
+
+export type InteractionRow = {
+  id: string;
+  kind: InteractionKind;
+  summary: string;
+  occurred_at: string;
+  follow_up_at: string | null;
+};
+
+export type ContactWithInteractions = {
+  id: string;
+  name: string;
+  role: string | null;
+  relationship: ContactRelationship;
+  email: string | null;
+  linkedin_url: string | null;
+  last_contacted_at: string | null;
+  next_contact_at: string | null;
+  company: { id: string; name: string } | null;
+  interactions: InteractionRow[];
 };
 
 export function firstScore(
