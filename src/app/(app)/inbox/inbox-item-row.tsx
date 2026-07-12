@@ -1,16 +1,24 @@
 "use client";
 
-import { useTransition } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { useState, useTransition } from "react";
+import { MoreHorizontal, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { convertInboxItem, type ConvertTarget } from "./actions";
+import { ExtractionConfirmDialog } from "@/components/ai/extraction-confirm-dialog";
+import type { ExtractedItem } from "@/ai/types";
+import {
+  commitExtractedItems,
+  convertInboxItem,
+  extractInboxItem,
+  type ConvertTarget,
+} from "./actions";
 
 type InboxItem = {
   id: string;
@@ -24,8 +32,15 @@ const LABELS: Record<ConvertTarget, string> = {
   note: "Mark as note",
 };
 
-export function InboxItemRow({ item }: { item: InboxItem }) {
+export function InboxItemRow({
+  item,
+  aiExtractionEnabled,
+}: {
+  item: InboxItem;
+  aiExtractionEnabled: boolean;
+}) {
   const [isPending, startTransition] = useTransition();
+  const [candidates, setCandidates] = useState<ExtractedItem[] | null>(null);
 
   function convert(target: ConvertTarget) {
     startTransition(async () => {
@@ -37,6 +52,29 @@ export function InboxItemRow({ item }: { item: InboxItem }) {
           target === "note" ? "Marked as note" : `Converted to ${target}`,
         );
       }
+    });
+  }
+
+  function runExtraction() {
+    startTransition(async () => {
+      const result = await extractInboxItem(item.id);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      setCandidates(result.items);
+    });
+  }
+
+  function confirmExtraction(accepted: ExtractedItem[]) {
+    startTransition(async () => {
+      const result = await commitExtractedItems(item.id, accepted);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+      setCandidates(null);
+      toast.success("Saved");
     });
   }
 
@@ -67,8 +105,26 @@ export function InboxItemRow({ item }: { item: InboxItem }) {
               {LABELS[target]}
             </DropdownMenuItem>
           ))}
+          {aiExtractionEnabled && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={runExtraction}>
+                <Sparkles className="size-4" />
+                Extract with AI
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
+      {candidates && (
+        <ExtractionConfirmDialog
+          open
+          onOpenChange={(open) => !open && setCandidates(null)}
+          items={candidates}
+          onConfirm={confirmExtraction}
+          isSubmitting={isPending}
+        />
+      )}
     </li>
   );
 }

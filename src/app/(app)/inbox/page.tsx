@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
+import { isAIExtractionEnabled } from "@/ai";
 import { InboxList } from "./inbox-list";
 
 export default async function InboxPage() {
@@ -9,6 +10,7 @@ export default async function InboxPage() {
     .select("id, raw_text, created_at")
     .eq("status", "inbox")
     .order("created_at", { ascending: false });
+  const aiExtractionEnabled = isAIExtractionEnabled();
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -22,7 +24,10 @@ export default async function InboxPage() {
       <div className="max-w-xl">
         <CaptureForm />
       </div>
-      <InboxList items={items ?? []} />
+      <InboxList
+        items={items ?? []}
+        aiExtractionEnabled={aiExtractionEnabled}
+      />
     </main>
   );
 }

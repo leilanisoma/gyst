@@ -10,7 +10,7 @@ Goal: replace scattered mental notes with one trusted inbox. Source: `PLAN.md` Â
 - [x] Create Inbox, tasks, projects, goals, and settings schema.
 - [x] Build instant raw brain-dump capture.
 - [x] Add deterministic manual conversion from inbox item to task/note/goal.
-- [ ] Add AI extraction behind a feature flag with confirmation UI.
+- [x] Add AI extraction behind a feature flag with confirmation UI.
 - [ ] Build task list, quick edit, due date, duration, status, and area.
 - [ ] Build the draggable Kanban board with Not Started, In Progress, and Completed columns, plus keyboard/mobile status controls.
 - [ ] Add PWA manifest, icons, install instructions, and offline shell.

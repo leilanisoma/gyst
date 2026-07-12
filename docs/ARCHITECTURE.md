@@ -41,7 +41,7 @@ There is no Next.js app, no database, no deployed environment, and no CI yet. "L
 | Testing | Vitest + React Testing Library + Playwright |
 | Monitoring | Sentry free tier or structured DB logs |
 
-AI provider is **undecided** as of Phase 0 (see `docs/DECISIONS/0001-phase-0-foundational-decisions.md`). All AI calls will go through one provider-neutral `AIClient` interface once built, so this decision does not block earlier phases.
+AI provider is **undecided** (see `docs/DECISIONS/0001-phase-0-foundational-decisions.md`). The provider-neutral `AIClient` interface exists (`src/ai/client.ts`), but `getAIClient()` (`src/ai/index.ts`) always returns `null` until a real adapter is wired in — `isAIExtractionEnabled()` gates any AI-dependent UI (currently just the Inbox's "Extract with AI" action, which stays hidden).
 
 ## Planned high-level shape (Phase 1+)
 

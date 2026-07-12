@@ -6,7 +6,13 @@ type InboxItem = {
   created_at: string;
 };
 
-export function InboxList({ items }: { items: InboxItem[] }) {
+export function InboxList({
+  items,
+  aiExtractionEnabled,
+}: {
+  items: InboxItem[];
+  aiExtractionEnabled: boolean;
+}) {
   if (items.length === 0) {
     return (
       <p className="text-muted-foreground text-sm">
@@ -18,7 +24,11 @@ export function InboxList({ items }: { items: InboxItem[] }) {
   return (
     <ul className="flex max-w-xl flex-col gap-2">
       {items.map((item) => (
-        <InboxItemRow key={item.id} item={item} />
+        <InboxItemRow
+          key={item.id}
+          item={item}
+          aiExtractionEnabled={aiExtractionEnabled}
+        />
       ))}
     </ul>
   );
