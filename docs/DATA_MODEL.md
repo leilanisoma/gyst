@@ -1,6 +1,6 @@
 # Data Model
 
-This is the **planned** schema (from `PLAN.md` §6), kept here for reference during Phase 0. No migrations exist yet — this file must be updated to match reality as soon as the first migration lands in Phase 1, and from then on this file describes actual tables, not aspirations.
+This is the **planned** schema (from `PLAN.md` §6). Tables marked **Implemented** below reflect actual migrations in `supabase/migrations/`; everything else is still aspirational.
 
 ## Conventions (apply to every table once built)
 
@@ -14,7 +14,7 @@ This is the **planned** schema (from `PLAN.md` §6), kept here for reference dur
 
 | Table | Purpose |
 |---|---|
-| `profiles` | User identity, timezone, allowed email. |
+| `profiles` | **Implemented.** User identity, email, timezone. One row, created by a DB trigger on `auth.users` insert. The trigger rejects sign-ups for any email other than `ALLOWED_USER_EMAIL`; the app's proxy (`src/lib/supabase/middleware.ts`) enforces the same allowlist as a second layer. RLS: a user can only select/update the row where `auth.uid() = id`. See `supabase/migrations/20260712000001_profiles.sql`. |
 | `preferences` | Working hours, buffer defaults, notification rules, AI limits, theme. |
 | `integrations` | Provider, status, granted scopes, last sync, error state. |
 | `oauth_tokens` | Encrypted, server-only provider tokens; never readable by the browser. |
