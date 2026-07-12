@@ -15,6 +15,7 @@ function task(overrides: Partial<Task>): Task {
     priority: "medium",
     estimated_minutes: null,
     due_date: overrides.due_date ?? null,
+    rollover_count: 0,
     ...overrides,
   };
 }

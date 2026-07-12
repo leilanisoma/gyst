@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
 import { CheckInCard } from "@/components/today/check-in-card";
+import { RolloverReviewList } from "@/components/today/rollover-review-list";
 import { TaskSummaryList } from "@/components/today/task-summary-list";
 import { TimeBlockSuggestions } from "@/components/today/time-block-suggestions";
 import { buttonVariants } from "@/components/ui/button";
@@ -36,7 +37,7 @@ export default async function TodayPage({
   const { data: tasks } = await supabase
     .from("tasks")
     .select(
-      "id, title, notes, area, status, priority, estimated_minutes, due_date",
+      "id, title, notes, area, status, priority, estimated_minutes, due_date, rollover_count",
     )
     .order("due_date", { ascending: true });
 
@@ -143,7 +144,7 @@ function TodayView({
     <>
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold">Overdue</h2>
-        <TaskSummaryList tasks={overdue} emptyMessage="Nothing overdue." />
+        <RolloverReviewList tasks={overdue} />
       </section>
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold">Due today</h2>

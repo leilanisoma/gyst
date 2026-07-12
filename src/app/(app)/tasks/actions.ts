@@ -2,6 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import {
+  nextFeasibleSlot,
+  reducedEstimate,
+  reducedPriority,
+} from "@/lib/rollover";
 import type { TaskPriority, TaskStatus } from "@/lib/tasks";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -59,5 +64,78 @@ export async function updateTask(
   }
 
   revalidatePath("/tasks");
+  return { ok: true };
+}
+
+export async function rescheduleTaskToNextSlot(
+  taskId: string,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: existing, error: fetchError } = await supabase
+    .from("tasks")
+    .select("due_date, rollover_count")
+    .eq("id", taskId)
+    .single();
+
+  if (fetchError || !existing?.due_date) {
+    return { ok: false, error: fetchError?.message ?? "Task not found." };
+  }
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      due_date: nextFeasibleSlot(existing.due_date),
+      rollover_count: existing.rollover_count + 1,
+    })
+    .eq("id", taskId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/tasks");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function reduceTaskScope(taskId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: existing, error: fetchError } = await supabase
+    .from("tasks")
+    .select("priority, estimated_minutes")
+    .eq("id", taskId)
+    .single();
+
+  if (fetchError || !existing) {
+    return { ok: false, error: fetchError?.message ?? "Task not found." };
+  }
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      priority: reducedPriority(existing.priority as TaskPriority),
+      estimated_minutes: reducedEstimate(existing.estimated_minutes),
+    })
+    .eq("id", taskId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/tasks");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function deleteTask(taskId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/tasks");
+  revalidatePath("/");
   return { ok: true };
 }

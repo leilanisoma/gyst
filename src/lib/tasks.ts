@@ -31,4 +31,5 @@ export type Task = {
   priority: TaskPriority;
   estimated_minutes: number | null;
   due_date: string | null;
+  rollover_count: number;
 };

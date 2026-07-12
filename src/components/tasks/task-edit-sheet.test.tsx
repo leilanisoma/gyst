@@ -23,6 +23,7 @@ const task: Task = {
   priority: "medium",
   estimated_minutes: 30,
   due_date: null,
+  rollover_count: 0,
 };
 
 describe("TaskEditSheet", () => {
