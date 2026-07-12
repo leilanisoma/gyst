@@ -437,6 +437,63 @@ export type Database = {
           },
         ]
       }
+      time_block_suggestions: {
+        Row: {
+          created_at: string
+          end_at: string
+          explanation: string | null
+          id: string
+          score: number
+          start_at: string
+          status: string
+          suggestion_date: string
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_at: string
+          explanation?: string | null
+          id?: string
+          score?: number
+          start_at: string
+          status?: string
+          suggestion_date?: string
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_at?: string
+          explanation?: string | null
+          id?: string
+          score?: number
+          start_at?: string
+          status?: string
+          suggestion_date?: string
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_block_suggestions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_block_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

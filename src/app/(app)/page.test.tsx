@@ -6,6 +6,7 @@ function queryBuilder(result: { data: unknown }) {
   const chain = () => builder;
   builder.select = chain;
   builder.eq = chain;
+  builder.neq = chain;
   builder.order = chain;
   builder.maybeSingle = async () => result;
   builder.then = (resolve: (value: { data: unknown }) => void) =>
@@ -48,5 +49,10 @@ describe("Today page", () => {
   it("shows the daily check-in card in today view", async () => {
     render(await Page({ searchParams: Promise.resolve({}) }));
     expect(screen.getByText(/how.s today/i)).toBeInTheDocument();
+  });
+
+  it("shows the time-block suggestions section in today view", async () => {
+    render(await Page({ searchParams: Promise.resolve({}) }));
+    expect(screen.getByText("Suggested time blocks")).toBeInTheDocument();
   });
 });

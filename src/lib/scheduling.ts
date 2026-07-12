@@ -75,6 +75,38 @@ export function totalMinutes(intervals: FixedInterval[]): number {
   );
 }
 
+/**
+ * Trims trailing intervals so their total duration never exceeds
+ * `capacityMinutes` — the day's declared maximum planned focus time. Earlier
+ * intervals are kept whole and preferred, since they're likelier to hold
+ * fixed-commitment-adjacent, already-scored placements.
+ */
+export function clipToCapacity(
+  intervals: FixedInterval[],
+  capacityMinutes: number | null,
+): FixedInterval[] {
+  if (capacityMinutes == null) return intervals;
+
+  const clipped: FixedInterval[] = [];
+  let remainingMinutes = capacityMinutes;
+  for (const interval of intervals) {
+    if (remainingMinutes <= 0) break;
+    const durationMinutes =
+      (interval.end.getTime() - interval.start.getTime()) / 60_000;
+    if (durationMinutes <= remainingMinutes) {
+      clipped.push(interval);
+      remainingMinutes -= durationMinutes;
+    } else {
+      clipped.push({
+        start: interval.start,
+        end: new Date(interval.start.getTime() + remainingMinutes * 60_000),
+      });
+      remainingMinutes = 0;
+    }
+  }
+  return clipped;
+}
+
 export type EnergyLevel = "low" | "medium" | "high";
 
 export type ScorableTask = {
@@ -146,4 +178,139 @@ export function scoreTask(task: ScorableTask, context: ScoringContext): number {
     rolloverPressure(task) -
     energyMismatch(task, context.userEnergy)
   );
+}
+
+/** Default block length for tasks without an estimate, in minutes. */
+export const DEFAULT_BLOCK_MINUTES = 30;
+/** Minutes reserved as an untouchable buffer, never offered for placement (PLAN.md §7). */
+export const BUFFER_BLOCK_MINUTES = 30;
+
+/**
+ * Removes one day's worth of unscheduled buffer from `freeIntervals`: the
+ * largest interval when there are several, or the tail of the only interval
+ * when there's just one. Never returns an interval placement can touch that
+ * would leave zero slack in the day.
+ */
+export function reserveBufferBlock(
+  freeIntervals: FixedInterval[],
+  bufferMinutes: number = BUFFER_BLOCK_MINUTES,
+): FixedInterval[] {
+  if (freeIntervals.length === 0) return [];
+
+  if (freeIntervals.length === 1) {
+    const only = freeIntervals[0];
+    const durationMinutes =
+      (only.end.getTime() - only.start.getTime()) / 60_000;
+    if (durationMinutes <= bufferMinutes) return [];
+    return [
+      {
+        start: only.start,
+        end: new Date(only.end.getTime() - bufferMinutes * 60_000),
+      },
+    ];
+  }
+
+  let largestIndex = 0;
+  let largestDuration = -Infinity;
+  freeIntervals.forEach((interval, index) => {
+    const duration = interval.end.getTime() - interval.start.getTime();
+    if (duration > largestDuration) {
+      largestDuration = duration;
+      largestIndex = index;
+    }
+  });
+  return freeIntervals.filter((_, index) => index !== largestIndex);
+}
+
+export type PlacementCandidate = ScorableTask & {
+  id: string;
+  estimated_minutes: number | null;
+};
+
+export type PlacedBlock = {
+  taskId: string;
+  start: Date;
+  end: Date;
+  score: number;
+  explanation: string;
+};
+
+function explainPlacement(
+  task: PlacementCandidate,
+  context: ScoringContext,
+): string {
+  const reasons: string[] = [];
+  if (deadlineUrgency(task, context.now) >= 8) reasons.push("due soon");
+  if (task.priority === "high") reasons.push("high priority");
+  if (task.goal_id) reasons.push("tied to a goal");
+  if (task.rollover_count > 0) reasons.push("rolled over before");
+  if (shortTaskBonus(task) > 0) reasons.push("a quick win");
+  if (reasons.length === 0) reasons.push("fits your free time");
+  return reasons.join(", ");
+}
+
+/**
+ * Greedily places candidates (highest score first) into free intervals.
+ * High-energy tasks fill the earliest available window; low-energy tasks
+ * fill the latest, leaving early focus time for high-energy work. Tasks
+ * that don't fit anywhere are left unplaced (no splitting in v1). One
+ * buffer block is reserved up front and never scheduled into.
+ */
+export function placeTasks(
+  candidates: PlacementCandidate[],
+  freeIntervals: FixedInterval[],
+  context: ScoringContext,
+  defaultMinutes: number = DEFAULT_BLOCK_MINUTES,
+): PlacedBlock[] {
+  const working = reserveBufferBlock(freeIntervals).map((interval) => ({
+    ...interval,
+  }));
+
+  const ordered = [...candidates].sort(
+    (a, b) => scoreTask(b, context) - scoreTask(a, context),
+  );
+
+  const placed: PlacedBlock[] = [];
+
+  for (const task of ordered) {
+    const durationMs = (task.estimated_minutes ?? defaultMinutes) * 60_000;
+    const searchOrder =
+      task.energy === "low" ? [...working].reverse() : working;
+
+    const target = searchOrder.find(
+      (interval) =>
+        interval.end.getTime() - interval.start.getTime() >= durationMs,
+    );
+    if (!target) continue;
+
+    const targetIndex = working.indexOf(target);
+    const blockStart =
+      task.energy === "low"
+        ? new Date(target.end.getTime() - durationMs)
+        : target.start;
+    const blockEnd = new Date(blockStart.getTime() + durationMs);
+
+    placed.push({
+      taskId: task.id,
+      start: blockStart,
+      end: blockEnd,
+      score: scoreTask(task, context),
+      explanation: explainPlacement(task, context),
+    });
+
+    working[targetIndex] =
+      task.energy === "low"
+        ? { start: target.start, end: blockStart }
+        : { start: blockEnd, end: target.end };
+
+    const remainingMinutes =
+      (working[targetIndex].end.getTime() -
+        working[targetIndex].start.getTime()) /
+      60_000;
+    if (remainingMinutes < MIN_BLOCK_MINUTES) {
+      working.splice(targetIndex, 1);
+    }
+  }
+
+  return placed.sort((a, b) => a.start.getTime() - b.start.getTime());
 }

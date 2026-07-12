@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   getLocalDateString,
+  getLocalDayOfWeek,
   getLocalDayRange,
   getLocalDayRanges,
+  getLocalTimeUtc,
 } from "./date-range";
 
 describe("getLocalDayRange", () => {
@@ -64,5 +66,32 @@ describe("getLocalDateString", () => {
     expect(getLocalDateString(reference, "America/Los_Angeles")).toBe(
       "2026-07-10",
     );
+  });
+});
+
+describe("getLocalTimeUtc", () => {
+  it("converts a local wall-clock time to the matching UTC instant", () => {
+    const reference = new Date("2026-07-11T15:00:00Z");
+    const result = getLocalTimeUtc(reference, "America/Los_Angeles", "14:30");
+    expect(result.toISOString()).toBe("2026-07-11T21:30:00.000Z");
+  });
+
+  it("applies dayOffset relative to reference's local day", () => {
+    const reference = new Date("2026-07-11T15:00:00Z");
+    const result = getLocalTimeUtc(reference, "UTC", "09:00", 1);
+    expect(result.toISOString()).toBe("2026-07-12T09:00:00.000Z");
+  });
+});
+
+describe("getLocalDayOfWeek", () => {
+  it("returns 0-6 for Sunday-Saturday in the given timezone", () => {
+    // 2026-07-11T15:00:00Z is Saturday in UTC.
+    expect(getLocalDayOfWeek(new Date("2026-07-11T15:00:00Z"), "UTC")).toBe(6);
+  });
+
+  it("uses the local date, not the UTC date, near a day boundary", () => {
+    // 03:00 UTC on 2026-07-11 is still Friday evening in Los Angeles.
+    const reference = new Date("2026-07-11T03:00:00Z");
+    expect(getLocalDayOfWeek(reference, "America/Los_Angeles")).toBe(5);
   });
 });

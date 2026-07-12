@@ -3,12 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { TaskSummaryList } from "@/components/today/task-summary-list";
+import { TimeBlockSuggestions } from "@/components/today/time-block-suggestions";
 import { buttonVariants } from "@/components/ui/button";
 import { getLocalDateString } from "@/lib/date-range";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
 import { cn } from "@/lib/utils";
 import type { CheckIn } from "@/lib/check-ins";
 import type { Task } from "@/lib/tasks";
+import type { TimeBlockSuggestion } from "@/lib/time-block-suggestions";
 
 const WEEK_DAYS = 7;
 
@@ -48,6 +50,15 @@ export default async function TodayPage({
     )
     .eq("check_in_date", todayString)
     .maybeSingle();
+
+  const { data: suggestions } = await supabase
+    .from("time_block_suggestions")
+    .select(
+      "id, task_id, start_at, end_at, status, explanation, score, tasks(title, area)",
+    )
+    .eq("suggestion_date", todayString)
+    .neq("status", "dismissed")
+    .order("start_at", { ascending: true });
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -92,6 +103,9 @@ export default async function TodayPage({
           <CheckInCard
             checkIn={(checkIn as CheckIn | null) ?? null}
             dateString={todayString}
+          />
+          <TimeBlockSuggestions
+            suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
           />
           <TodayView
             tasks={(tasks ?? []) as Task[]}

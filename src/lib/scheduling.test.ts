@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
   buildFreeIntervals,
+  clipToCapacity,
   deadlineUrgency,
   energyMismatch,
   goalImportance,
+  placeTasks,
   priorityScore,
+  reserveBufferBlock,
   rolloverPressure,
   scoreTask,
   shortTaskBonus,
   totalMinutes,
+  type PlacementCandidate,
   type ScorableTask,
 } from "./scheduling";
 
@@ -159,5 +163,153 @@ describe("scoreTask", () => {
     expect(scoreTask(urgent, context)).toBeGreaterThan(
       scoreTask(distant, context),
     );
+  });
+});
+
+function candidate(
+  id: string,
+  overrides: Partial<PlacementCandidate>,
+): PlacementCandidate {
+  return {
+    id,
+    ...task({}),
+    ...overrides,
+  };
+}
+
+describe("clipToCapacity", () => {
+  const intervals = [
+    {
+      start: new Date("2026-07-11T09:00:00Z"),
+      end: new Date("2026-07-11T10:00:00Z"),
+    },
+    {
+      start: new Date("2026-07-11T13:00:00Z"),
+      end: new Date("2026-07-11T15:00:00Z"),
+    },
+  ];
+
+  it("passes intervals through unchanged when capacity is null", () => {
+    expect(clipToCapacity(intervals, null)).toEqual(intervals);
+  });
+
+  it("keeps whole intervals until capacity runs out, then trims the last one", () => {
+    const clipped = clipToCapacity(intervals, 90);
+    expect(clipped).toHaveLength(2);
+    expect(clipped[0]).toEqual(intervals[0]);
+    expect(clipped[1].end.toISOString()).toBe("2026-07-11T13:30:00.000Z");
+  });
+
+  it("drops later intervals once capacity is exhausted", () => {
+    const clipped = clipToCapacity(intervals, 60);
+    expect(clipped).toEqual([intervals[0]]);
+  });
+});
+
+describe("reserveBufferBlock", () => {
+  it("swallows a single interval no bigger than the buffer itself", () => {
+    const intervals = [
+      {
+        start: new Date("2026-07-11T09:00:00Z"),
+        end: new Date("2026-07-11T09:20:00Z"),
+      },
+    ];
+    expect(reserveBufferBlock(intervals, 30)).toEqual([]);
+  });
+
+  it("trims the tail of a single larger interval", () => {
+    const intervals = [
+      {
+        start: new Date("2026-07-11T09:00:00Z"),
+        end: new Date("2026-07-11T10:00:00Z"),
+      },
+    ];
+    const [reserved] = reserveBufferBlock(intervals, 30);
+    expect(reserved.end.toISOString()).toBe("2026-07-11T09:30:00.000Z");
+  });
+
+  it("removes the largest of several intervals, keeping the rest untouched", () => {
+    const small = {
+      start: new Date("2026-07-11T09:00:00Z"),
+      end: new Date("2026-07-11T09:30:00Z"),
+    };
+    const large = {
+      start: new Date("2026-07-11T13:00:00Z"),
+      end: new Date("2026-07-11T17:00:00Z"),
+    };
+    const result = reserveBufferBlock([small, large], 30);
+    expect(result).toEqual([small]);
+  });
+});
+
+describe("placeTasks", () => {
+  const context = { now: new Date("2026-07-11T08:00:00Z"), userEnergy: null };
+
+  it("places the higher-scored task first, high-energy earliest and low-energy latest", () => {
+    const freeIntervals = [
+      {
+        start: new Date("2026-07-11T09:00:00Z"),
+        end: new Date("2026-07-11T12:00:00Z"),
+      },
+    ];
+    const high = candidate("high", {
+      priority: "high",
+      energy: "high",
+      estimated_minutes: 60,
+    });
+    const low = candidate("low", {
+      priority: "low",
+      energy: "low",
+      estimated_minutes: 60,
+    });
+
+    const placed = placeTasks([high, low], freeIntervals, context);
+
+    expect(placed.map((b) => b.taskId)).toEqual(["high", "low"]);
+    expect(placed[0].start.toISOString()).toBe("2026-07-11T09:00:00.000Z");
+    expect(placed[1].end.toISOString()).toBe("2026-07-11T11:30:00.000Z");
+  });
+
+  it("leaves a task unplaced when it doesn't fit any remaining interval", () => {
+    const freeIntervals = [
+      {
+        start: new Date("2026-07-11T09:00:00Z"),
+        end: new Date("2026-07-11T10:00:00Z"),
+      },
+    ];
+    const tooLong = candidate("too-long", { estimated_minutes: 45 });
+    const fits = candidate("fits", { estimated_minutes: 20 });
+
+    const placed = placeTasks([tooLong, fits], freeIntervals, context);
+
+    expect(placed.map((b) => b.taskId)).toEqual(["fits"]);
+  });
+
+  it("never schedules into the reserved buffer block", () => {
+    const freeIntervals = [
+      {
+        start: new Date("2026-07-11T09:00:00Z"),
+        end: new Date("2026-07-11T09:20:00Z"),
+      },
+    ];
+    const anyTask = candidate("t1", { estimated_minutes: 10 });
+
+    expect(placeTasks([anyTask], freeIntervals, context)).toEqual([]);
+  });
+
+  it("includes a human-readable explanation for each placed block", () => {
+    const freeIntervals = [
+      {
+        start: new Date("2026-07-11T09:00:00Z"),
+        end: new Date("2026-07-11T10:00:00Z"),
+      },
+    ];
+    const urgent = candidate("urgent", {
+      due_date: "2026-07-11T07:00:00Z",
+      estimated_minutes: 20,
+    });
+
+    const [placed] = placeTasks([urgent], freeIntervals, context);
+    expect(placed.explanation).toMatch(/due soon/);
   });
 });
