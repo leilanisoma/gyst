@@ -40,6 +40,25 @@ describe("getLocalDayRange", () => {
   });
 });
 
+describe("getLocalDayRange across a DST transition", () => {
+  it("returns a 23-hour day on the US spring-forward date (2026-03-08)", () => {
+    // reference is midday local, well after the 2am local transition.
+    const reference = new Date("2026-03-08T18:00:00Z");
+    const { start, end } = getLocalDayRange(reference, "America/Los_Angeles");
+    expect(start.toISOString()).toBe("2026-03-08T08:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-03-09T07:00:00.000Z");
+    expect((end.getTime() - start.getTime()) / 3_600_000).toBe(23);
+  });
+
+  it("returns a 25-hour day on the US fall-back date (2026-11-01)", () => {
+    const reference = new Date("2026-11-01T18:00:00Z");
+    const { start, end } = getLocalDayRange(reference, "America/Los_Angeles");
+    expect(start.toISOString()).toBe("2026-11-01T07:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-11-02T08:00:00.000Z");
+    expect((end.getTime() - start.getTime()) / 3_600_000).toBe(25);
+  });
+});
+
 describe("getLocalDayRanges", () => {
   it("returns consecutive, non-overlapping days", () => {
     const reference = new Date("2026-07-11T15:00:00Z");

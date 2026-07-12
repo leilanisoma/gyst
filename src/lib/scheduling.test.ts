@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getLocalDayRange } from "./date-range";
 import {
   buildFreeIntervals,
   clipToCapacity,
@@ -98,6 +99,24 @@ describe("buildFreeIntervals", () => {
       0,
     );
     expect(free).toEqual([]);
+  });
+
+  it("reflects the true 23-hour span on a US spring-forward day", () => {
+    const dayRange = getLocalDayRange(
+      new Date("2026-03-08T18:00:00Z"),
+      "America/Los_Angeles",
+    );
+    const free = buildFreeIntervals(dayRange, [], 0);
+    expect(totalMinutes(free)).toBeCloseTo(23 * 60 * 0.75, 5);
+  });
+
+  it("reflects the true 25-hour span on a US fall-back day", () => {
+    const dayRange = getLocalDayRange(
+      new Date("2026-11-01T18:00:00Z"),
+      "America/Los_Angeles",
+    );
+    const free = buildFreeIntervals(dayRange, [], 0);
+    expect(totalMinutes(free)).toBeCloseTo(25 * 60 * 0.75, 5);
   });
 });
 

@@ -25,11 +25,25 @@ function localPartsInZone(date: Date, timeZone: string) {
   };
 }
 
+/** `timeZone`'s UTC offset (local-minus-UTC, in ms) at the instant `date`. */
+function offsetAt(date: Date, timeZone: string): number {
+  const { year, month, day, hour, minute, second } = localPartsInZone(
+    date,
+    timeZone,
+  );
+  const wallClockAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+  return wallClockAsUtc - date.getTime();
+}
+
 /**
  * UTC instant for a local wall-clock time (`"HH:MM"` or `"HH:MM:SS"`),
- * `dayOffset` days from `reference`, in `timeZone`. Derives the zone's
- * current offset from `reference` itself rather than a date library, so it
- * stays correct across the DST transition on `reference`'s own day.
+ * `dayOffset` days from `reference`'s local calendar date, in `timeZone`.
+ *
+ * `reference` is only used to pin the calendar date and as a first guess at
+ * the UTC offset; that guess is re-derived at the resulting instant so a DST
+ * transition between `reference` and the target time doesn't leave the
+ * target on the wrong side of the boundary (e.g. `reference` at midday on a
+ * spring-forward day, target time local midnight earlier that same day).
  */
 export function getLocalTimeUtc(
   reference: Date,
@@ -38,26 +52,23 @@ export function getLocalTimeUtc(
   dayOffset = 0,
 ): Date {
   const [hour, minute, second = 0] = timeOfDay.split(":").map(Number);
-  const {
-    year,
-    month,
-    day,
-    hour: refHour,
-    minute: refMinute,
-    second: refSecond,
-  } = localPartsInZone(reference, timeZone);
+  const { year, month, day } = localPartsInZone(reference, timeZone);
   const wallClockAsUtc = Date.UTC(
     year,
     month - 1,
-    day,
-    refHour,
-    refMinute,
-    refSecond,
+    day + dayOffset,
+    hour,
+    minute,
+    second,
   );
-  const offsetMs = wallClockAsUtc - reference.getTime();
-  return new Date(
-    Date.UTC(year, month - 1, day + dayOffset, hour, minute, second) - offsetMs,
-  );
+
+  const guessOffset = offsetAt(reference, timeZone);
+  const guess = new Date(wallClockAsUtc - guessOffset);
+  const refinedOffset = offsetAt(guess, timeZone);
+
+  return refinedOffset === guessOffset
+    ? guess
+    : new Date(wallClockAsUtc - refinedOffset);
 }
 
 function zonedMidnightUtc(
