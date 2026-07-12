@@ -1,6 +1,7 @@
 import type {
   ApplicationStage,
   ContactRelationship,
+  DraftKind,
   InteractionKind,
   RoleFamily,
 } from "@/lib/recruiting";
@@ -19,6 +20,16 @@ export type JobScoreRow = {
   explanation: string;
 };
 
+export type DraftRow = {
+  id: string;
+  kind: DraftKind;
+  content: string;
+  resume_document_id: string | null;
+  evidence_document_ids: string[];
+  unsupported_claims: string[];
+  status: "draft" | "approved" | "exported";
+};
+
 export type ApplicationWithOpportunity = {
   id: string;
   stage: ApplicationStage;
@@ -27,6 +38,7 @@ export type ApplicationWithOpportunity = {
   next_action: string | null;
   next_action_date: string | null;
   created_at: string;
+  drafts: DraftRow[];
   opportunity: {
     id: string;
     title: string;

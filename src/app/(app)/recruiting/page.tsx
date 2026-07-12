@@ -8,6 +8,10 @@ import type { ApplicationWithOpportunity } from "@/components/recruiting/types";
 
 const APPLICATIONS_SELECT = `
   id, stage, notes, prep_notes, next_action, next_action_date, created_at,
+  drafts(
+    id, kind, content, resume_document_id, evidence_document_ids,
+    unsupported_claims, status
+  ),
   opportunity:opportunities(
     id, title, location, url, role_family, deadline, active,
     company:companies(id, name, established),

@@ -14,6 +14,8 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { updateApplicationDetails } from "@/app/(app)/recruiting/actions";
+import { DraftForm } from "./draft-form";
+import { DraftCard } from "./draft-card";
 import type { ApplicationWithOpportunity } from "./types";
 
 export function ApplicationDetailSheet({
@@ -96,6 +98,21 @@ export function ApplicationDetailSheet({
               rows={4}
               placeholder="Talking points, questions to ask, things to review before the interview…"
             />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <Label>Drafts</Label>
+              <DraftForm applicationId={application.id} />
+            </div>
+            {application.drafts.length === 0 ? (
+              <p className="text-muted-foreground text-xs">No drafts yet.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {application.drafts.map((draft) => (
+                  <DraftCard key={draft.id} draft={draft} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <SheetFooter>
