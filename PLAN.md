@@ -619,6 +619,21 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 
 **Exit:** current courses and deadlines remain accurate for two weeks with a clear fallback when sync fails.
 
+### Phase 6B - Cozy visual identity, motion, and companion character (4-8 sessions)
+
+**Goal:** give the app its own emotional identity — satisfying interactions and a companion that reflects what you're actually doing — now that Calendar (Phase 3), Recruiting (Phase 4-5), and School (Phase 6) provide real activity signal for it to reflect. Bundled as one phase rather than a motion pass now and a character pass later, so shared UI (hover states, transitions) isn't touched twice.
+
+- [ ] Build a shared motion/animation utility layer (easing curves, spring configs, durations) reused across the app.
+- [ ] Add satisfying hover/press micro-interactions to core primitives (buttons, task cards, capture field) - expand/scale/spring on hover.
+- [ ] Smooth page and loading transitions (route changes, skeleton states) instead of abrupt swaps.
+- [ ] Finalize/refine the color palette and cozy design tokens established in Phase 1.
+- [ ] Reframe the Today dashboard with a "living room" spatial metaphor (zones for capture, tasks, and the companion).
+- [ ] Design and build the companion blob: base shape and face, idle animation, and a small set of expressive states.
+- [ ] Wire the companion's state to real activity signals already available by this point (calendar events, task area, application stage) - fencing/studying/recruiting/resting - no manual status-setting required.
+- [ ] Keep gamification "cozy progress" per PLAN.md §13: cosmetic-only companion reactions, no streaks, no loss aversion.
+
+**Exit:** hovering or interacting with core UI feels satisfying and intentional, and the Today screen's companion visibly reflects your actual current context without manual input.
+
 ### Phase 7 - Gmail-assisted automation (4-7 sessions)
 
 **Goal:** detect actionable recruiting and school messages without copying an entire inbox.
