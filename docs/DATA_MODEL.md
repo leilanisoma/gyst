@@ -38,19 +38,19 @@ This is the **planned** schema (from `PLAN.md` §6). Tables marked **Implemented
 
 | Table | Purpose |
 |---|---|
-| `job_sources` | Source type, URL/feed config, health, last fetch. |
-| `companies` | Name, domain, size/category when known. |
-| `opportunities` | Normalized role, company, location, description, dates, URL, source, fingerprint, active state. |
-| `job_scores` | Eligibility, role fit, company fit, experience fit, deadline urgency, explanation, score version. |
-| `applications` | Stage, submitted date, deadline, resume version, notes, next action. |
-| `application_events` | Immutable stage history. |
-| `contacts` | Person, company, role, relationship, last/next contact. |
-| `interactions` | Meeting/message notes and follow-up date. |
-| `documents` | Resume, transcript, cover letter, job description, syllabus, or general reference. |
-| `drafts` | Cover letter / recruiter message / application response with source references and approval status. |
-| `recruiting_insights` | Funnel metrics and rejection patterns; label AI interpretations as hypotheses. |
+| `job_sources` | Not yet built — Phase 5 discovery adapters. |
+| `companies` | **Implemented.** Name, domain, size category, established flag (return-offer bonus signal), notes. RLS: `auth.uid() = user_id`. |
+| `opportunities` | **Implemented.** Title, location, description, URL, role family, hard-exclusion flags (`is_swe`, `is_finance`), eligible grad years, deadline, source, `fingerprint` (unique per user — dedup on re-paste), active flag. RLS: `auth.uid() = user_id`. |
+| `job_scores` | **Implemented.** One row per opportunity (`unique (opportunity_id)`), per-dimension scores matching the PLAN.md §9 100-point breakdown, `excluded`/`exclusion_reason` for hard exclusions, `explanation`, `score_version`. No `user_id` column — ownership (and RLS) is derived through `opportunities`. |
+| `applications` | **Implemented.** One per opportunity (`unique (user_id, opportunity_id)`), stage, resume document link, submitted date, notes, `prep_notes` (role/company prep — Phase 4 task 4.9, not a separate product), next action + date. RLS: `auth.uid() = user_id`. |
+| `application_events` | **Implemented.** Immutable stage-change log (`from_stage`, `to_stage`, note, `occurred_at`); no `updated_at`/edit path by design. No `user_id` column — ownership derived through `applications`. |
+| `contacts` | **Implemented.** Person, company link, role, relationship, email/LinkedIn, last/next contact, notes. RLS: `auth.uid() = user_id`. |
+| `interactions` | **Implemented.** Contact + optional application link, kind, summary, `occurred_at`, `follow_up_at`. RLS: `auth.uid() = user_id`. |
+| `documents` | **Implemented.** Resume/transcript/cover-letter/writing-sample/job-description/other; `storage_path` points into the private `documents` Storage bucket (object key `<user_id>/<uuid>-<filename>`, RLS-scoped by folder). RLS: `auth.uid() = user_id`. |
+| `drafts` | **Implemented.** Cover letter / recruiter message / application response, tied to one `application_id`, `evidence_document_ids`/`unsupported_claims` arrays for the evidence-linked drafting flow (PLAN.md §9), approval status. RLS: `auth.uid() = user_id`. |
+| `recruiting_insights` | Not persisted — funnel analytics (Phase 4 task 4.10) are computed live from `applications`/`application_events` rather than materialized, per CLAUDE.md's no-premature-abstraction guidance. Revisit if computation cost ever justifies caching. |
 
-Application stages: `discovered → saved → preparing → ready → applied → assessment → recruiter screen → interview → final round → offer / rejected / withdrawn → archived`.
+Application stages: `discovered → saved → preparing → ready → applied → assessment → recruiter_screen → interview → final_round → offer / rejected / withdrawn → archived` (matches the `applications.stage` check constraint).
 
 ## School
 
