@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScoreEditForm } from "./score-edit-form";
 import {
   APPLICATION_STAGE_LABELS,
   ROLE_FAMILY_LABELS,
@@ -8,7 +9,14 @@ import {
   type RoleFamily,
 } from "@/lib/recruiting";
 
-type JobScoreRow = {
+export type JobScoreRow = {
+  role_family_score: number;
+  skills_experience_score: number;
+  eligibility_score: number;
+  interest_industry_score: number;
+  established_company_score: number;
+  deadline_urgency_score: number;
+  user_feedback_score: number;
   total_score: number;
   excluded: boolean;
   exclusion_reason: string | null;
@@ -107,16 +115,21 @@ export function OpportunityList({
               {score && !score.excluded && (
                 <p className="text-muted-foreground text-xs">{score.explanation}</p>
               )}
-              {opportunity.url && (
-                <Link
-                  href={opportunity.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary text-xs underline underline-offset-2"
-                >
-                  View posting
-                </Link>
-              )}
+              <div className="flex items-center gap-3">
+                {score && (
+                  <ScoreEditForm opportunityId={opportunity.id} score={score} />
+                )}
+                {opportunity.url && (
+                  <Link
+                    href={opportunity.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary text-xs underline underline-offset-2"
+                  >
+                    View posting
+                  </Link>
+                )}
+              </div>
             </CardContent>
           </Card>
         );

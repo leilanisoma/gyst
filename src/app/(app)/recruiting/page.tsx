@@ -10,7 +10,12 @@ const APPLICATIONS_SELECT = `
   opportunity:opportunities(
     id, title, location, url, role_family, deadline, active,
     company:companies(id, name, established),
-    job_scores(total_score, excluded, exclusion_reason, explanation)
+    job_scores(
+      role_family_score, skills_experience_score, eligibility_score,
+      interest_industry_score, established_company_score,
+      deadline_urgency_score, user_feedback_score,
+      total_score, excluded, exclusion_reason, explanation
+    )
   )
 `;
 

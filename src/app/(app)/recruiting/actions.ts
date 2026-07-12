@@ -165,3 +165,83 @@ export async function createOpportunity(
   revalidatePath("/recruiting");
   return { ok: true };
 }
+
+export type ScoreOverrideInput = {
+  skillsExperience: number;
+  interestIndustry: number;
+  userFeedback: number;
+};
+
+/**
+ * PLAN.md §9: "Show the score breakdown and let Ishani correct it." Only the
+ * three dimensions with no reliable deterministic signal are editable — the
+ * rest stay computed from the opportunity's own fields.
+ */
+export async function updateJobScore(
+  opportunityId: string,
+  input: ScoreOverrideInput,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const { data: opportunity, error: opportunityError } = await supabase
+    .from("opportunities")
+    .select("id")
+    .eq("id", opportunityId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (opportunityError || !opportunity) {
+    return { ok: false, error: "Opportunity not found." };
+  }
+
+  const { data: score, error: scoreError } = await supabase
+    .from("job_scores")
+    .select(
+      "role_family_score, eligibility_score, established_company_score, deadline_urgency_score, excluded",
+    )
+    .eq("opportunity_id", opportunityId)
+    .maybeSingle();
+  if (scoreError || !score) {
+    return { ok: false, error: "Score not found." };
+  }
+
+  const skillsExperience = clampScore(input.skillsExperience, 0, 20);
+  const interestIndustry = clampScore(input.interestIndustry, 0, 10);
+  const userFeedback = clampScore(input.userFeedback, 0, 5);
+
+  const total = score.excluded
+    ? 0
+    : score.role_family_score +
+      skillsExperience +
+      score.eligibility_score +
+      interestIndustry +
+      score.established_company_score +
+      score.deadline_urgency_score +
+      userFeedback;
+
+  const { error: updateError } = await supabase
+    .from("job_scores")
+    .update({
+      skills_experience_score: skillsExperience,
+      interest_industry_score: interestIndustry,
+      user_feedback_score: userFeedback,
+      total_score: total,
+    })
+    .eq("opportunity_id", opportunityId);
+
+  if (updateError) {
+    return { ok: false, error: updateError.message };
+  }
+
+  revalidatePath("/recruiting");
+  return { ok: true };
+}
+
+function clampScore(value: number, min: number, max: number): number {
+  if (Number.isNaN(value)) return min;
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
