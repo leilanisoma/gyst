@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { updateJobScore } from "@/app/(app)/recruiting/actions";
-import type { JobScoreRow } from "./opportunity-list";
+import type { JobScoreRow } from "./types";
 
 export function ScoreEditForm({
   opportunityId,

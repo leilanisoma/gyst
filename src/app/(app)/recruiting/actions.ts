@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { opportunityFingerprint, type RoleFamily } from "@/lib/recruiting";
+import {
+  opportunityFingerprint,
+  type ApplicationStage,
+  type RoleFamily,
+} from "@/lib/recruiting";
 import { scoreOpportunity } from "@/lib/job-scoring";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -160,6 +164,47 @@ export async function createOpportunity(
     application_id: application.id,
     from_stage: null,
     to_stage: "saved",
+  });
+
+  revalidatePath("/recruiting");
+  return { ok: true };
+}
+
+export async function updateApplicationStage(
+  applicationId: string,
+  newStage: ApplicationStage,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: existing, error: fetchError } = await supabase
+    .from("applications")
+    .select("stage")
+    .eq("id", applicationId)
+    .maybeSingle();
+
+  if (fetchError || !existing) {
+    return { ok: false, error: fetchError?.message ?? "Application not found." };
+  }
+  if (existing.stage === newStage) {
+    return { ok: true };
+  }
+
+  const { error: updateError } = await supabase
+    .from("applications")
+    .update({
+      stage: newStage,
+      submitted_date:
+        newStage === "applied" ? new Date().toISOString().slice(0, 10) : undefined,
+    })
+    .eq("id", applicationId);
+
+  if (updateError) {
+    return { ok: false, error: updateError.message };
+  }
+
+  await supabase.from("application_events").insert({
+    application_id: applicationId,
+    from_stage: existing.stage,
+    to_stage: newStage,
   });
 
   revalidatePath("/recruiting");
