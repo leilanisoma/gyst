@@ -1,9 +1,10 @@
 import type { createClient } from "@/lib/supabase/server";
+import type { SupabaseServiceClient } from "@/lib/supabase/service";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 export async function findOrCreateCompany(
-  supabase: SupabaseServerClient,
+  supabase: SupabaseServerClient | SupabaseServiceClient,
   userId: string,
   name: string,
   established?: boolean,

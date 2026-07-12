@@ -7,8 +7,9 @@ import {
   type ApplicationStage,
   type RoleFamily,
 } from "@/lib/recruiting";
-import { scoreOpportunity } from "@/lib/job-scoring";
-import { findOrCreateCompany } from "./company-helpers";
+import { buildJobScoreRow, scoreOpportunity } from "@/lib/job-scoring";
+import { findOrCreateCompany } from "@/lib/companies";
+import { getTargetGradYear } from "@/lib/recruiting-preferences";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -88,14 +89,7 @@ export async function createOpportunity(
     };
   }
 
-  const { data: preferences } = await supabase
-    .from("preferences")
-    .select("recruiting_preferences")
-    .eq("id", user.id)
-    .maybeSingle();
-  const targetGradYear =
-    (preferences?.recruiting_preferences as { target_grad_year?: number } | null)
-      ?.target_grad_year ?? 2027;
+  const targetGradYear = await getTargetGradYear(supabase, user.id);
 
   const breakdown = scoreOpportunity({
     roleFamily: input.roleFamily,
@@ -108,20 +102,7 @@ export async function createOpportunity(
     deadline: input.deadline,
   });
 
-  await supabase.from("job_scores").insert({
-    opportunity_id: opportunity.id,
-    role_family_score: breakdown.roleFamily,
-    skills_experience_score: breakdown.skillsExperience,
-    eligibility_score: breakdown.eligibility,
-    interest_industry_score: breakdown.interestIndustry,
-    established_company_score: breakdown.establishedCompany,
-    deadline_urgency_score: breakdown.deadlineUrgency,
-    user_feedback_score: breakdown.userFeedback,
-    total_score: breakdown.total,
-    excluded: breakdown.excluded,
-    exclusion_reason: breakdown.exclusionReason ?? null,
-    explanation: breakdown.explanation,
-  });
+  await supabase.from("job_scores").insert(buildJobScoreRow(opportunity.id, breakdown));
 
   const { data: application, error: applicationError } = await supabase
     .from("applications")

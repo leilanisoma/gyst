@@ -22,5 +22,13 @@
     "categories": { "location": "Remote" },
     "createdAt": 1782000200000,
     "descriptionBodyPlain": "Not an internship, should be filtered out at discover time."
+  },
+  {
+    "id": "dddd-4444",
+    "text": "Head of International Expansion",
+    "hostedUrl": "https://jobs.lever.co/example/dddd-4444",
+    "categories": { "location": "Remote" },
+    "createdAt": 1782000300000,
+    "descriptionBodyPlain": "\"International\" contains \"Intern\" as a substring — must not match."
   }
 ]

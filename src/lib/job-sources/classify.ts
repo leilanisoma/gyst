@@ -12,6 +12,13 @@ const SWE_PATTERN =
 const FINANCE_PATTERN =
   /investment banking|private equity|hedge fund|equity research|corporate finance|financial analyst|\btrading\b|\btrader\b|quantitative (trader|researcher)|wealth management|asset management/i;
 
+const INTERNSHIP_PATTERN = /\bintern(ship)?s?\b/i;
+
+/** Word-boundary aware — a plain `/intern/i` also matches "International"/"Internal". */
+export function isInternshipTitle(title: string): boolean {
+  return INTERNSHIP_PATTERN.test(title);
+}
+
 const ROLE_FAMILY_PATTERNS: [RegExp, RoleFamily][] = [
   [/product manager|product management|\bapm\b/i, "product_management"],
   [/business operations|biz ?ops|operations analyst|strategy ?ops|chief of staff/i, "product_ops_business_ops"],

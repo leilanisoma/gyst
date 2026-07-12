@@ -4,11 +4,19 @@ import { getClientEnv } from "@/lib/env";
 
 const PUBLIC_PATHS = ["/login", "/auth/callback", "/auth/error", "/offline"];
 
+// Scheduled jobs (Vercel Cron) have no user session by design — they carry
+// a bearer secret instead, checked inside the route handler itself.
+const BEARER_AUTH_PATHS = ["/api/cron"];
+
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 }
 
 export async function updateSession(request: NextRequest) {
+  if (BEARER_AUTH_PATHS.some((path) => request.nextUrl.pathname.startsWith(path))) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
   const env = getClientEnv();
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { findOrCreateCompany } from "./company-helpers";
+import { findOrCreateCompany } from "@/lib/companies";
 import type { ContactRelationship, InteractionKind } from "@/lib/recruiting";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };

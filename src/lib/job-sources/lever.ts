@@ -1,5 +1,5 @@
 import type { JobSourceAdapter, NormalizedJob, RawJob, SourceConfig, SourceHealth } from "./types";
-import { classify } from "./classify";
+import { classify, isInternshipTitle } from "./classify";
 
 type LeverConfig = { slug: string; companyName?: string };
 
@@ -39,7 +39,7 @@ export const leverAdapter: JobSourceAdapter = {
     }
     const postings = (await res.json()) as LeverPosting[];
     return postings
-      .filter((posting) => /intern/i.test(posting.text))
+      .filter((posting) => isInternshipTitle(posting.text))
       .map((posting) => ({ externalId: posting.id, raw: posting }));
   },
 

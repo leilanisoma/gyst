@@ -25,6 +25,15 @@ describe("greenhouseAdapter.discover", () => {
     expect(raw.map((r) => r.externalId)).toEqual(["1001", "1002"]);
   });
 
+  it('does not match "International" as an internship title', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => fixture });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const raw = await greenhouseAdapter.discover(config);
+
+    expect(raw.map((r) => r.externalId)).not.toContain("1004");
+  });
+
   it("throws when the board is unreachable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
     await expect(greenhouseAdapter.discover(config)).rejects.toThrow("404");

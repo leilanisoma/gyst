@@ -51,6 +51,10 @@ const webPushEnvSchema = z.object({
   VAPID_SUBJECT: z.string().min(1),
 });
 
+const cronEnvSchema = z.object({
+  CRON_SECRET: z.string().min(16),
+});
+
 /** Throws with a clear message if Google OAuth isn't configured — call only from Google-integration code paths. */
 export function getGoogleEnv() {
   return googleEnvSchema.parse({
@@ -73,5 +77,12 @@ export function getWebPushEnv() {
     NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
     VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY,
     VAPID_SUBJECT: process.env.VAPID_SUBJECT,
+  });
+}
+
+/** Throws if CRON_SECRET isn't configured — call only from /api/cron/* route handlers. */
+export function getCronEnv() {
+  return cronEnvSchema.parse({
+    CRON_SECRET: process.env.CRON_SECRET,
   });
 }

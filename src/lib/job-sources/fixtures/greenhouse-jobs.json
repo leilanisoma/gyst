@@ -23,6 +23,14 @@
       "location": { "name": "New York, NY" },
       "first_published": "2026-07-03T00:00:00-07:00",
       "content": "<p>Not an internship, should be filtered out at discover time.</p>"
+    },
+    {
+      "id": 1004,
+      "title": "Manager, International Growth",
+      "absolute_url": "https://careers.example.com/positions/1004",
+      "location": { "name": "London, UK" },
+      "first_published": "2026-07-04T00:00:00-07:00",
+      "content": "<p>\"International\" contains \"Intern\" as a substring — must not match the internship filter.</p>"
     }
   ]
 }

@@ -1,5 +1,5 @@
 import type { JobSourceAdapter, NormalizedJob, RawJob, SourceConfig, SourceHealth } from "./types";
-import { classify } from "./classify";
+import { classify, isInternshipTitle } from "./classify";
 import { stripHtml } from "./html";
 
 type GreenhouseConfig = { slug: string; companyName?: string };
@@ -40,7 +40,7 @@ export const greenhouseAdapter: JobSourceAdapter = {
     }
     const data = (await res.json()) as { jobs: GreenhouseJob[] };
     return data.jobs
-      .filter((job) => /intern/i.test(job.title))
+      .filter((job) => isInternshipTitle(job.title))
       .map((job) => ({ externalId: String(job.id), raw: job }));
   },
 

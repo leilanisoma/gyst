@@ -111,6 +111,24 @@ export function scoreOpportunity(
   };
 }
 
+/** Shared `job_scores` insert shape so every caller that computes a breakdown persists it the same way. */
+export function buildJobScoreRow(opportunityId: string, breakdown: ScoreBreakdown) {
+  return {
+    opportunity_id: opportunityId,
+    role_family_score: breakdown.roleFamily,
+    skills_experience_score: breakdown.skillsExperience,
+    eligibility_score: breakdown.eligibility,
+    interest_industry_score: breakdown.interestIndustry,
+    established_company_score: breakdown.establishedCompany,
+    deadline_urgency_score: breakdown.deadlineUrgency,
+    user_feedback_score: breakdown.userFeedback,
+    total_score: breakdown.total,
+    excluded: breakdown.excluded,
+    exclusion_reason: breakdown.exclusionReason ?? null,
+    explanation: breakdown.explanation,
+  };
+}
+
 function deadlineUrgencyScore(deadline: string | null, now: Date): number {
   if (!deadline) return 1;
   const days = (new Date(deadline).getTime() - now.getTime()) / 86_400_000;

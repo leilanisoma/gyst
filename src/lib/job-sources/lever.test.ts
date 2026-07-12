@@ -21,6 +21,14 @@ describe("leverAdapter.discover", () => {
     expect(raw.map((r) => r.externalId)).toEqual(["aaaa-1111", "bbbb-2222"]);
   });
 
+  it('does not match "International" as an internship title', async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => fixture }));
+
+    const raw = await leverAdapter.discover(config);
+
+    expect(raw.map((r) => r.externalId)).not.toContain("dddd-4444");
+  });
+
   it("requires a slug", async () => {
     await expect(leverAdapter.discover({})).rejects.toThrow('missing "slug"');
   });

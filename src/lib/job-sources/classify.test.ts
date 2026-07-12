@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { classify } from "./classify";
+import { classify, isInternshipTitle } from "./classify";
+
+describe("isInternshipTitle", () => {
+  it("matches internship titles but not words that merely contain \"intern\"", () => {
+    expect(isInternshipTitle("Product Intern")).toBe(true);
+    expect(isInternshipTitle("Summer Internship Program")).toBe(true);
+    expect(isInternshipTitle("Manager, International Growth")).toBe(false);
+    expect(isInternshipTitle("Internal Audit Analyst")).toBe(false);
+  });
+});
 
 describe("classify", () => {
   it("flags pure software engineering titles", () => {
