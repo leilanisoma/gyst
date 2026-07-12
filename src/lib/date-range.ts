@@ -65,3 +65,13 @@ export function getLocalDayRanges(
     end: zonedMidnightUtc(reference, timeZone, i + 1),
   }));
 }
+
+/** `reference`'s local calendar date in `timeZone`, as `YYYY-MM-DD`. */
+export function getLocalDateString(reference: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(reference);
+}

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
+import { CheckInCard } from "@/components/today/check-in-card";
 import { TaskSummaryList } from "@/components/today/task-summary-list";
 import { buttonVariants } from "@/components/ui/button";
+import { getLocalDateString } from "@/lib/date-range";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
 import { cn } from "@/lib/utils";
+import type { CheckIn } from "@/lib/check-ins";
 import type { Task } from "@/lib/tasks";
 
 const WEEK_DAYS = 7;
@@ -36,6 +39,15 @@ export default async function TodayPage({
     .order("due_date", { ascending: true });
 
   const now = new Date();
+  const todayString = getLocalDateString(now, timeZone);
+
+  const { data: checkIn } = await supabase
+    .from("check_ins")
+    .select(
+      "id, check_in_date, mood, energy, stress, sleep_perception, capacity_minutes, note",
+    )
+    .eq("check_in_date", todayString)
+    .maybeSingle();
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -76,11 +88,17 @@ export default async function TodayPage({
       </div>
 
       {view === "today" ? (
-        <TodayView
-          tasks={(tasks ?? []) as Task[]}
-          now={now}
-          timeZone={timeZone}
-        />
+        <div className="flex max-w-xl flex-col gap-5">
+          <CheckInCard
+            checkIn={(checkIn as CheckIn | null) ?? null}
+            dateString={todayString}
+          />
+          <TodayView
+            tasks={(tasks ?? []) as Task[]}
+            now={now}
+            timeZone={timeZone}
+          />
+        </div>
       ) : (
         <WeekView
           tasks={(tasks ?? []) as Task[]}
@@ -108,7 +126,7 @@ function TodayView({
   const { overdue, dueToday } = bucketTodayTasks(tasks, now, timeZone);
 
   return (
-    <div className="flex max-w-xl flex-col gap-5">
+    <>
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold">Overdue</h2>
         <TaskSummaryList tasks={overdue} emptyMessage="Nothing overdue." />
@@ -117,7 +135,7 @@ function TodayView({
         <h2 className="text-sm font-semibold">Due today</h2>
         <TaskSummaryList tasks={dueToday} emptyMessage="Nothing due today." />
       </section>
-    </div>
+    </>
   );
 }
 

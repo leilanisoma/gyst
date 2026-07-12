@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getLocalDayRange, getLocalDayRanges } from "./date-range";
+import {
+  getLocalDateString,
+  getLocalDayRange,
+  getLocalDayRanges,
+} from "./date-range";
 
 describe("getLocalDayRange", () => {
   it("returns UTC midnight bounds for a UTC timezone", () => {
@@ -46,5 +50,19 @@ describe("getLocalDayRanges", () => {
     });
     expect(ranges[0].start.toISOString()).toBe("2026-07-11T00:00:00.000Z");
     expect(ranges[6].end.toISOString()).toBe("2026-07-18T00:00:00.000Z");
+  });
+});
+
+describe("getLocalDateString", () => {
+  it("formats the local date as YYYY-MM-DD", () => {
+    const reference = new Date("2026-07-11T15:00:00Z");
+    expect(getLocalDateString(reference, "UTC")).toBe("2026-07-11");
+  });
+
+  it("rolls to the previous local date near midnight in a negative-offset zone", () => {
+    const reference = new Date("2026-07-11T03:00:00Z");
+    expect(getLocalDateString(reference, "America/Los_Angeles")).toBe(
+      "2026-07-10",
+    );
   });
 });

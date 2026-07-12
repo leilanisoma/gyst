@@ -44,4 +44,9 @@ describe("Today page", () => {
     render(await Page({ searchParams: Promise.resolve({ view: "week" }) }));
     expect(screen.getAllByText(/nothing due this day/i)).toHaveLength(7);
   });
+
+  it("shows the daily check-in card in today view", async () => {
+    render(await Page({ searchParams: Promise.resolve({}) }));
+    expect(screen.getByText(/how.s today/i)).toBeInTheDocument();
+  });
 });

@@ -6,7 +6,7 @@ Goal: turn commitments into a manageable day. Source: `PLAN.md` §5, §6, §7.
 
 - [x] Build Today and Week views.
 - [x] Add manual recurring class and fencing schedules first.
-- [ ] Add daily check-in and capacity setting.
+- [x] Add daily check-in and capacity setting.
 - [ ] Implement deterministic free-time and task-scoring engine.
 - [ ] Display editable time-block suggestions.
 - [ ] Implement rollover review instead of silent backlog growth.

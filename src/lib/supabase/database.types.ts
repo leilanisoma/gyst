@@ -39,6 +39,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      check_ins: {
+        Row: {
+          capacity_minutes: number | null
+          check_in_date: string
+          created_at: string
+          energy: string | null
+          id: string
+          mood: string | null
+          note: string | null
+          sleep_perception: string | null
+          stress: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capacity_minutes?: number | null
+          check_in_date?: string
+          created_at?: string
+          energy?: string | null
+          id?: string
+          mood?: string | null
+          note?: string | null
+          sleep_perception?: string | null
+          stress?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capacity_minutes?: number | null
+          check_in_date?: string
+          created_at?: string
+          energy?: string | null
+          id?: string
+          mood?: string | null
+          note?: string | null
+          sleep_perception?: string | null
+          stress?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           created_at: string
