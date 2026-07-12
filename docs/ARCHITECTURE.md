@@ -2,7 +2,7 @@
 
 This file describes what **currently exists**. Do not add speculative future architecture here — that belongs in `PLAN.md`. Update this file only when actual code/infrastructure changes.
 
-## Current state (Phase 3 complete)
+## Current state (Phase 4 complete)
 
 A Next.js App Router app backed by Supabase, restricted to one allowed user.
 
@@ -18,7 +18,8 @@ gyst/
 │   │   │   ├── tasks/        # Kanban board + quick-edit
 │   │   │   ├── notifications/actions.ts  # mark-read, push subscribe/unsubscribe, quiet hours
 │   │   │   ├── settings/     # profile, Google Calendar, notifications, recurring schedule, install
-│   │   │   └── recruiting|school|wellness|chat/  # stub pages
+│   │   │   ├── recruiting/   # opportunities/applications/contacts/documents/analytics (Phase 4); actions split by concern (actions.ts, contacts-actions.ts, documents-actions.ts, drafts-actions.ts, company-helpers.ts)
+│   │   │   └── school|wellness|chat/  # stub pages
 │   │   ├── api/google/       # connect/callback route handlers (OAuth redirect + code exchange)
 │   │   ├── login/            # magic-link sign-in
 │   │   ├── auth/callback/    # PKCE code exchange
@@ -35,6 +36,7 @@ gyst/
 │   │   ├── tasks/             # Kanban board, card, quick-edit sheet
 │   │   ├── today/              # timeline, check-in, suggestions, overwhelm, outcomes, xp
 │   │   ├── settings/            # Google integration card, notification settings, recurring schedule
+│   │   ├── recruiting/            # opportunity/application/score/document/contact/draft UI (Phase 4)
 │   │   ├── ai/                # AI-extraction confirmation dialog
 │   │   ├── pwa/                # install instructions, SW registration
 │   │   └── ui/                 # shadcn/ui primitives (Base UI-backed)
@@ -48,9 +50,14 @@ gyst/
 │       ├── quiet-hours.ts        # local wall-clock quiet-hours check
 │       ├── timeline.ts            # merges synced events + recurring schedules for Today
 │       ├── tasks.ts            # task status/priority/area constants
+│       ├── recruiting.ts          # role family/stage/relationship/document-kind constants + fingerprinting
+│       ├── job-scoring.ts          # deterministic PLAN.md §9 scoring engine (unit-tested)
+│       ├── recruiting-analytics.ts # funnel/response-time/source-effectiveness computations (unit-tested)
 │       └── env.ts               # Zod-validated env access (Google, encryption, VAPID added Phase 3)
 ├── supabase/migrations/         # profiles, preferences, inbox_items, tasks, projects, goals, ...,
-│                                 # integrations, oauth_tokens, sync_runs, events, notifications, push_subscriptions
+│                                 # integrations, oauth_tokens, sync_runs, events, notifications,
+│                                 # push_subscriptions, companies, opportunities, job_scores, applications,
+│                                 # application_events, contacts, interactions, documents, drafts
 └── public/sw.js                 # offline-fallback service worker + push/notificationclick handlers
 ```
 
@@ -83,10 +90,14 @@ AI provider is **undecided** (see `docs/DECISIONS/0001-phase-0-foundational-deci
 
 See `docs/PHASES/phase-3.md`'s Notes section for the full list (scope choices, sync-cursor storage, write-back timing, etc.). Highlights: OAuth/Calendar API access is hand-rolled over `fetch` rather than the `googleapis` SDK; write scope uses the narrow `calendar.app.created` grant so "write only to a dedicated GYST calendar" is enforced by Google, not just app logic; `notifications`/`push_subscriptions` are pragmatic additions beyond PLAN.md §6, same precedent as Phase 2's `xp_events`.
 
+## Notable decisions from Phase 4
+
+See `docs/PHASES/phase-4.md`'s Notes section for the full list. Highlights: every saved opportunity auto-creates its `applications` row (manual curation, not passive discovery, so there's no triage backlog to keep separate); job scoring seeds deterministically from PLAN.md §9's formula and stays user-editable for the three dimensions with no reliable non-AI signal; `documents` uploads go browser → Storage directly (RLS-enforced by folder) with the server action only recording metadata; drafts stay manual behind the same `isAIExtractionEnabled()` gate as Inbox; funnel analytics compute live rather than materializing `recruiting_insights`. First real Storage bucket usage in the codebase (private `documents` bucket, folder-scoped RLS).
+
 ## Planned, not yet built
 
 - Gmail, Canvas, and job-source adapters (`JobSourceAdapter` in `PLAN.md` §8) — Phase 5+.
-- File storage, pgvector semantic memory, background jobs (Supabase Cron/Edge Functions) — later phases, per `PLAN.md` §4. Scheduled/automatic notifications (deadline reminders, block reminders) need this; only the connector-error path sends one today.
-- Prompts as versioned files under `src/ai/prompts/` — once a provider exists to use them.
+- pgvector semantic memory, background jobs (Supabase Cron/Edge Functions) — later phases, per `PLAN.md` §4. Scheduled/automatic notifications (deadline reminders, follow-up reminders) need this; only the connector-error path sends one today — Recruiting's "Follow-ups due" is an always-visible in-app list instead, same reasoning as Phase 3's deadline/block reminders.
+- Prompts as versioned files under `src/ai/prompts/` — once a provider exists to use them. AI-assisted job scoring dimensions and draft generation are both stubbed for this (manual/neutral-default today).
 
 Keep this section truthful, not aspirational, as each phase lands.
