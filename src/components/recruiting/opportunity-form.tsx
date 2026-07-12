@@ -29,12 +29,25 @@ import {
   type RoleFamily,
 } from "@/lib/recruiting";
 
-export function OpportunityForm() {
-  const [open, setOpen] = useState(false);
-  const [companyName, setCompanyName] = useState("");
-  const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [url, setUrl] = useState("");
+export type OpportunityFormInitialValues = {
+  companyName?: string;
+  title?: string;
+  url?: string;
+  location?: string;
+};
+
+export function OpportunityForm({
+  initialValues,
+  defaultOpen = false,
+}: {
+  initialValues?: OpportunityFormInitialValues;
+  defaultOpen?: boolean;
+} = {}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const [companyName, setCompanyName] = useState(initialValues?.companyName ?? "");
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [location, setLocation] = useState(initialValues?.location ?? "");
+  const [url, setUrl] = useState(initialValues?.url ?? "");
   const [description, setDescription] = useState("");
   const [roleFamily, setRoleFamily] = useState<RoleFamily>("product_management");
   const [isSwe, setIsSwe] = useState(false);

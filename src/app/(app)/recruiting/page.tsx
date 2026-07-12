@@ -7,6 +7,7 @@ import { ContactsSection } from "@/components/recruiting/contacts-section";
 import { AnalyticsSection } from "@/components/recruiting/analytics-section";
 import { SourcesSection } from "@/components/recruiting/sources-section";
 import { DiscoveryQueue } from "@/components/recruiting/discovery-queue";
+import { BookmarkletCard } from "@/components/recruiting/bookmarklet-card";
 import type { ApplicationWithOpportunity } from "@/components/recruiting/types";
 
 const APPLICATIONS_SELECT = `
@@ -57,6 +58,7 @@ export default async function RecruitingPage() {
         <OpportunityForm />
       </div>
       <SourcesSection />
+      <BookmarkletCard />
       <DiscoveryQueue applications={discoveredApplications} />
       <FollowUpsDue applications={pipelineApplications} />
       <AnalyticsSection />
