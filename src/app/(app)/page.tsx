@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
 import { CheckInCard } from "@/components/today/check-in-card";
+import { OverwhelmMode } from "@/components/today/overwhelm-mode";
 import { RolloverReviewList } from "@/components/today/rollover-review-list";
 import { TaskSummaryList } from "@/components/today/task-summary-list";
 import { TimeBlockSuggestions } from "@/components/today/time-block-suggestions";
@@ -74,29 +75,32 @@ export default async function TodayPage({
         </p>
       </div>
 
-      <div className="flex gap-2">
-        <Link
-          href="/"
-          className={cn(
-            buttonVariants({
-              variant: view === "today" ? "default" : "outline",
-              size: "sm",
-            }),
-          )}
-        >
-          Today
-        </Link>
-        <Link
-          href="/?view=week"
-          className={cn(
-            buttonVariants({
-              variant: view === "week" ? "default" : "outline",
-              size: "sm",
-            }),
-          )}
-        >
-          This Week
-        </Link>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex gap-2">
+          <Link
+            href="/"
+            className={cn(
+              buttonVariants({
+                variant: view === "today" ? "default" : "outline",
+                size: "sm",
+              }),
+            )}
+          >
+            Today
+          </Link>
+          <Link
+            href="/?view=week"
+            className={cn(
+              buttonVariants({
+                variant: view === "week" ? "default" : "outline",
+                size: "sm",
+              }),
+            )}
+          >
+            This Week
+          </Link>
+        </div>
+        <OverwhelmMode tasks={(tasks ?? []) as Task[]} now={now} />
       </div>
 
       {view === "today" ? (
