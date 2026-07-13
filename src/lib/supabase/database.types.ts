@@ -141,6 +141,145 @@ export type Database = {
           },
         ]
       }
+      assessments: {
+        Row: {
+          assignment_id: string | null
+          confidence: number | null
+          confirmed: boolean
+          course_id: string
+          coverage: string | null
+          created_at: string
+          id: string
+          kind: string
+          location: string | null
+          preparation_status: string
+          scheduled_at: string | null
+          source: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          confidence?: number | null
+          confirmed?: boolean
+          course_id: string
+          coverage?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          location?: string | null
+          preparation_status?: string
+          scheduled_at?: string | null
+          source?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assignment_id?: string | null
+          confidence?: number | null
+          confirmed?: boolean
+          course_id?: string
+          coverage?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          location?: string | null
+          preparation_status?: string
+          scheduled_at?: string | null
+          source?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          canvas_assignment_id: string | null
+          course_id: string
+          created_at: string
+          due_at: string | null
+          html_url: string | null
+          id: string
+          points_possible: number | null
+          submission_types: string[]
+          submitted: boolean
+          submitted_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canvas_assignment_id?: string | null
+          course_id: string
+          created_at?: string
+          due_at?: string | null
+          html_url?: string | null
+          id?: string
+          points_possible?: number | null
+          submission_types?: string[]
+          submitted?: boolean
+          submitted_at?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canvas_assignment_id?: string | null
+          course_id?: string
+          created_at?: string
+          due_at?: string | null
+          html_url?: string | null
+          id?: string
+          points_possible?: number | null
+          submission_types?: string[]
+          submitted?: boolean
+          submitted_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       check_ins: {
         Row: {
           capacity_minutes: number | null
@@ -298,6 +437,53 @@ export type Database = {
           },
         ]
       }
+      courses: {
+        Row: {
+          active: boolean
+          canvas_course_id: string | null
+          course_code: string | null
+          created_at: string
+          id: string
+          instructor: string | null
+          term: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          canvas_course_id?: string | null
+          course_code?: string | null
+          created_at?: string
+          id?: string
+          instructor?: string | null
+          term?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          canvas_course_id?: string | null
+          course_code?: string | null
+          created_at?: string
+          id?: string
+          instructor?: string | null
+          term?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_plans: {
         Row: {
           created_at: string
@@ -341,6 +527,7 @@ export type Database = {
       }
       documents: {
         Row: {
+          course_id: string | null
           created_at: string
           file_name: string
           id: string
@@ -354,6 +541,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          course_id?: string | null
           created_at?: string
           file_name: string
           id?: string
@@ -367,6 +555,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          course_id?: string | null
           created_at?: string
           file_name?: string
           id?: string
@@ -380,6 +569,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "documents_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "documents_user_id_fkey"
             columns: ["user_id"]
@@ -457,6 +653,7 @@ export type Database = {
         Row: {
           all_day: boolean
           calendar_id: string | null
+          course_id: string | null
           created_at: string
           deleted_at: string | null
           end_at: string
@@ -477,6 +674,7 @@ export type Database = {
         Insert: {
           all_day?: boolean
           calendar_id?: string | null
+          course_id?: string | null
           created_at?: string
           deleted_at?: string | null
           end_at: string
@@ -497,6 +695,7 @@ export type Database = {
         Update: {
           all_day?: boolean
           calendar_id?: string | null
+          course_id?: string | null
           created_at?: string
           deleted_at?: string | null
           end_at?: string
@@ -515,6 +714,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "events_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_user_id_fkey"
             columns: ["user_id"]
@@ -784,6 +990,77 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: true
             referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      milestone_suggestions: {
+        Row: {
+          assessment_id: string | null
+          assignment_id: string | null
+          created_at: string
+          created_task_id: string | null
+          due_date: string
+          estimated_minutes: number | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_id?: string | null
+          assignment_id?: string | null
+          created_at?: string
+          created_task_id?: string | null
+          due_date: string
+          estimated_minutes?: number | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_id?: string | null
+          assignment_id?: string | null
+          created_at?: string
+          created_task_id?: string | null
+          due_date?: string
+          estimated_minutes?: number | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_suggestions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_suggestions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_suggestions_created_task_id_fkey"
+            columns: ["created_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1251,6 +1528,76 @@ export type Database = {
           },
         ]
       }
+      syllabus_items: {
+        Row: {
+          confidence: number | null
+          confirmed: boolean
+          course_id: string
+          created_at: string
+          date: string | null
+          description: string | null
+          document_id: string | null
+          id: string
+          kind: string
+          source_page: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          confirmed?: boolean
+          course_id: string
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          document_id?: string | null
+          id?: string
+          kind?: string
+          source_page?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          confirmed?: boolean
+          course_id?: string
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          document_id?: string | null
+          id?: string
+          kind?: string
+          source_page?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_items_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_items_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_runs: {
         Row: {
           error: string | null
@@ -1319,6 +1666,8 @@ export type Database = {
           project_id: string | null
           rollover_count: number
           source: string
+          source_assessment_id: string | null
+          source_assignment_id: string | null
           source_inbox_item_id: string | null
           status: string
           title: string
@@ -1339,6 +1688,8 @@ export type Database = {
           project_id?: string | null
           rollover_count?: number
           source?: string
+          source_assessment_id?: string | null
+          source_assignment_id?: string | null
           source_inbox_item_id?: string | null
           status?: string
           title: string
@@ -1359,6 +1710,8 @@ export type Database = {
           project_id?: string | null
           rollover_count?: number
           source?: string
+          source_assessment_id?: string | null
+          source_assignment_id?: string | null
           source_inbox_item_id?: string | null
           status?: string
           title?: string
@@ -1378,6 +1731,20 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_source_assessment_id_fkey"
+            columns: ["source_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_source_assignment_id_fkey"
+            columns: ["source_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
             referencedColumns: ["id"]
           },
           {
@@ -1449,6 +1816,54 @@ export type Database = {
           },
           {
             foreignKeyName: "time_block_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_estimates: {
+        Row: {
+          actual_minutes: number | null
+          created_at: string
+          estimator_version: string
+          id: string
+          predicted_minutes: number
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_minutes?: number | null
+          created_at?: string
+          estimator_version?: string
+          id?: string
+          predicted_minutes: number
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_minutes?: number | null
+          created_at?: string
+          estimator_version?: string
+          id?: string
+          predicted_minutes?: number
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_estimates_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_estimates_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
