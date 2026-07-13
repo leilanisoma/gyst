@@ -1,8 +1,10 @@
 /**
  * Minimal in-memory stand-in for the Supabase query builder, just enough to
- * exercise ingest.ts/run-discovery.ts's actual call patterns (select/eq/
- * ilike/in, insert/update, single/maybeSingle, and plain awaits for list
- * results) without a live database. Not a general-purpose mock.
+ * exercise this codebase's actual server-action/ingest call patterns
+ * (select/eq/ilike/in, insert/update/upsert, single/maybeSingle, and plain
+ * awaits for list results) without a live database. Not a general-purpose
+ * mock — shared across job-sources and canvas tests, extend only for
+ * patterns real code actually uses.
  */
 type Row = Record<string, unknown>;
 
@@ -13,10 +15,11 @@ const TABLE_DEFAULTS: Record<string, Row> = {
 };
 
 class FakeBuilder implements PromiseLike<{ data: unknown; error: { message: string } | null }> {
-  private mode: "select" | "insert" | "update" = "select";
+  private mode: "select" | "insert" | "update" | "upsert" = "select";
   private filters: ((row: Row) => boolean)[] = [];
   private insertRows?: Row[];
   private updateValues?: Row;
+  private onConflictCols?: string[];
 
   constructor(
     private db: FakeSupabase,
@@ -34,6 +37,12 @@ class FakeBuilder implements PromiseLike<{ data: unknown; error: { message: stri
   update(values: Row) {
     this.mode = "update";
     this.updateValues = values;
+    return this;
+  }
+  upsert(values: Row | Row[], options?: { onConflict?: string }) {
+    this.mode = "upsert";
+    this.insertRows = Array.isArray(values) ? values : [values];
+    this.onConflictCols = options?.onConflict?.split(",").map((s) => s.trim());
     return this;
   }
   eq(col: string, val: unknown) {
@@ -71,6 +80,25 @@ class FakeBuilder implements PromiseLike<{ data: unknown; error: { message: stri
       const matched = table.filter((row) => this.filters.every((f) => f(row)));
       matched.forEach((row) => Object.assign(row, this.updateValues));
       return { data: matched, error: null };
+    }
+    if (this.mode === "upsert") {
+      const upserted = this.insertRows!.map((values) => {
+        const existing = this.onConflictCols
+          ? table.find((row) => this.onConflictCols!.every((col) => row[col] === values[col]))
+          : undefined;
+        if (existing) {
+          Object.assign(existing, values);
+          return existing;
+        }
+        const row: Row = {
+          id: `${this.table}-${this.db.nextId++}`,
+          ...(TABLE_DEFAULTS[this.table] ?? {}),
+          ...values,
+        };
+        table.push(row);
+        return row;
+      });
+      return { data: upserted, error: null };
     }
     return { data: table.filter((row) => this.filters.every((f) => f(row))), error: null };
   }

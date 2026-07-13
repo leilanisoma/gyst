@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ingestNormalizedJob } from "./ingest";
-import { FakeSupabase } from "./fixtures/fake-supabase";
+import { FakeSupabase } from "@/lib/test/fake-supabase";
 import type { NormalizedJob } from "./types";
 
 const USER_ID = "user-1";

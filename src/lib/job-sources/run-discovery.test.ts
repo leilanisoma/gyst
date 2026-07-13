@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { FakeSupabase } from "./fixtures/fake-supabase";
+import { FakeSupabase } from "@/lib/test/fake-supabase";
 import type { JobSourceAdapter, NormalizedJob, RawJob } from "./types";
 
 vi.mock("./registry", () => ({ getAdapter: (id: string) => adapters[id] }));
