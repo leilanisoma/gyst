@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { isAIExtractionEnabled } from "@/ai";
 import { Card, CardContent } from "@/components/ui/card";
 import { SyllabusUploadForm } from "./syllabus-upload-form";
 import { SyllabusRow } from "./syllabus-row";
 
 export async function SyllabusSection({ courses }: { courses: { id: string; title: string }[] }) {
   const supabase = await createClient();
+  const aiExtractionEnabled = isAIExtractionEnabled();
   const { data: documents } = await supabase
     .from("documents")
     .select("id, title, storage_path, file_name, course:courses(title)")
@@ -46,6 +48,7 @@ export async function SyllabusSection({ courses }: { courses: { id: string; titl
                 fileName={doc.file_name}
                 courseTitle={doc.courseTitle}
                 downloadUrl={doc.downloadUrl}
+                aiExtractionEnabled={aiExtractionEnabled}
               />
             ))}
           </div>

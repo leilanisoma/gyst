@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { deleteSyllabus } from "@/app/(app)/school/documents-actions";
+import { extractSyllabusItemsAction } from "@/app/(app)/school/syllabus-extraction-actions";
 
 export function SyllabusRow({
   id,
@@ -11,12 +12,14 @@ export function SyllabusRow({
   fileName,
   courseTitle,
   downloadUrl,
+  aiExtractionEnabled,
 }: {
   id: string;
   title: string;
   fileName: string;
   courseTitle: string;
   downloadUrl: string | null;
+  aiExtractionEnabled: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -24,6 +27,14 @@ export function SyllabusRow({
     startTransition(async () => {
       const result = await deleteSyllabus(id);
       if (!result.ok) toast.error(result.error);
+    });
+  }
+
+  function extract() {
+    startTransition(async () => {
+      const result = await extractSyllabusItemsAction(id);
+      if (!result.ok) toast.error(result.error);
+      else toast.success(`Found ${result.itemsCreated} item${result.itemsCreated === 1 ? "" : "s"} to review.`);
     });
   }
 
@@ -45,6 +56,11 @@ export function SyllabusRow({
           >
             Download
           </a>
+        )}
+        {aiExtractionEnabled && (
+          <Button size="sm" variant="outline" disabled={isPending} onClick={extract}>
+            Extract with AI
+          </Button>
         )}
         <Button size="sm" variant="ghost" disabled={isPending} onClick={remove}>
           Delete

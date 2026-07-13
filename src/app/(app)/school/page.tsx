@@ -12,6 +12,10 @@ import {
   type UpcomingAssessmentRow,
 } from "@/components/school/upcoming-assessments";
 import { SyllabusSection } from "@/components/school/syllabus-section";
+import {
+  SyllabusItemsReviewQueue,
+  type SyllabusItemRow,
+} from "@/components/school/syllabus-items-review-queue";
 import type { AssessmentKind, AssessmentPreparationStatus } from "@/lib/assessments";
 
 export default async function SchoolPage() {
@@ -61,6 +65,23 @@ export default async function SchoolPage() {
     term: (row.course as { title: string; term: string | null } | null)?.term ?? null,
   }));
 
+  const { data: syllabusItemRows } = await supabase
+    .from("syllabus_items")
+    .select("id, title, description, kind, date, source_page, confidence, course:courses(title)")
+    .eq("confirmed", false)
+    .order("date", { ascending: true, nullsFirst: false });
+
+  const syllabusItems: SyllabusItemRow[] = (syllabusItemRows ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    kind: row.kind as SyllabusItemRow["kind"],
+    date: row.date,
+    sourcePage: row.source_page,
+    confidence: row.confidence,
+    courseTitle: (row.course as { title: string } | null)?.title ?? "Unknown course",
+  }));
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div>
@@ -79,6 +100,7 @@ export default async function SchoolPage() {
       <UpcomingAssessments assessments={upcomingAssessments} />
       <CoursesSection courses={courses ?? []} />
       <SyllabusSection courses={(courses ?? []).map((c) => ({ id: c.id, title: c.title }))} />
+      <SyllabusItemsReviewQueue items={syllabusItems} />
     </main>
   );
 }

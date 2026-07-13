@@ -1,4 +1,4 @@
-import type { ExtractionResult } from "./types";
+import type { ExtractionResult, SyllabusExtractionResult } from "./types";
 
 /**
  * Provider-neutral interface so product code never depends on a specific
@@ -9,4 +9,6 @@ import type { ExtractionResult } from "./types";
 export interface AIClient {
   readonly provider: string;
   extractInboxItem(rawText: string): Promise<ExtractionResult>;
+  /** `syllabusText` is page-marked (see `formatPagesForExtraction`) so the model can report a `sourcePage` per item. */
+  extractSyllabusItems(syllabusText: string): Promise<SyllabusExtractionResult>;
 }
