@@ -4,6 +4,7 @@ import { markCanvasError, markCanvasSynced } from "./integration";
 import { estimateAssignmentMinutes } from "./estimate";
 import { classifyAssessmentCandidate } from "./assessment-candidates";
 import { createMilestoneSuggestions } from "@/lib/milestones";
+import { isLikelyDuplicateEvent } from "@/lib/dedupe";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -16,6 +17,7 @@ export type RunCanvasSyncResult =
       tasksUpserted: number;
       assessmentCandidatesCreated: number;
       milestoneSuggestionsCreated: number;
+      eventsDeduped: number;
     }
   | { ok: false; error: string };
 
@@ -217,10 +219,32 @@ export async function runCanvasSync(
       .slice(0, 10);
     const calendarEvents = await listCalendarEvents(courseIds, startDate, endDate);
 
+    // Task 6.9: a course's own published calendar entry and a manually/
+    // Gmail-forwarded Google Calendar entry for the same real-world exam
+    // shouldn't both show up on Today — fetched once per sync, not once
+    // per event, since it's the same candidate set for every comparison.
+    const { data: googleEventRows } = await supabase
+      .from("events")
+      .select("title, start_at")
+      .eq("user_id", userId)
+      .eq("source", "google")
+      .gte("start_at", new Date(startDate).toISOString())
+      .lte("start_at", new Date(endDate).toISOString());
+    const googleEvents = (googleEventRows ?? []).map((row) => ({
+      title: row.title,
+      startAt: new Date(row.start_at),
+    }));
+    let eventsDeduped = 0;
+
     for (const event of calendarEvents) {
       if (!event.start_at || !event.end_at) continue;
       const canvasCourseId = Number(event.context_code.replace("course_", ""));
       const courseId = courseIdByCanvasId.get(canvasCourseId) ?? null;
+
+      if (isLikelyDuplicateEvent({ title: event.title, startAt: new Date(event.start_at) }, googleEvents)) {
+        eventsDeduped++;
+        continue;
+      }
 
       const { error: eventError } = await supabase.from("events").upsert(
         {
@@ -264,6 +288,7 @@ export async function runCanvasSync(
       tasksUpserted,
       assessmentCandidatesCreated,
       milestoneSuggestionsCreated,
+      eventsDeduped,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown sync error.";

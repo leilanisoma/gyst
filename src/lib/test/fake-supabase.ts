@@ -53,6 +53,14 @@ class FakeBuilder implements PromiseLike<{ data: unknown; error: { message: stri
     this.filters.push((row) => String(row[col]).toLowerCase() === String(val).toLowerCase());
     return this;
   }
+  gte(col: string, val: unknown) {
+    this.filters.push((row) => (row[col] as string | number) >= (val as string | number));
+    return this;
+  }
+  lte(col: string, val: unknown) {
+    this.filters.push((row) => (row[col] as string | number) <= (val as string | number));
+    return this;
+  }
   in(col: string, vals: unknown[]) {
     this.filters.push((row) => vals.includes(row[col]));
     return this;

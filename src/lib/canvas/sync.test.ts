@@ -178,6 +178,64 @@ describe("runCanvasSync", () => {
     expect(db.tables.assessments[0].dismissed_at).not.toBeNull();
   });
 
+  it("skips a Canvas calendar event that duplicates an existing Google Calendar event (task 6.9)", async () => {
+    reset();
+    state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];
+    const inFiveDays = new Date(new Date().getTime() + 5 * 86_400_000);
+    state.events = [
+      {
+        id: 500,
+        title: "Midterm Exam",
+        start_at: inFiveDays.toISOString(),
+        end_at: new Date(inFiveDays.getTime() + 3_600_000).toISOString(),
+        location_name: null,
+        context_code: "course_1",
+        html_url: "https://canvas.example.edu/calendar",
+      },
+    ];
+
+    const { runCanvasSync } = await import("./sync");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = new FakeSupabase() as any;
+    db.tables.events = [
+      {
+        id: "existing-google-event",
+        user_id: "user-1",
+        title: "CS101 Midterm Exam",
+        source: "google",
+        start_at: inFiveDays.toISOString(),
+      },
+    ];
+
+    const result = await runCanvasSync(db, "user-1");
+    expect(result).toMatchObject({ ok: true, eventsUpserted: 0, eventsDeduped: 1 });
+    expect(db.tables.events).toHaveLength(1);
+  });
+
+  it("still creates a Canvas calendar event with no matching Google event", async () => {
+    reset();
+    state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];
+    const inFiveDays = new Date(new Date().getTime() + 5 * 86_400_000);
+    state.events = [
+      {
+        id: 500,
+        title: "Guest Lecture",
+        start_at: inFiveDays.toISOString(),
+        end_at: new Date(inFiveDays.getTime() + 3_600_000).toISOString(),
+        location_name: "Room 100",
+        context_code: "course_1",
+        html_url: "https://canvas.example.edu/calendar",
+      },
+    ];
+
+    const { runCanvasSync } = await import("./sync");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = new FakeSupabase() as any;
+    const result = await runCanvasSync(db, "user-1");
+    expect(result).toMatchObject({ ok: true, eventsUpserted: 1, eventsDeduped: 0 });
+    expect(db.tables.events[0]).toMatchObject({ title: "Guest Lecture", source: "canvas" });
+  });
+
   it("records an error run and marks the integration errored when a Canvas call fails", async () => {
     reset();
     const { listCourses } = await import("./client");

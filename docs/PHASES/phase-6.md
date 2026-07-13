@@ -13,7 +13,7 @@ Goal: pull school obligations into the same planning loop. Source:
 - [x] 6.6 Add syllabus PDF extraction with source page/confidence review.
 - [x] 6.7 Suggest milestones for major assignments.
 - [x] 6.8 Add duration estimates and actual-time feedback.
-- [ ] 6.9 Resolve duplicates between Canvas, syllabus, Gmail, and Calendar.
+- [x] 6.9 Resolve duplicates between Canvas, syllabus, Gmail, and Calendar. (Canvas vs Calendar only — see notes for why syllabus/Gmail have no live collision surface yet.)
 - [ ] 6.10 Feed school tasks into the universal scheduler.
 
 ## Exit criteria
@@ -82,3 +82,11 @@ Goal: pull school obligations into the same planning loop. Source:
 - **Deliberately kept out of the shared Kanban board.** The generic `updateTaskStatus` (`src/app/(app)/tasks/actions.ts`) is used by every area's drag-and-drop, not just school's — teaching it to prompt for actual minutes only for school tasks would mean injecting school-specific conditionals into shared cross-domain UI. Instead, the School page itself surfaces a small "How long did that actually take?" card (`ActualTimeLog`) listing completed school tasks whose `work_estimates` row still has `actual_minutes: null`, so completion (via the existing board, unchanged) and time-logging (here) are two independent steps.
 - **No predicted-vs-actual accuracy view yet** — the live account has zero completed school tasks with logged actual time, so there's nothing to show; building a chart against zero real data points would be exactly the kind of premature work CLAUDE.md warns against. Revisit once `estimator_version: "v1"`'s accuracy is worth actually measuring.
 - **Live-verified the completed-tasks join query and the update path** against the real schema (`tasks` → `work_estimates(predicted_minutes, actual_minutes)` returns an array, not a single object — Supabase's type generator didn't infer the 1:1 relationship from the unique *index* on `work_estimates.task_id`, only from an actual `unique` table constraint, so the code treats it as `work_estimates[0]`).
+
+### 6.9 notes
+
+- **Only Canvas-vs-Calendar has a real, live collision surface today.** `src/lib/dedupe.ts` (`isLikelyDuplicateEvent`/`titlesAreSimilar`) does fuzzy title-normalize + time-window (default 60 min) matching — deliberately different from `recruiting.ts`'s exact-key `opportunityFingerprint`, since Canvas and Google will never share a stable external ID for "the same" real-world exam. Wired into `runCanvasSync`'s calendar-event loop: existing `google`-sourced `events` in the sync window are fetched once per sync (not once per candidate event), and a Canvas entry that matches one is skipped rather than inserted, counted in the new `eventsDeduped` result field.
+- **Canvas-vs-syllabus assessment dedup has no live collision surface to resolve**, and building one now would be speculative: 6.6 deliberately stopped at the `syllabus_items` review queue rather than promoting confirmed items into `assessments` (that promotion path doesn't exist yet — see 6.6 notes), so a Canvas-sourced and a syllabus-sourced `assessments` row for the same exam can't currently both exist. Revisit this task once/if a "confirm and promote to assessment" action gets built for syllabus items.
+- **Gmail dedup is N/A** — Gmail integration is Phase 7, not built yet.
+- **Known limitation, documented rather than fixed**: if a Canvas event was inserted before a matching Google event existed, a later sync won't retroactively remove the earlier Canvas duplicate — dedup only prevents *new* duplicates from being created, it doesn't reconcile existing ones. Acceptable for a single-user app where this ordering is rare; revisit only if it's observed in practice.
+- **Live-verified the Google-event lookup query** (the exact query `runCanvasSync` runs before the dedup check) against the real schema by seeding a matching event and confirming it's returned, then cleaning it up; also ran a full live re-sync afterward to confirm the new dedup step doesn't break the existing pipeline (`eventsDeduped: 0`, correctly, since the live account has no calendar events yet).
