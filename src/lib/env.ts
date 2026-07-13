@@ -55,6 +55,11 @@ const cronEnvSchema = z.object({
   CRON_SECRET: z.string().min(16),
 });
 
+const canvasEnvSchema = z.object({
+  CANVAS_BASE_URL: z.string().url(),
+  CANVAS_PERSONAL_ACCESS_TOKEN: z.string().min(1),
+});
+
 /** Throws with a clear message if Google OAuth isn't configured — call only from Google-integration code paths. */
 export function getGoogleEnv() {
   return googleEnvSchema.parse({
@@ -85,4 +90,20 @@ export function getCronEnv() {
   return cronEnvSchema.parse({
     CRON_SECRET: process.env.CRON_SECRET,
   });
+}
+
+/** Throws if Canvas isn't configured — call only from Canvas-integration code paths. */
+export function getCanvasEnv() {
+  return canvasEnvSchema.parse({
+    CANVAS_BASE_URL: process.env.CANVAS_BASE_URL,
+    CANVAS_PERSONAL_ACCESS_TOKEN: process.env.CANVAS_PERSONAL_ACCESS_TOKEN,
+  });
+}
+
+/** True if Canvas env vars are present, without throwing — call from paths that should degrade gracefully. */
+export function isCanvasConfigured(): boolean {
+  return canvasEnvSchema.safeParse({
+    CANVAS_BASE_URL: process.env.CANVAS_BASE_URL,
+    CANVAS_PERSONAL_ACCESS_TOKEN: process.env.CANVAS_PERSONAL_ACCESS_TOKEN,
+  }).success;
 }

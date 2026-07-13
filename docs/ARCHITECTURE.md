@@ -49,6 +49,8 @@ gyst/
 │       ├── job-sources/         # JobSourceAdapter contract + greenhouse/lever/curated_feed adapters,
 │       │                       # classify.ts (keyword role-family/SWE/finance heuristics), ingest.ts +
 │       │                       # run-discovery.ts (upsert/dedupe/expiry orchestration), weekly-digest.ts (Phase 5)
+│       ├── canvas/              # fetch-based Canvas REST client; checkCanvasAccess() confirms token/API
+│       │                       # access (Phase 6 task 6.1) — no course/assignment sync yet
 │       ├── crypto.ts            # AES-256-GCM encrypt/decrypt for oauth_tokens
 │       ├── notifications.ts     # create notification + best-effort push fan-out (accepts server or service client)
 │       ├── webpush.ts            # VAPID-signed push send (wraps the `web-push` package)
@@ -109,7 +111,7 @@ See `docs/PHASES/phase-5.md`'s Notes section for the full list. Highlights: `Job
 
 ## Planned, not yet built
 
-- Gmail and Canvas adapters — Phase 6+ (job-source adapters landed in Phase 5).
+- Gmail adapter and Canvas course/assignment/event sync — Phase 6+ (job-source adapters landed in Phase 5; Canvas token/API access itself is confirmed working as of Phase 6 task 6.1, see `docs/PHASES/phase-6.md`).
 - pgvector semantic memory — later phases, per `PLAN.md` §4.
 - Automatic in-app deadline/block-reminder notifications outside recruiting — only the connector-error path and the new weekly recruiting digest send one today; Today's other reminder surfaces are still always-visible in-app lists, same reasoning as Phase 3.
 - Prompts as versioned files under `src/ai/prompts/` — once a provider exists to use them. AI-assisted job scoring dimensions, draft generation, and discovery classification (currently keyword-based in `src/lib/job-sources/classify.ts`) are all stubbed/deterministic for this.
