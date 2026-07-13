@@ -20,6 +20,7 @@ import {
   MilestoneSuggestionsQueue,
   type MilestoneSuggestionRow,
 } from "@/components/school/milestone-suggestions-queue";
+import { ActualTimeLog, type ActualTimeLogRow } from "@/components/school/actual-time-log";
 import type { AssessmentKind, AssessmentPreparationStatus } from "@/lib/assessments";
 
 export default async function SchoolPage() {
@@ -94,6 +95,21 @@ export default async function SchoolPage() {
 
   const milestoneSuggestions: MilestoneSuggestionRow[] = milestoneSuggestionRows ?? [];
 
+  const { data: completedSchoolTasks } = await supabase
+    .from("tasks")
+    .select("id, title, work_estimates(predicted_minutes, actual_minutes)")
+    .eq("area", "school")
+    .eq("status", "completed");
+
+  const actualTimeLogRows: ActualTimeLogRow[] = (completedSchoolTasks ?? [])
+    .map((task) => ({ id: task.id, title: task.title, estimate: task.work_estimates[0] ?? null }))
+    .filter((task) => task.estimate && task.estimate.actual_minutes == null)
+    .map((task) => ({
+      taskId: task.id,
+      title: task.title,
+      predictedMinutes: task.estimate?.predicted_minutes ?? null,
+    }));
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div>
@@ -114,6 +130,7 @@ export default async function SchoolPage() {
       <CoursesSection courses={courses ?? []} />
       <SyllabusSection courses={(courses ?? []).map((c) => ({ id: c.id, title: c.title }))} />
       <SyllabusItemsReviewQueue items={syllabusItems} />
+      <ActualTimeLog rows={actualTimeLogRows} />
     </main>
   );
 }
