@@ -3,6 +3,7 @@ import { listAssignments, listCalendarEvents, listCourses } from "./client";
 import { markCanvasError, markCanvasSynced } from "./integration";
 import { estimateAssignmentMinutes } from "./estimate";
 import { classifyAssessmentCandidate } from "./assessment-candidates";
+import { createMilestoneSuggestions } from "@/lib/milestones";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -14,6 +15,7 @@ export type RunCanvasSyncResult =
       eventsUpserted: number;
       tasksUpserted: number;
       assessmentCandidatesCreated: number;
+      milestoneSuggestionsCreated: number;
     }
   | { ok: false; error: string };
 
@@ -52,6 +54,7 @@ export async function runCanvasSync(
     let eventsUpserted = 0;
     let tasksUpserted = 0;
     let assessmentCandidatesCreated = 0;
+    let milestoneSuggestionsCreated = 0;
     const courseIdByCanvasId = new Map<number, string>();
 
     for (const course of courses) {
@@ -188,6 +191,22 @@ export async function runCanvasSync(
             assessmentCandidatesCreated++;
           }
         }
+
+        // Task 6.7: a "major" assignment (high point value, regardless of
+        // whether it's also exam-shaped) gets suggested prep checkpoints.
+        if (assignment.due_at) {
+          milestoneSuggestionsCreated += await createMilestoneSuggestions(
+            supabase,
+            userId,
+            {
+              title: assignment.name,
+              dueAt: assignment.due_at,
+              pointsPossible: assignment.points_possible,
+              assignmentId: assignmentRow.id,
+            },
+            new Date(),
+          );
+        }
       }
     }
 
@@ -244,6 +263,7 @@ export async function runCanvasSync(
       eventsUpserted,
       tasksUpserted,
       assessmentCandidatesCreated,
+      milestoneSuggestionsCreated,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown sync error.";

@@ -89,6 +89,35 @@ describe("runCanvasSync", () => {
     expect(db.tables.tasks[0].status).toBe("completed");
   });
 
+  it("creates milestone suggestions for a high-point assignment due far enough out", async () => {
+    reset();
+    state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];
+    state.assignmentsByCourse[1] = [
+      {
+        id: 300,
+        name: "Term Paper",
+        due_at: "2026-12-01T00:00:00Z",
+        points_possible: 100,
+        submission_types: ["online_upload"],
+        html_url: "https://canvas.example.edu/assignments/300",
+        submission: null,
+      },
+    ];
+
+    const { runCanvasSync } = await import("./sync");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = new FakeSupabase() as any;
+    const result = await runCanvasSync(db, "user-1");
+
+    expect(result).toMatchObject({ ok: true, milestoneSuggestionsCreated: 4 });
+    expect(db.tables.milestone_suggestions).toHaveLength(4);
+    expect(db.tables.milestone_suggestions[0]).toMatchObject({ status: "proposed" });
+
+    const second = await runCanvasSync(db, "user-1");
+    expect(second).toMatchObject({ milestoneSuggestionsCreated: 0 });
+    expect(db.tables.milestone_suggestions).toHaveLength(4);
+  });
+
   it("creates an unconfirmed assessment candidate for a midterm-shaped assignment, once", async () => {
     reset();
     state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];

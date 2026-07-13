@@ -16,6 +16,10 @@ import {
   SyllabusItemsReviewQueue,
   type SyllabusItemRow,
 } from "@/components/school/syllabus-items-review-queue";
+import {
+  MilestoneSuggestionsQueue,
+  type MilestoneSuggestionRow,
+} from "@/components/school/milestone-suggestions-queue";
 import type { AssessmentKind, AssessmentPreparationStatus } from "@/lib/assessments";
 
 export default async function SchoolPage() {
@@ -82,6 +86,14 @@ export default async function SchoolPage() {
     courseTitle: (row.course as { title: string } | null)?.title ?? "Unknown course",
   }));
 
+  const { data: milestoneSuggestionRows } = await supabase
+    .from("milestone_suggestions")
+    .select("id, title, due_date")
+    .eq("status", "proposed")
+    .order("due_date", { ascending: true });
+
+  const milestoneSuggestions: MilestoneSuggestionRow[] = milestoneSuggestionRows ?? [];
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div>
@@ -97,6 +109,7 @@ export default async function SchoolPage() {
         error={integration?.error ?? null}
       />
       <AssessmentReviewQueue candidates={candidates} />
+      <MilestoneSuggestionsQueue suggestions={milestoneSuggestions} />
       <UpcomingAssessments assessments={upcomingAssessments} />
       <CoursesSection courses={courses ?? []} />
       <SyllabusSection courses={(courses ?? []).map((c) => ({ id: c.id, title: c.title }))} />
