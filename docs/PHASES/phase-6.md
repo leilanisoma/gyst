@@ -7,7 +7,7 @@ Goal: pull school obligations into the same planning loop. Source:
 
 - [x] 6.1 Test Canvas personal-token/API access.
 - [x] 6.2 Implement courses, assignments, events, and submission sync.
-- [ ] 6.3 Build the Upcoming Assessments section with countdowns, preparation status, and term timeline.
+- [x] 6.3 Build the Upcoming Assessments section with countdowns, preparation status, and term timeline.
 - [x] 6.4 Extract assessment candidates from Canvas and syllabi and require confirmation for uncertain dates. (Canvas half only — syllabi half is 6.6, AI-gated.)
 - [ ] 6.5 If blocked, implement `.ics` import plus syllabus upload first.
 - [ ] 6.6 Add syllabus PDF extraction with source page/confidence review.
@@ -45,3 +45,10 @@ Goal: pull school obligations into the same planning loop. Source:
 - **Confirmation is sticky across re-syncs.** A new `dismissed_at` column (`20260712120001_assessment_candidates.sql`) plus a plain `unique(user_id, assignment_id)` constraint mean `runCanvasSync` only ever inserts a candidate once per assignment and never touches `confirmed`/`dismissed_at` again — a daily cron re-sync can't resurrect something already reviewed. `src/app/(app)/school/assessment-actions.ts` (`confirmAssessmentCandidate`, `dismissAssessmentCandidate`) are the only two writers of those columns.
 - **Review UI**: `AssessmentReviewQueue` (`src/components/school/assessment-review-queue.tsx`) lists unconfirmed, non-dismissed candidates with Confirm/Dismiss buttons, wired into the School page above the courses list.
 - **Live-verified against the real Supabase project**: re-ran `/api/cron/sync-canvas` — 0 new candidates, correctly, since the only real assignment in the account (a graded quiz) is already submitted and skipped before candidate generation runs. Separately verified the confirm/dismiss DB update paths directly (insert an unconfirmed candidate → confirm → dismiss → delete), since no real unconfirmed exam-shaped assignment exists yet in the live account to exercise the review queue naturally; the synthetic row was deleted after.
+
+### 6.3 notes
+
+- **"Term timeline" is a simple group-by-`courses.term` list**, sections in insertion order (which follows the `scheduled_at` sort of the underlying query), not a calendar/Gantt visualization — PLAN.md doesn't specify a visual form, and this reuses the same data already fetched for the countdown list rather than adding a second query or a charting dependency.
+- **Countdown (`countdownLabel`) uses `new Date().getTime()`, not bare `Date.now()`**, matching the existing convention from Phase 5's `follow-ups-due.tsx`/`closing-soon.tsx` (the `react-hooks/purity` lint rule flags the bare call).
+- **Preparation status is an inline `Select` per row** (`updateAssessmentPreparationStatus`, `not_started`/`in_progress`/`ready`) — no separate edit dialog, since it's a single field with no other data to co-edit (unlike, say, the recruiting score-edit sheet).
+- **Live-verified the join query** (`assessments` → `courses(title, term)`) against the real schema by inserting a confirmed synthetic assessment, confirming the query returns the nested course shape correctly, then deleting it. Component tests (`upcoming-assessments.test.tsx`) cover the empty state, term grouping, and today/past/in-N-days countdown labels — first component test in this codebase to render the shadcn `Select`, confirmed it works fine under jsdom with no extra setup needed.

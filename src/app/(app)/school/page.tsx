@@ -7,7 +7,11 @@ import {
   AssessmentReviewQueue,
   type AssessmentCandidateRow,
 } from "@/components/school/assessment-review-queue";
-import type { AssessmentKind } from "@/lib/assessments";
+import {
+  UpcomingAssessments,
+  type UpcomingAssessmentRow,
+} from "@/components/school/upcoming-assessments";
+import type { AssessmentKind, AssessmentPreparationStatus } from "@/lib/assessments";
 
 export default async function SchoolPage() {
   const supabase = await createClient();
@@ -40,6 +44,22 @@ export default async function SchoolPage() {
     courseTitle: (row.course as { title: string } | null)?.title ?? "Unknown course",
   }));
 
+  const { data: upcomingRows } = await supabase
+    .from("assessments")
+    .select("id, title, kind, scheduled_at, preparation_status, course:courses(title, term)")
+    .eq("confirmed", true)
+    .order("scheduled_at", { ascending: true, nullsFirst: false });
+
+  const upcomingAssessments: UpcomingAssessmentRow[] = (upcomingRows ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    kind: row.kind as AssessmentKind,
+    scheduled_at: row.scheduled_at,
+    preparation_status: row.preparation_status as AssessmentPreparationStatus,
+    courseTitle: (row.course as { title: string; term: string | null } | null)?.title ?? "Unknown course",
+    term: (row.course as { title: string; term: string | null } | null)?.term ?? null,
+  }));
+
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div>
@@ -55,6 +75,7 @@ export default async function SchoolPage() {
         error={integration?.error ?? null}
       />
       <AssessmentReviewQueue candidates={candidates} />
+      <UpcomingAssessments assessments={upcomingAssessments} />
       <CoursesSection courses={courses ?? []} />
     </main>
   );
