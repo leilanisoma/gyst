@@ -9,7 +9,7 @@ Goal: pull school obligations into the same planning loop. Source:
 - [x] 6.2 Implement courses, assignments, events, and submission sync.
 - [x] 6.3 Build the Upcoming Assessments section with countdowns, preparation status, and term timeline.
 - [x] 6.4 Extract assessment candidates from Canvas and syllabi and require confirmation for uncertain dates. (Canvas half only — syllabi half is 6.6, AI-gated.)
-- [ ] 6.5 If blocked, implement `.ics` import plus syllabus upload first.
+- [x] 6.5 If blocked, implement `.ics` import plus syllabus upload first. (`.ics` skipped — not blocked; syllabus upload implemented.)
 - [ ] 6.6 Add syllabus PDF extraction with source page/confidence review.
 - [ ] 6.7 Suggest milestones for major assignments.
 - [ ] 6.8 Add duration estimates and actual-time feedback.
@@ -52,3 +52,10 @@ Goal: pull school obligations into the same planning loop. Source:
 - **Countdown (`countdownLabel`) uses `new Date().getTime()`, not bare `Date.now()`**, matching the existing convention from Phase 5's `follow-ups-due.tsx`/`closing-soon.tsx` (the `react-hooks/purity` lint rule flags the bare call).
 - **Preparation status is an inline `Select` per row** (`updateAssessmentPreparationStatus`, `not_started`/`in_progress`/`ready`) — no separate edit dialog, since it's a single field with no other data to co-edit (unlike, say, the recruiting score-edit sheet).
 - **Live-verified the join query** (`assessments` → `courses(title, term)`) against the real schema by inserting a confirmed synthetic assessment, confirming the query returns the nested course shape correctly, then deleting it. Component tests (`upcoming-assessments.test.tsx`) cover the empty state, term grouping, and today/past/in-N-days countdown labels — first component test in this codebase to render the shadcn `Select`, confirmed it works fine under jsdom with no extra setup needed.
+
+### 6.5 notes
+
+- **`.ics` import is deliberately not implemented.** PLAN.md's bullet is conditional — "if blocked, implement `.ics` import plus syllabus upload first" — and task 6.1 already confirmed Canvas's personal-access-token API works against the real account, so there's no blockage to fall back from. Building an unused `.ics` parser now would be speculative work CLAUDE.md's no-premature-abstraction guidance rules out; revisit only if Canvas access breaks later (e.g. the school switches LMS).
+- **Syllabus upload reuses Phase 4's exact `documents` upload pattern** (browser uploads straight to the private Storage bucket via RLS, server action only records metadata) rather than inventing a parallel path — just with `kind: "syllabus"` and the new `course_id` column instead of `application_id`-less recruiting docs. New `src/app/(app)/school/documents-actions.ts` (`uploadSyllabus`/`deleteSyllabus`) stays separate from recruiting's `documents-actions.ts` only because they need to `revalidatePath` different pages; the underlying table and bucket are shared, not duplicated.
+- **No "active" toggle for syllabi** (unlike recruiting's resume/cover-letter documents) — a syllabus doesn't have competing versions to pick an active one from, so `SyllabusRow` only offers download/delete, not `setActiveDocument`.
+- **Live-verified the full round trip against the real Supabase project**: Storage upload → `documents` insert (`kind: "syllabus"`, real `course_id`) → the `courses` join query → signed URL generation → cleanup, all succeeded against the live schema and bucket policies.

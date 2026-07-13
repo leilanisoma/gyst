@@ -11,6 +11,7 @@ import {
   UpcomingAssessments,
   type UpcomingAssessmentRow,
 } from "@/components/school/upcoming-assessments";
+import { SyllabusSection } from "@/components/school/syllabus-section";
 import type { AssessmentKind, AssessmentPreparationStatus } from "@/lib/assessments";
 
 export default async function SchoolPage() {
@@ -77,6 +78,7 @@ export default async function SchoolPage() {
       <AssessmentReviewQueue candidates={candidates} />
       <UpcomingAssessments assessments={upcomingAssessments} />
       <CoursesSection courses={courses ?? []} />
+      <SyllabusSection courses={(courses ?? []).map((c) => ({ id: c.id, title: c.title }))} />
     </main>
   );
 }
