@@ -23,7 +23,7 @@ Every table/data type GYST stores falls into one of three tiers. This drives enc
 | `documents` (resume, transcript, cover letter, syllabus, job description) | Private | May contain personal history; transcripts lean sensitive. |
 | `drafts` (cover letters, recruiter messages) | Private | Never sent automatically; still personal. |
 | `recruiting_insights` | Ordinary | Aggregated metrics/hypotheses. |
-| `courses`, `assignments`, `assessments`, `course_events`, `syllabus_items`, `work_estimates` | Ordinary | Academic scheduling data. |
+| `courses`, `assignments`, `assessments`, `syllabus_items`, `work_estimates`, `milestone_suggestions` | Ordinary | Academic scheduling data. Course calendar entries (exams, office hours) reuse the `events` table (Private tier above) rather than a separate `course_events` table. |
 | `wellness_check_ins`, `wellness_goals` | Private | Subjective, user-authored; not diagnostic. |
 | `health_daily_summaries` (HealthKit aggregates) | Highly sensitive | Health data; exclude from default AI context (`PLAN.md` §11, §14). |
 | `cycle_observations` | Highly sensitive | Menstrual-cycle data; separate permissions, explicit deletion controls, opt-in fields only. |
@@ -33,7 +33,7 @@ Every table/data type GYST stores falls into one of three tiers. This drives enc
 | `oauth_tokens` | Highly sensitive | Encrypted, server-only, never readable by the browser. |
 | `integrations`, `sync_runs` | Ordinary | Operational metadata (status, cursors, error state), not the underlying content. |
 | Gmail message excerpts/metadata (Phase 7) | Highly sensitive | Email content; narrow retention, no full mailbox storage. |
-| Canvas personal access token | Highly sensitive | Credential; treat like `oauth_tokens`. |
+| Canvas personal access token | Highly sensitive | Credential; lives only in server-side env vars (`CANVAS_PERSONAL_ACCESS_TOKEN`), never in the database or browser — no per-user OAuth flow exists for it, so there's no `oauth_tokens` row to encrypt. |
 
 ## Cross-cutting rules
 

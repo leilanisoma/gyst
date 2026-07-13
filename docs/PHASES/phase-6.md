@@ -14,12 +14,26 @@ Goal: pull school obligations into the same planning loop. Source:
 - [x] 6.7 Suggest milestones for major assignments.
 - [x] 6.8 Add duration estimates and actual-time feedback.
 - [x] 6.9 Resolve duplicates between Canvas, syllabus, Gmail, and Calendar. (Canvas vs Calendar only — see notes for why syllabus/Gmail have no live collision surface yet.)
-- [ ] 6.10 Feed school tasks into the universal scheduler.
+- [x] 6.10 Feed school tasks into the universal scheduler.
 
 ## Exit criteria
 
 > Current courses and deadlines remain accurate for two weeks with a clear
 > fallback when sync fails.
+>
+> Architecturally satisfied, not yet empirically proven over two weeks —
+> the same caveat Phase 5 flagged for its own exit criteria. What's built:
+> daily Canvas sync (Vercel Cron) upserts courses/assignments by their
+> Canvas ID so re-running never duplicates or goes stale; a sync failure
+> is visible within one cycle via `integrations.status = 'error'` (School
+> page's sync card) and a `sync_error` notification, exactly mirroring
+> Google Calendar's Phase 3 fallback. Live-verified against the real
+> account and Supabase project at every task (not just unit tests) —
+> two real courses and one real assignment synced correctly, idempotently,
+> across multiple re-syncs during this session. What's outstanding: this
+> is one session's worth of live verification, not two weeks of real
+> accumulated sync history — the same gap Phase 5's 5.9 flagged before
+> its own exit criteria could be called fully proven.
 
 ## Notes
 
