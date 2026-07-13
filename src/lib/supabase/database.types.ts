@@ -149,6 +149,7 @@ export type Database = {
           course_id: string
           coverage: string | null
           created_at: string
+          dismissed_at: string | null
           id: string
           kind: string
           location: string | null
@@ -166,6 +167,7 @@ export type Database = {
           course_id: string
           coverage?: string | null
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           kind?: string
           location?: string | null
@@ -183,6 +185,7 @@ export type Database = {
           course_id?: string
           coverage?: string | null
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           kind?: string
           location?: string | null

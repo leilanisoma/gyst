@@ -2,6 +2,7 @@ import type { createClient } from "@/lib/supabase/server";
 import { listAssignments, listCalendarEvents, listCourses } from "./client";
 import { markCanvasError, markCanvasSynced } from "./integration";
 import { estimateAssignmentMinutes } from "./estimate";
+import { classifyAssessmentCandidate } from "./assessment-candidates";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -12,6 +13,7 @@ export type RunCanvasSyncResult =
       assignmentsUpserted: number;
       eventsUpserted: number;
       tasksUpserted: number;
+      assessmentCandidatesCreated: number;
     }
   | { ok: false; error: string };
 
@@ -49,6 +51,7 @@ export async function runCanvasSync(
     let assignmentsUpserted = 0;
     let eventsUpserted = 0;
     let tasksUpserted = 0;
+    let assessmentCandidatesCreated = 0;
     const courseIdByCanvasId = new Map<number, string>();
 
     for (const course of courses) {
@@ -157,6 +160,34 @@ export async function runCanvasSync(
           },
           { onConflict: "task_id" },
         );
+
+        // Task 6.4: flag exam/midterm/final/presentation/project-shaped
+        // assignments as candidate assessments needing confirmation. Only
+        // created once per assignment — a prior confirm/dismiss decision
+        // (`confirmed`/`dismissed_at`) must survive every later re-sync.
+        const candidate = classifyAssessmentCandidate(assignment);
+        if (candidate) {
+          const { data: existingAssessment } = await supabase
+            .from("assessments")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("assignment_id", assignmentRow.id)
+            .maybeSingle();
+          if (!existingAssessment) {
+            await supabase.from("assessments").insert({
+              user_id: userId,
+              course_id: courseRow.id,
+              assignment_id: assignmentRow.id,
+              kind: candidate.kind,
+              title: assignment.name,
+              scheduled_at: assignment.due_at,
+              source: "canvas",
+              confidence: candidate.confidence,
+              confirmed: false,
+            });
+            assessmentCandidatesCreated++;
+          }
+        }
       }
     }
 
@@ -206,7 +237,14 @@ export async function runCanvasSync(
         .eq("id", syncRun.id);
     }
 
-    return { ok: true, coursesUpserted, assignmentsUpserted, eventsUpserted, tasksUpserted };
+    return {
+      ok: true,
+      coursesUpserted,
+      assignmentsUpserted,
+      eventsUpserted,
+      tasksUpserted,
+      assessmentCandidatesCreated,
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown sync error.";
     await markCanvasError(supabase, userId, message);

@@ -89,6 +89,66 @@ describe("runCanvasSync", () => {
     expect(db.tables.tasks[0].status).toBe("completed");
   });
 
+  it("creates an unconfirmed assessment candidate for a midterm-shaped assignment, once", async () => {
+    reset();
+    state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];
+    state.assignmentsByCourse[1] = [
+      {
+        id: 200,
+        name: "Midterm 1",
+        due_at: "2026-08-15T00:00:00Z",
+        points_possible: 50,
+        submission_types: ["on_paper"],
+        html_url: "https://canvas.example.edu/assignments/200",
+        submission: null,
+      },
+    ];
+
+    const { runCanvasSync } = await import("./sync");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = new FakeSupabase() as any;
+    const first = await runCanvasSync(db, "user-1");
+    expect(first).toMatchObject({ ok: true, assessmentCandidatesCreated: 1 });
+    expect(db.tables.assessments).toHaveLength(1);
+    expect(db.tables.assessments[0]).toMatchObject({
+      kind: "midterm",
+      confirmed: false,
+      source: "canvas",
+      title: "Midterm 1",
+    });
+
+    const second = await runCanvasSync(db, "user-1");
+    expect(second).toMatchObject({ ok: true, assessmentCandidatesCreated: 0 });
+    expect(db.tables.assessments).toHaveLength(1);
+  });
+
+  it("does not resurrect a dismissed assessment candidate on the next sync", async () => {
+    reset();
+    state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];
+    state.assignmentsByCourse[1] = [
+      {
+        id: 200,
+        name: "Midterm 1",
+        due_at: "2026-08-15T00:00:00Z",
+        points_possible: 50,
+        submission_types: ["on_paper"],
+        html_url: "https://canvas.example.edu/assignments/200",
+        submission: null,
+      },
+    ];
+
+    const { runCanvasSync } = await import("./sync");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = new FakeSupabase() as any;
+    await runCanvasSync(db, "user-1");
+    db.tables.assessments[0].dismissed_at = "2026-07-13T00:00:00Z";
+
+    const second = await runCanvasSync(db, "user-1");
+    expect(second).toMatchObject({ ok: true, assessmentCandidatesCreated: 0 });
+    expect(db.tables.assessments).toHaveLength(1);
+    expect(db.tables.assessments[0].dismissed_at).not.toBeNull();
+  });
+
   it("records an error run and marks the integration errored when a Canvas call fails", async () => {
     reset();
     const { listCourses } = await import("./client");
