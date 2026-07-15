@@ -8,6 +8,12 @@ import {
 } from "@/lib/google/integration";
 import { disconnectGoogleTokens } from "@/lib/google/tokens";
 import { runGoogleSync, type RunGoogleSyncResult } from "@/lib/google/sync";
+import {
+  disconnectGmailIntegration,
+  updateGmailSettings,
+} from "@/lib/gmail/integration";
+import { disconnectGmailTokens } from "@/lib/gmail/tokens";
+import { runGmailSync, type RunGmailSyncResult } from "@/lib/gmail/sync";
 import type { ScheduleCategory } from "@/lib/recurring-schedules";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
@@ -100,6 +106,99 @@ export async function setFixedCalendarIds(
   });
 
   revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function disconnectGmail(): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  await disconnectGmailTokens(supabase, user.id);
+  await disconnectGmailIntegration(supabase, user.id);
+
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function syncGmailNow(): Promise<RunGmailSyncResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const result = await runGmailSync(supabase, user.id);
+  revalidatePath("/settings");
+  revalidatePath("/gmail");
+  return result;
+}
+
+export async function setGmailSearchQuery(query: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  await updateGmailSettings(supabase, user.id, { search_query: query.trim() });
+
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+export async function setGmailRetentionDays(days: number): Promise<ActionResult> {
+  if (!Number.isInteger(days) || days < 1 || days > 365) {
+    return { ok: false, error: "Retention must be between 1 and 365 days." };
+  }
+
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  await updateGmailSettings(supabase, user.id, { retention_days: days });
+
+  revalidatePath("/settings");
+  return { ok: true };
+}
+
+/** Easy-to-find delete control for a Highly sensitive tier (docs/DATA_CLASSIFICATION.md) — clears every stored Gmail excerpt/draft, not just the connection itself. */
+export async function purgeGmailData(): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const { error: itemsError } = await supabase
+    .from("gmail_items")
+    .delete()
+    .eq("user_id", user.id);
+  if (itemsError) return { ok: false, error: itemsError.message };
+
+  const { error: draftsError } = await supabase
+    .from("gmail_drafts")
+    .delete()
+    .eq("user_id", user.id);
+  if (draftsError) return { ok: false, error: draftsError.message };
+
+  const { error: processedError } = await supabase
+    .from("gmail_processed_messages")
+    .delete()
+    .eq("user_id", user.id);
+  if (processedError) return { ok: false, error: processedError.message };
+
+  revalidatePath("/settings");
+  revalidatePath("/gmail");
   return { ok: true };
 }
 

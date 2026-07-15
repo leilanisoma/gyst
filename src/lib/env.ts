@@ -60,6 +60,18 @@ const canvasEnvSchema = z.object({
   CANVAS_PERSONAL_ACCESS_TOKEN: z.string().min(1),
 });
 
+/**
+ * Gmail (Phase 7) reuses the same registered Google OAuth client as Calendar
+ * (GOOGLE_CLIENT_ID/SECRET identify the app, not the account) but needs its
+ * own redirect URI since it's a separate callback route — and, per task 7.1,
+ * typically a different Google account than the one connected for Calendar.
+ */
+const gmailEnvSchema = z.object({
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
+  GMAIL_REDIRECT_URI: z.string().url(),
+});
+
 /** Throws with a clear message if Google OAuth isn't configured — call only from Google-integration code paths. */
 export function getGoogleEnv() {
   return googleEnvSchema.parse({
@@ -105,5 +117,23 @@ export function isCanvasConfigured(): boolean {
   return canvasEnvSchema.safeParse({
     CANVAS_BASE_URL: process.env.CANVAS_BASE_URL,
     CANVAS_PERSONAL_ACCESS_TOKEN: process.env.CANVAS_PERSONAL_ACCESS_TOKEN,
+  }).success;
+}
+
+/** Throws if Gmail OAuth isn't configured — call only from Gmail-integration code paths. */
+export function getGmailEnv() {
+  return gmailEnvSchema.parse({
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GMAIL_REDIRECT_URI: process.env.GMAIL_REDIRECT_URI,
+  });
+}
+
+/** True if Gmail env vars are present, without throwing — call from paths (e.g. cron) that should degrade gracefully. */
+export function isGmailConfigured(): boolean {
+  return gmailEnvSchema.safeParse({
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GMAIL_REDIRECT_URI: process.env.GMAIL_REDIRECT_URI,
   }).success;
 }

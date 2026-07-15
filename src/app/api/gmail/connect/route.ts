@@ -1,0 +1,34 @@
+import { randomBytes } from "crypto";
+import { cookies } from "next/headers";
+import { NextResponse, type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { buildGmailAuthUrl, GMAIL_SCOPES } from "@/lib/gmail/oauth";
+
+export const STATE_COOKIE = "gm_oauth_state";
+
+export async function GET(request: NextRequest) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  const { searchParams } = new URL(request.url);
+  const requestComposeScope = searchParams.get("scope") === "compose";
+
+  const scopes = [GMAIL_SCOPES.readonly];
+  if (requestComposeScope) scopes.push(GMAIL_SCOPES.compose);
+
+  const state = randomBytes(16).toString("hex");
+  const cookieStore = await cookies();
+  cookieStore.set(STATE_COOKIE, state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 600,
+    path: "/",
+  });
+
+  const authUrl = buildGmailAuthUrl({ scopes, state });
+  return NextResponse.redirect(authUrl);
+}

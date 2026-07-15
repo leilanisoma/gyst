@@ -26,6 +26,7 @@ describe("AppShell", () => {
       "Tasks",
       "Recruiting",
       "School",
+      "Gmail",
       "Wellness",
       "Chat",
       "Settings",

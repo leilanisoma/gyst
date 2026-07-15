@@ -56,6 +56,7 @@ describe("extractSyllabusItemsFromDocument", () => {
           },
         ],
       }),
+      extractGmailMessage: async () => ({ items: [] }),
     };
 
     const { extractSyllabusItemsFromDocument } = await import("./extract");
@@ -84,6 +85,7 @@ describe("extractSyllabusItemsFromDocument", () => {
       provider: "fake",
       extractInboxItem: async () => ({ items: [] }),
       extractSyllabusItems: async () => ({ items: [] }),
+      extractGmailMessage: async () => ({ items: [] }),
     };
     const { extractSyllabusItemsFromDocument } = await import("./extract");
     const db = makeDbWithStorage({ data: new Blob([MINIMAL_PDF]), error: null });

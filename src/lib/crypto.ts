@@ -5,10 +5,11 @@ const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
 
 /**
- * Encrypts a secret (provider OAuth token) at rest with AES-256-GCM.
- * Output is `iv:authTag:ciphertext`, all base64 — never store the raw
- * secret. Server-only: never call from client code (CLAUDE.md security
- * boundaries).
+ * Encrypts a string at rest with AES-256-GCM — provider OAuth tokens, and
+ * (Phase 7) Gmail item excerpts, the two Highly sensitive tiers that need
+ * application-layer encryption per docs/DATA_CLASSIFICATION.md. Output is
+ * `iv:authTag:ciphertext`, all base64 — never store the raw value.
+ * Server-only: never call from client code (CLAUDE.md security boundaries).
  */
 export function encryptSecret(plaintext: string): string {
   const key = Buffer.from(getEncryptionEnv().ENCRYPTION_KEY, "base64");

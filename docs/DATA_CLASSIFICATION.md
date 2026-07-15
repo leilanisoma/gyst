@@ -32,7 +32,9 @@ Every table/data type GYST stores falls into one of three tiers. This drives enc
 | `assistant_actions` | Ordinary | Action previews/execution logs; avoid logging highly sensitive payloads verbatim. |
 | `oauth_tokens` | Highly sensitive | Encrypted, server-only, never readable by the browser. |
 | `integrations`, `sync_runs` | Ordinary | Operational metadata (status, cursors, error state), not the underlying content. |
-| Gmail message excerpts/metadata (Phase 7) | Highly sensitive | Email content; narrow retention, no full mailbox storage. |
+| `gmail_items` (Phase 7) | Highly sensitive | Email content; `excerpt_encrypted` is AES-256-GCM (same as `oauth_tokens`), `expires_at` enforces narrow retention (default 30 days), never the full message body. |
+| `gmail_drafts` (Phase 7) | Private | App-authored reply content, not raw email; never sent automatically — the user always sends from Gmail itself. |
+| `gmail_processed_messages` (Phase 7) | Ordinary | Just a message ID and timestamp, no content — sync bookkeeping only. |
 | Canvas personal access token | Highly sensitive | Credential; lives only in server-side env vars (`CANVAS_PERSONAL_ACCESS_TOKEN`), never in the database or browser — no per-user OAuth flow exists for it, so there's no `oauth_tokens` row to encrypt. |
 
 ## Cross-cutting rules

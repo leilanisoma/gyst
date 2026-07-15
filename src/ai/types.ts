@@ -27,3 +27,20 @@ export const SyllabusExtractionResultSchema = z.object({
   items: z.array(SyllabusItemCandidateSchema),
 });
 export type SyllabusExtractionResult = z.infer<typeof SyllabusExtractionResultSchema>;
+
+export const GmailItemCandidateSchema = z.object({
+  kind: z.enum(["interview", "confirmation", "deadline", "action", "other"]),
+  title: z.string().min(1),
+  // Short summary only — never the full message body (docs/DATA_CLASSIFICATION.md).
+  excerpt: z.string().nullable(),
+  // ISO date string: interview date, application deadline, etc.
+  date: z.string().nullable(),
+  requestedAction: z.string().nullable(),
+  confidence: z.number().min(0).max(1),
+});
+export type GmailItemCandidate = z.infer<typeof GmailItemCandidateSchema>;
+
+export const GmailExtractionResultSchema = z.object({
+  items: z.array(GmailItemCandidateSchema),
+});
+export type GmailExtractionResult = z.infer<typeof GmailExtractionResultSchema>;

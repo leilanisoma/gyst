@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { InstallInstructions } from "@/components/pwa/install-instructions";
 import { GoogleIntegrationCard } from "@/components/settings/google-integration-card";
+import { GmailIntegrationCard } from "@/components/settings/gmail-integration-card";
 import { NotificationSettingsCard } from "@/components/settings/notification-settings-card";
 import { RecurringScheduleForm } from "@/components/settings/recurring-schedule-form";
 import { RecurringScheduleList } from "@/components/settings/recurring-schedule-list";
@@ -8,6 +9,11 @@ import { listCalendars } from "@/lib/google/calendar";
 import { getGoogleIntegration } from "@/lib/google/integration";
 import { GOOGLE_SCOPES } from "@/lib/google/oauth";
 import { getValidGoogleAccessToken } from "@/lib/google/tokens";
+import {
+  DEFAULT_GMAIL_RETENTION_DAYS,
+  getGmailIntegration,
+} from "@/lib/gmail/integration";
+import { GMAIL_SCOPES } from "@/lib/gmail/oauth";
 import type { NotificationRules } from "@/lib/notifications";
 import type { RecurringSchedule } from "@/lib/recurring-schedules";
 
@@ -17,6 +23,7 @@ export default async function SettingsPage() {
   const userId = data.user?.id ?? "";
 
   const integration = await getGoogleIntegration(supabase, userId);
+  const gmailIntegration = await getGmailIntegration(supabase, userId);
   let calendars: { id: string; summary: string }[] = [];
   if (integration?.status !== "not_connected" && integration) {
     const accessToken = await getValidGoogleAccessToken(supabase, userId);
@@ -100,6 +107,25 @@ export default async function SettingsPage() {
             integration?.granted_scopes.includes(
               GOOGLE_SCOPES.calendarAppCreated,
             ) ?? false
+          }
+        />
+      </div>
+
+      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
+        <h2 className="text-sm font-semibold">Gmail</h2>
+        <GmailIntegrationCard
+          status={gmailIntegration?.status ?? "not_connected"}
+          accountEmail={gmailIntegration?.account_email ?? null}
+          lastSyncedAt={gmailIntegration?.last_synced_at ?? null}
+          error={gmailIntegration?.error ?? null}
+          hasComposeScope={
+            gmailIntegration?.granted_scopes.includes(GMAIL_SCOPES.compose) ??
+            false
+          }
+          initialSearchQuery={gmailIntegration?.settings.search_query ?? ""}
+          initialRetentionDays={
+            gmailIntegration?.settings.retention_days ??
+            DEFAULT_GMAIL_RETENTION_DAYS
           }
         />
       </div>

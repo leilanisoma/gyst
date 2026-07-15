@@ -733,6 +733,154 @@ export type Database = {
           },
         ]
       }
+      gmail_drafts: {
+        Row: {
+          content: string
+          created_at: string
+          gmail_draft_id: string | null
+          gmail_item_id: string | null
+          gmail_thread_id: string
+          id: string
+          in_reply_to_message_id: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          gmail_draft_id?: string | null
+          gmail_item_id?: string | null
+          gmail_thread_id: string
+          id?: string
+          in_reply_to_message_id: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          gmail_draft_id?: string | null
+          gmail_item_id?: string | null
+          gmail_thread_id?: string
+          id?: string
+          in_reply_to_message_id?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmail_drafts_gmail_item_id_fkey"
+            columns: ["gmail_item_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gmail_drafts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmail_items: {
+        Row: {
+          confidence: number | null
+          confirmed: boolean
+          created_at: string
+          date_at: string | null
+          dismissed_at: string | null
+          excerpt_encrypted: string | null
+          expires_at: string
+          gmail_message_id: string
+          gmail_thread_id: string
+          id: string
+          kind: string
+          requested_action: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          confirmed?: boolean
+          created_at?: string
+          date_at?: string | null
+          dismissed_at?: string | null
+          excerpt_encrypted?: string | null
+          expires_at: string
+          gmail_message_id: string
+          gmail_thread_id: string
+          id?: string
+          kind: string
+          requested_action?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          confirmed?: boolean
+          created_at?: string
+          date_at?: string | null
+          dismissed_at?: string | null
+          excerpt_encrypted?: string | null
+          expires_at?: string
+          gmail_message_id?: string
+          gmail_thread_id?: string
+          id?: string
+          kind?: string
+          requested_action?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmail_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmail_processed_messages: {
+        Row: {
+          gmail_message_id: string
+          id: string
+          processed_at: string
+          user_id: string
+        }
+        Insert: {
+          gmail_message_id: string
+          id?: string
+          processed_at?: string
+          user_id: string
+        }
+        Update: {
+          gmail_message_id?: string
+          id?: string
+          processed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmail_processed_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           created_at: string

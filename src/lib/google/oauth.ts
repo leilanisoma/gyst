@@ -25,11 +25,13 @@ export type GoogleTokenResponse = {
 export function buildGoogleAuthUrl(options: {
   scopes: string[];
   state: string;
+  /** Overrides GOOGLE_REDIRECT_URI — Gmail (Phase 7) uses its own callback route/redirect URI. */
+  redirectUri?: string;
 }): string {
   const env = getGoogleEnv();
   const url = new URL(AUTH_URL);
   url.searchParams.set("client_id", env.GOOGLE_CLIENT_ID);
-  url.searchParams.set("redirect_uri", env.GOOGLE_REDIRECT_URI);
+  url.searchParams.set("redirect_uri", options.redirectUri ?? env.GOOGLE_REDIRECT_URI);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("access_type", "offline");
   // Force the consent screen so a refresh_token is issued every time,
@@ -43,6 +45,8 @@ export function buildGoogleAuthUrl(options: {
 
 export async function exchangeCodeForTokens(
   code: string,
+  /** Overrides GOOGLE_REDIRECT_URI — must match whatever redirect_uri was used to obtain `code`. */
+  redirectUri?: string,
 ): Promise<GoogleTokenResponse> {
   const env = getGoogleEnv();
   const response = await fetch(TOKEN_URL, {
@@ -52,7 +56,7 @@ export async function exchangeCodeForTokens(
       code,
       client_id: env.GOOGLE_CLIENT_ID,
       client_secret: env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: env.GOOGLE_REDIRECT_URI,
+      redirect_uri: redirectUri ?? env.GOOGLE_REDIRECT_URI,
       grant_type: "authorization_code",
     }),
   });
