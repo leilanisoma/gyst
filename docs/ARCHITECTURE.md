@@ -139,7 +139,7 @@ See `docs/PHASES/phase-6.md`'s Notes section for the full list. Highlights: Canv
 
 ## Planned, not yet built
 
-- Gmail adapter — Phase 7. `integrations`/`sync_runs` provider check constraints already only allow `google`/`canvas`; widening them is part of building the adapter, not upfront.
+- Gmail adapter — Phase 7. `integrations`/`oauth_tokens`/`sync_runs` provider check constraints now also allow `gmail` (task 7.1, since Gmail is confirmed to live on a different Google account than the one connected for Calendar, so it needs its own row/tokens rather than reusing `provider = 'google'`), but no OAuth route, client, or sync code exists yet.
 - A "confirm and promote to assessment" action for syllabus items — `syllabus_items` (Phase 6) has its own confirm/dismiss review queue but nothing yet turns a confirmed item into an `assessments` row, which is also why Canvas-vs-syllabus assessment dedup (task 6.9) has no live collision surface to resolve today.
 - pgvector semantic memory — later phases, per `PLAN.md` §4.
 - Automatic in-app deadline/block-reminder notifications outside recruiting — only the connector-error path and the new weekly recruiting digest send one today; Today's other reminder surfaces are still always-visible in-app lists, same reasoning as Phase 3.
