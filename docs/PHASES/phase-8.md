@@ -57,6 +57,29 @@ dependency), including a JSON-Schema→Gemini-Schema type-casing translator so
 `src/lib/chat/tools/` can author tool parameters in standard (lowercase)
 JSON Schema instead of Gemini's uppercase `Type` enum.
 
+**Chat entry point is a floating widget, not a nav tab.** Per explicit
+follow-up feedback after this phase's first pass, "Chat" was removed from
+`NAV_ITEMS` — the assistant is meant to be reachable from any page, not a
+separate destination competing with Tasks/Recruiting/School for a tab slot.
+`AppShell` now renders `FloatingChat` (a corner button + `Sheet`, gated on
+`getAIClient()` being configured) on every authenticated page. This forced
+`ChatShell` to stop assuming it's always driven by a server-rendered page's
+props: it now takes a `mode: "page" | "floating"` prop and an `initial`
+data bundle (`ChatPanelData`, `src/lib/chat/panel-data.ts`, shared by the
+`/chat` page's server render and the new `getChatPanelData` server action).
+`mode="page"` keeps the conversation sidebar and reflects the active
+conversation in the URL; `mode="floating"` drops the sidebar (no room in a
+corner widget — it just continues the most recent conversation, with
+"Open full chat"/"Memory" links for anything needing the full page) and
+never touches the URL. Every mutation (send/approve/reject/new/delete) now
+refetches via `getChatPanelData` and updates local state directly instead
+of `router.refresh()`, which was the page-only mechanism the floating
+widget has no equivalent of (it isn't tied to a server-rendered route).
+Switching conversations in page mode uses a `key={activeConversationId}`
+remount rather than an effect syncing `initial` into state, per React's
+own "reset state via key, don't sync props in an effect" guidance
+(`react-hooks/set-state-in-effect` flagged the effect-based version).
+
 **Streaming is transport-level, not generation-level.** `AIClient.chat()` is
 a single non-streaming request — the tool-call loop
 (`src/lib/chat/orchestrator.ts`) needs the full response to decide whether

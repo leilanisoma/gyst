@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { getAIClient } from "@/ai";
 import { AppShell } from "@/components/nav/app-shell";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -13,7 +14,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     .limit(20);
 
   return (
-    <AppShell email={data.user?.email} notifications={notifications ?? []}>
+    <AppShell
+      email={data.user?.email}
+      notifications={notifications ?? []}
+      chatAvailable={Boolean(getAIClient())}
+    >
       {children}
     </AppShell>
   );

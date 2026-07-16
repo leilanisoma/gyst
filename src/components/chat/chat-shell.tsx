@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -12,35 +12,30 @@ import {
   approveAssistantAction,
   createConversation,
   deleteConversation,
+  getChatPanelData,
   rejectAssistantAction,
 } from "@/app/(app)/chat/actions";
+import type { ChatPanelData } from "@/lib/chat/panel-data";
 
-type Conversation = { id: string; title: string; updated_at: string };
-type Message = {
-  id: string;
-  role: string;
-  content: string;
-  created_at: string;
-};
-type PendingAction = {
-  id: string;
-  action_type: string;
-  preview: string;
-  status: string;
-};
-
+/**
+ * Shared by the full `/chat` page and the floating chat widget
+ * (`src/components/chat/floating-chat.tsx`). `mode="page"` keeps the
+ * conversation sidebar and reflects the active conversation in the URL
+ * (so it's bookmarkable/back-button-able); `mode="floating"` drops the
+ * sidebar (a corner widget has no room for one) and never touches the
+ * URL — it just continues the most recent conversation and refetches its
+ * own state after every mutation instead of relying on `router.refresh()`,
+ * since it isn't tied to a server-rendered page's props.
+ */
 export function ChatShell({
-  conversations,
-  activeConversationId,
-  initialMessages,
-  initialPendingActions,
+  mode,
+  initial,
 }: {
-  conversations: Conversation[];
-  activeConversationId: string | null;
-  initialMessages: Message[];
-  initialPendingActions: PendingAction[];
+  mode: "page" | "floating";
+  initial: ChatPanelData;
 }) {
   const router = useRouter();
+  const [panel, setPanel] = useState(initial);
   const [draft, setDraft] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [streamingText, setStreamingText] = useState<string | null>(null);
@@ -50,11 +45,33 @@ export function ChatShell({
   const [isPending, startTransition] = useTransition();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Page mode gets a fresh `initial` from the server on every conversation
+  // switch, but React doesn't remount this component just because a prop
+  // changed — the caller (`/chat/page.tsx`) sets `key={activeConversationId}`
+  // so switching conversations remounts ChatShell with fresh state instead
+  // of needing an effect to sync props into state (react-hooks/set-state-in-effect).
+
+  // Floating mode has no server-rendered props of its own (it's mounted
+  // inside a client-side Sheet) — load real data as soon as it appears.
+  useEffect(() => {
+    if (mode === "floating") refresh(initial.activeConversationId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function refresh(conversationId: string | null) {
+    const result = await getChatPanelData(conversationId);
+    if (result.ok) {
+      setPanel(result.data);
+    } else {
+      toast.error(result.error);
+    }
+  }
+
   async function handleSend() {
     const value = draft.trim();
     if (!value || isSending) return;
 
-    let conversationId = activeConversationId;
+    let conversationId = panel.activeConversationId;
     if (!conversationId) {
       const created = await createConversation();
       if (!created.ok) {
@@ -62,7 +79,7 @@ export function ChatShell({
         return;
       }
       conversationId = created.id;
-      router.push(`/chat?c=${conversationId}`);
+      if (mode === "page") router.push(`/chat?c=${conversationId}`);
     }
 
     setDraft("");
@@ -113,7 +130,7 @@ export function ChatShell({
       setIsSending(false);
       setPendingUserMessage(null);
       setStreamingText(null);
-      router.refresh();
+      await refresh(conversationId);
     }
   }
 
@@ -121,7 +138,7 @@ export function ChatShell({
     startTransition(async () => {
       const result = await approveAssistantAction(actionId);
       if (!result.ok) toast.error(result.error);
-      router.refresh();
+      await refresh(panel.activeConversationId);
     });
   }
 
@@ -129,7 +146,7 @@ export function ChatShell({
     startTransition(async () => {
       const result = await rejectAssistantAction(actionId);
       if (!result.ok) toast.error(result.error);
-      router.refresh();
+      await refresh(panel.activeConversationId);
     });
   }
 
@@ -140,7 +157,11 @@ export function ChatShell({
         toast.error(created.error);
         return;
       }
-      router.push(`/chat?c=${created.id}`);
+      if (mode === "page") {
+        router.push(`/chat?c=${created.id}`);
+      } else {
+        await refresh(created.id);
+      }
     });
   }
 
@@ -151,65 +172,92 @@ export function ChatShell({
         toast.error(result.error);
         return;
       }
-      if (id === activeConversationId) router.push("/chat");
-      router.refresh();
+      if (id === panel.activeConversationId) {
+        if (mode === "page") router.push("/chat");
+        else await refresh(null);
+      }
     });
   }
 
   return (
-    <div className="grid flex-1 grid-cols-1 gap-4 md:grid-cols-[220px_1fr]">
-      <aside className="flex flex-col gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleNewConversation}
-          disabled={isPending}
-        >
-          New conversation
-        </Button>
-        <div className="flex flex-col gap-1">
-          {conversations.length === 0 && (
-            <p className="text-muted-foreground text-xs">
-              No conversations yet.
-            </p>
-          )}
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              className="group flex items-center gap-1"
-            >
-              <Link
-                href={`/chat?c=${conversation.id}`}
-                className={cn(
-                  "flex-1 truncate rounded-lg px-2 py-1.5 text-sm",
-                  conversation.id === activeConversationId
-                    ? "bg-muted font-medium"
-                    : "hover:bg-muted/50",
-                )}
+    <div
+      className={
+        mode === "page"
+          ? "grid flex-1 grid-cols-1 gap-4 md:grid-cols-[220px_1fr]"
+          : "flex h-full min-h-0 flex-1 flex-col gap-3 p-4"
+      }
+    >
+      {mode === "page" && (
+        <aside className="flex flex-col gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleNewConversation}
+            disabled={isPending}
+          >
+            New conversation
+          </Button>
+          <div className="flex flex-col gap-1">
+            {panel.conversations.length === 0 && (
+              <p className="text-muted-foreground text-xs">
+                No conversations yet.
+              </p>
+            )}
+            {panel.conversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                className="group flex items-center gap-1"
               >
-                {conversation.title || "New conversation"}
-              </Link>
-              <button
-                type="button"
-                onClick={() => handleDelete(conversation.id)}
-                className="text-muted-foreground px-1 text-xs opacity-0 group-hover:opacity-100"
-                aria-label="Delete conversation"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      </aside>
+                <Link
+                  href={`/chat?c=${conversation.id}`}
+                  className={cn(
+                    "flex-1 truncate rounded-lg px-2 py-1.5 text-sm",
+                    conversation.id === panel.activeConversationId
+                      ? "bg-muted font-medium"
+                      : "hover:bg-muted/50",
+                  )}
+                >
+                  {conversation.title || "New conversation"}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(conversation.id)}
+                  className="text-muted-foreground px-1 text-xs opacity-0 group-hover:opacity-100"
+                  aria-label="Delete conversation"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </aside>
+      )}
 
-      <div className="flex flex-col gap-3">
-        {initialPendingActions.length > 0 && (
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        {mode === "floating" && (
+          <div className="flex items-center justify-between text-xs">
+            <Link
+              href="/chat"
+              className="text-muted-foreground underline underline-offset-2"
+            >
+              Open full chat
+            </Link>
+            <Link
+              href="/chat/memory"
+              className="text-muted-foreground underline underline-offset-2"
+            >
+              Memory
+            </Link>
+          </div>
+        )}
+
+        {panel.pendingActions.length > 0 && (
           <Card>
             <CardContent className="flex flex-col gap-2 py-3">
               <h2 className="text-sm font-semibold">
                 Waiting for your approval
               </h2>
-              {initialPendingActions.map((action) => (
+              {panel.pendingActions.map((action) => (
                 <div
                   key={action.id}
                   className="flex items-center justify-between gap-2 text-sm"
@@ -238,13 +286,13 @@ export function ChatShell({
           </Card>
         )}
 
-        <div className="flex flex-1 flex-col gap-3 overflow-y-auto rounded-xl border p-4">
-          {initialMessages.length === 0 && !pendingUserMessage && (
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto rounded-xl border p-4">
+          {panel.messages.length === 0 && !pendingUserMessage && (
             <p className="text-muted-foreground text-sm">
               Ask about your tasks, schedule, school, recruiting, or documents.
             </p>
           )}
-          {initialMessages.map((message) => (
+          {panel.messages.map((message) => (
             <MessageBubble
               key={message.id}
               role={message.role}

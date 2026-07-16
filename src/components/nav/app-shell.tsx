@@ -2,14 +2,17 @@ import type { ReactNode } from "react";
 import type { NotificationItem } from "./notification-bell";
 import { SidebarNav } from "./sidebar-nav";
 import { MobileNav } from "./mobile-nav";
+import { FloatingChat } from "@/components/chat/floating-chat";
 
 export function AppShell({
   email,
   notifications,
+  chatAvailable,
   children,
 }: {
   email: string | undefined;
   notifications: NotificationItem[];
+  chatAvailable: boolean;
   children: ReactNode;
 }) {
   return (
@@ -19,6 +22,7 @@ export function AppShell({
         <MobileNav email={email} notifications={notifications} />
         <div className="flex-1">{children}</div>
       </div>
+      {chatAvailable && <FloatingChat />}
     </div>
   );
 }

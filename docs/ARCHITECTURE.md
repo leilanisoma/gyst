@@ -23,9 +23,11 @@ gyst/
 │   │   │   │                 # syllabus upload/extraction review, milestone suggestions, actual-time log (Phase 6);
 │   │   │   │                 # actions split by concern (actions.ts, assessment-actions.ts, documents-actions.ts,
 │   │   │   │                 # syllabus-extraction-actions.ts, milestone-actions.ts, work-estimate-actions.ts)
-│   │   │   ├── chat/         # streaming chat UI + conversation sidebar + pending-action approval (Phase 8);
-│   │   │   │                 # actions.ts (conversations, approve/reject), memory-actions.ts (confirm/edit/
-│   │   │   │                 # archive/delete/export), documents-actions.ts (index for search); memory/ subpage
+│   │   │   ├── chat/         # full-page chat UI (conversation sidebar + history, /chat?c=id) — reached via the
+│   │   │   │                 # floating chat widget, not a nav tab (Phase 8); actions.ts (conversations,
+│   │   │   │                 # approve/reject, getChatPanelData for client-driven refetch), memory-actions.ts
+│   │   │   │                 # (confirm/edit/archive/delete/export), documents-actions.ts (index for search);
+│   │   │   │                 # memory/ subpage
 │   │   │   └── wellness/     # stub page
 │   │   ├── api/chat/         # streaming chat turn endpoint (SSE), authenticated (Phase 8)
 │   │   ├── api/cron/         # discover-jobs (daily), weekly-digest, sync-canvas (daily, Phase 6) — bearer-secret auth (CRON_SECRET), no user session
@@ -43,7 +45,8 @@ gyst/
 │   │                         # providers/gemini.ts is the wired adapter, prompts/ holds versioned prompt text
 │   │                         # including chat-system.ts (Phase 8 system prompt + injection-defense contract)
 │   ├── components/
-│   │   ├── nav/              # sidebar (desktop) + drawer (mobile) + notification bell
+│   │   ├── nav/              # sidebar (desktop) + drawer (mobile) + notification bell; app-shell.tsx renders
+│   │   │                     # FloatingChat (below) on every authenticated page when AI is configured
 │   │   ├── capture/          # brain-dump capture form
 │   │   ├── tasks/             # Kanban board, card, quick-edit sheet
 │   │   ├── today/              # timeline, check-in, suggestions, overwhelm, outcomes, xp
@@ -52,8 +55,9 @@ gyst/
 │   │   ├── school/                # sync status card, courses/assignments, assessment review queue + Upcoming
 │   │   │                          # Assessments, syllabus upload/row/review-queue, milestone suggestions queue,
 │   │   │                          # actual-time log (Phase 6)
-│   │   ├── chat/                  # chat-shell (streaming input/output, sidebar, pending-action approval cards),
-│   │   │                          # memory-review-list, document-index-list (Phase 8)
+│   │   ├── chat/                  # floating-chat.tsx (global corner button + Sheet — the actual chat entry
+│   │   │                          # point), chat-shell.tsx (mode: "page" | "floating", shared by the widget and
+│   │   │                          # /chat), memory-review-list, document-index-list (Phase 8)
 │   │   ├── ai/                # AI-extraction confirmation dialog
 │   │   ├── pwa/                # install instructions, SW registration
 │   │   └── ui/                 # shadcn/ui primitives (Base UI-backed)
@@ -65,7 +69,9 @@ gyst/
 │       │                       # search_memory/search_documents), action-schemas.ts + approve-action.ts
 │       │                       # (write allowlist + re-validated execution), untrusted-content.ts (prompt-
 │       │                       # injection wrapping), compaction.ts, usage.ts (token tracking/daily cap),
-│       │                       # chunk-text.ts + document-index.ts (chunk/embed/cache documents for search)
+│       │                       # chunk-text.ts + document-index.ts (chunk/embed/cache documents for search),
+│       │                       # panel-data.ts (ChatPanelData + loadChatPanelData, shared by /chat's server
+│       │                       # render and the getChatPanelData action the floating widget refetches from)
 │       ├── google/             # oauth, calendar (fetch-based REST client), tokens (encrypted),
 │       │                       # integration (settings/status bookkeeping), sync, normalize, blocks
 │       ├── job-sources/         # JobSourceAdapter contract + greenhouse/lever/curated_feed adapters,

@@ -6,8 +6,28 @@ import {
   approveAssistantAction as approveAssistantActionLib,
   rejectAssistantAction as rejectAssistantActionLib,
 } from "@/lib/chat/approve-action";
+import { loadChatPanelData, type ChatPanelData } from "@/lib/chat/panel-data";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Client-driven refetch of a conversation's full panel state — used by
+ * `ChatShell` after every mutation (send/approve/reject/new/delete) instead
+ * of `router.refresh()`, since the floating chat widget has no
+ * server-rendered page props to refresh. The `/chat` page still does its
+ * own server-side `loadChatPanelData` call for the first paint; this is
+ * the same function, just reachable from a client component.
+ */
+export async function getChatPanelData(
+  conversationId: string | null,
+): Promise<{ ok: true; data: ChatPanelData } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return { ok: false, error: "Not signed in." };
+
+  const data = await loadChatPanelData(supabase, conversationId);
+  return { ok: true, data };
+}
 
 export async function createConversation(): Promise<
   { ok: true; id: string } | { ok: false; error: string }
