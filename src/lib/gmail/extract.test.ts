@@ -33,6 +33,8 @@ describe("extractGmailItemsFromMessage", () => {
     vi.stubEnv("ENCRYPTION_KEY", Buffer.alloc(32, 7).toString("base64"));
     fakeClient = {
       provider: "fake",
+      chat: async () => ({ text: "", toolCalls: [], usage: { inputTokens: 0, outputTokens: 0 } }),
+      embedText: async () => [],
       extractInboxItem: async () => ({ items: [] }),
       extractSyllabusItems: async () => ({ items: [] }),
       extractGmailMessage: async () => ({
@@ -74,6 +76,8 @@ describe("extractGmailItemsFromMessage", () => {
   it("creates no rows when the AI reports no candidates in the message", async () => {
     fakeClient = {
       provider: "fake",
+      chat: async () => ({ text: "", toolCalls: [], usage: { inputTokens: 0, outputTokens: 0 } }),
+      embedText: async () => [],
       extractInboxItem: async () => ({ items: [] }),
       extractSyllabusItems: async () => ({ items: [] }),
       extractGmailMessage: async () => ({ items: [] }),

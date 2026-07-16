@@ -107,9 +107,9 @@ describe("createGeminiClient", () => {
       ],
     });
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
-    expect(body.generationConfig.responseSchema.properties.items.items.required).toContain(
-      "sourcePage",
-    );
+    expect(
+      body.generationConfig.responseSchema.properties.items.items.required,
+    ).toContain("sourcePage");
   });
 
   it("extracts gmail items with the gmail schema", async () => {
@@ -136,5 +136,173 @@ describe("createGeminiClient", () => {
 
     expect(result.items[0].kind).toBe("interview");
     expect(result.items[0].requestedAction).toBe("Confirm availability");
+  });
+
+  describe("chat", () => {
+    it("sends system instruction, tools (uppercased schema), and threaded turn history", async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          candidates: [
+            { content: { role: "model", parts: [{ text: "Hi!" }] } },
+          ],
+          usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 3 },
+        }),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = createGeminiClient("test-key");
+      const result = await client.chat({
+        systemInstruction: "You are helpful.",
+        messages: [{ role: "user", content: "Hello" }],
+        tools: [
+          {
+            name: "get_tasks",
+            description: "List tasks",
+            parameters: {
+              type: "object",
+              properties: { status: { type: "string" } },
+              required: [],
+            },
+          },
+        ],
+      });
+
+      expect(result).toEqual({
+        text: "Hi!",
+        toolCalls: [],
+        usage: { inputTokens: 10, outputTokens: 3 },
+      });
+
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toContain("gemini-2.5-flash-lite:generateContent");
+      const body = JSON.parse(init.body);
+      expect(body.systemInstruction.parts[0].text).toBe("You are helpful.");
+      expect(body.contents).toEqual([
+        { role: "user", parts: [{ text: "Hello" }] },
+      ]);
+      expect(body.tools[0].functionDeclarations[0].parameters.type).toBe(
+        "OBJECT",
+      );
+      expect(
+        body.tools[0].functionDeclarations[0].parameters.properties.status.type,
+      ).toBe("STRING");
+    });
+
+    it("parses function calls out of the response and folds tool replies into a function-role turn", async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                role: "model",
+                parts: [
+                  {
+                    functionCall: {
+                      name: "get_tasks",
+                      args: { status: "open" },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+          usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 2 },
+        }),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = createGeminiClient("test-key");
+      const result = await client.chat({
+        systemInstruction: "sys",
+        messages: [
+          { role: "user", content: "what's open?" },
+          {
+            role: "assistant",
+            content: "",
+            toolCalls: [
+              { id: "call_0", name: "get_tasks", args: { status: "open" } },
+            ],
+          },
+          {
+            role: "tool",
+            toolCallId: "call_0",
+            toolName: "get_tasks",
+            content: "[]",
+          },
+        ],
+        tools: [],
+      });
+
+      expect(result.toolCalls).toEqual([
+        { id: "call_0", name: "get_tasks", args: { status: "open" } },
+      ]);
+      expect(result.text).toBe("");
+
+      const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+      expect(body.contents[1]).toEqual({
+        role: "model",
+        parts: [
+          { functionCall: { name: "get_tasks", args: { status: "open" } } },
+        ],
+      });
+      expect(body.contents[2]).toEqual({
+        role: "function",
+        parts: [
+          {
+            functionResponse: {
+              name: "get_tasks",
+              response: { content: "[]" },
+            },
+          },
+        ],
+      });
+    });
+
+    it("throws when the response has no candidates", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ candidates: [] }),
+        }),
+      );
+      const client = createGeminiClient("test-key");
+      await expect(
+        client.chat({ systemInstruction: "s", messages: [], tools: [] }),
+      ).rejects.toThrow(/no candidates/);
+    });
+  });
+
+  describe("embedText", () => {
+    it("posts to the embedding endpoint and returns the vector", async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ embedding: { values: [0.1, 0.2, 0.3] } }),
+      });
+      vi.stubGlobal("fetch", fetchMock);
+
+      const client = createGeminiClient("test-key");
+      const result = await client.embedText("hello world");
+
+      expect(result).toEqual([0.1, 0.2, 0.3]);
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toContain("text-embedding-004:embedContent");
+      expect(JSON.parse(init.body)).toEqual({
+        content: { parts: [{ text: "hello world" }] },
+      });
+    });
+
+    it("throws when no embedding values are returned", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }),
+      );
+      const client = createGeminiClient("test-key");
+      await expect(client.embedText("x")).rejects.toThrow(
+        /no embedding values/,
+      );
+    });
   });
 });

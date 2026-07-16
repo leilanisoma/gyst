@@ -43,6 +43,8 @@ describe("extractSyllabusItemsFromDocument", () => {
   it("downloads the syllabus, extracts text, and inserts unconfirmed syllabus_items once a provider exists", async () => {
     fakeClient = {
       provider: "fake",
+      chat: async () => ({ text: "", toolCalls: [], usage: { inputTokens: 0, outputTokens: 0 } }),
+      embedText: async () => [],
       extractInboxItem: async () => ({ items: [] }),
       extractSyllabusItems: async (text: string) => ({
         items: [
@@ -83,6 +85,8 @@ describe("extractSyllabusItemsFromDocument", () => {
   it("errors when the syllabus document isn't linked to a course", async () => {
     fakeClient = {
       provider: "fake",
+      chat: async () => ({ text: "", toolCalls: [], usage: { inputTokens: 0, outputTokens: 0 } }),
+      embedText: async () => [],
       extractInboxItem: async () => ({ items: [] }),
       extractSyllabusItems: async () => ({ items: [] }),
       extractGmailMessage: async () => ({ items: [] }),

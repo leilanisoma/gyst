@@ -26,7 +26,9 @@ export type SyllabusItemCandidate = z.infer<typeof SyllabusItemCandidateSchema>;
 export const SyllabusExtractionResultSchema = z.object({
   items: z.array(SyllabusItemCandidateSchema),
 });
-export type SyllabusExtractionResult = z.infer<typeof SyllabusExtractionResultSchema>;
+export type SyllabusExtractionResult = z.infer<
+  typeof SyllabusExtractionResultSchema
+>;
 
 export const GmailItemCandidateSchema = z.object({
   kind: z.enum(["interview", "confirmation", "deadline", "action", "other"]),
@@ -44,3 +46,41 @@ export const GmailExtractionResultSchema = z.object({
   items: z.array(GmailItemCandidateSchema),
 });
 export type GmailExtractionResult = z.infer<typeof GmailExtractionResultSchema>;
+
+// --- Chat (Phase 8: PLAN.md §12) ---
+
+/** One function/tool the model may call. `parameters` is a JSON Schema object, not a Zod schema — Gemini's function-calling API wants raw JSON Schema. */
+export type ToolDeclaration = {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
+};
+
+export type ChatToolCall = {
+  id: string;
+  name: string;
+  args: unknown;
+};
+
+/**
+ * Input turn history for `AIClient.chat`. A 'tool' message always answers a
+ * specific `toolCallId` from a preceding 'assistant' message's `toolCalls`
+ * — never a freestanding message, matching how every provider's
+ * function-calling API expects the turn to be threaded.
+ */
+export type ChatMessageInput =
+  | { role: "user"; content: string }
+  | { role: "assistant"; content: string; toolCalls?: ChatToolCall[] }
+  | { role: "tool"; toolCallId: string; toolName: string; content: string };
+
+export type ChatUsage = {
+  inputTokens: number;
+  outputTokens: number;
+};
+
+export type ChatTurnResult = {
+  /** Empty string when the model only requested tool calls this turn. */
+  text: string;
+  toolCalls: ChatToolCall[];
+  usage: ChatUsage;
+};

@@ -2,7 +2,7 @@
 
 This file describes what **currently exists**. Do not add speculative future architecture here — that belongs in `PLAN.md`. Update this file only when actual code/infrastructure changes.
 
-## Current state (Phase 6 complete)
+## Current state (Phase 8 complete)
 
 A Next.js App Router app backed by Supabase, restricted to one allowed user.
 
@@ -23,7 +23,11 @@ gyst/
 │   │   │   │                 # syllabus upload/extraction review, milestone suggestions, actual-time log (Phase 6);
 │   │   │   │                 # actions split by concern (actions.ts, assessment-actions.ts, documents-actions.ts,
 │   │   │   │                 # syllabus-extraction-actions.ts, milestone-actions.ts, work-estimate-actions.ts)
-│   │   │   └── wellness|chat/  # stub pages
+│   │   │   ├── chat/         # streaming chat UI + conversation sidebar + pending-action approval (Phase 8);
+│   │   │   │                 # actions.ts (conversations, approve/reject), memory-actions.ts (confirm/edit/
+│   │   │   │                 # archive/delete/export), documents-actions.ts (index for search); memory/ subpage
+│   │   │   └── wellness/     # stub page
+│   │   ├── api/chat/         # streaming chat turn endpoint (SSE), authenticated (Phase 8)
 │   │   ├── api/cron/         # discover-jobs (daily), weekly-digest, sync-canvas (daily, Phase 6) — bearer-secret auth (CRON_SECRET), no user session
 │   │   ├── api/google/       # connect/callback route handlers (OAuth redirect + code exchange)
 │   │   ├── login/            # magic-link sign-in
@@ -34,7 +38,10 @@ gyst/
 │   │   ├── icon*.tsx, apple-icon.tsx, icon-*/route.tsx  # generated icons
 │   │   └── layout.tsx        # root layout, metadata, service worker registration
 │   ├── proxy.ts              # auth guard + session refresh (Next 16 "proxy", was middleware)
-│   ├── ai/                   # provider-neutral AIClient (extractInboxItem, extractSyllabusItems, extractGmailMessage); providers/gemini.ts is the wired adapter, prompts/ holds versioned prompt text
+│   ├── ai/                   # provider-neutral AIClient (extractInboxItem, extractSyllabusItems,
+│   │                         # extractGmailMessage, chat, embedText — chat/embedText added Phase 8);
+│   │                         # providers/gemini.ts is the wired adapter, prompts/ holds versioned prompt text
+│   │                         # including chat-system.ts (Phase 8 system prompt + injection-defense contract)
 │   ├── components/
 │   │   ├── nav/              # sidebar (desktop) + drawer (mobile) + notification bell
 │   │   ├── capture/          # brain-dump capture form
@@ -45,12 +52,20 @@ gyst/
 │   │   ├── school/                # sync status card, courses/assignments, assessment review queue + Upcoming
 │   │   │                          # Assessments, syllabus upload/row/review-queue, milestone suggestions queue,
 │   │   │                          # actual-time log (Phase 6)
+│   │   ├── chat/                  # chat-shell (streaming input/output, sidebar, pending-action approval cards),
+│   │   │                          # memory-review-list, document-index-list (Phase 8)
 │   │   ├── ai/                # AI-extraction confirmation dialog
 │   │   ├── pwa/                # install instructions, SW registration
 │   │   └── ui/                 # shadcn/ui primitives (Base UI-backed)
 │   └── lib/
 │       ├── supabase/          # browser/server clients, proxy helper, service.ts (service-role, RLS-bypassing,
 │       │                       # cron-only client added Phase 5), generated DB types
+│       ├── chat/                # Phase 8: orchestrator.ts (tool-call loop), tools/ (typed registry — tasks/
+│       │                       # schedule/school/recruiting/documents read tools, save_memory, propose_action,
+│       │                       # search_memory/search_documents), action-schemas.ts + approve-action.ts
+│       │                       # (write allowlist + re-validated execution), untrusted-content.ts (prompt-
+│       │                       # injection wrapping), compaction.ts, usage.ts (token tracking/daily cap),
+│       │                       # chunk-text.ts + document-index.ts (chunk/embed/cache documents for search)
 │       ├── google/             # oauth, calendar (fetch-based REST client), tokens (encrypted),
 │       │                       # integration (settings/status bookkeeping), sync, normalize, blocks
 │       ├── job-sources/         # JobSourceAdapter contract + greenhouse/lever/curated_feed adapters,
@@ -89,7 +104,11 @@ gyst/
 │                                 # push_subscriptions, companies, opportunities, job_scores, applications,
 │                                 # application_events, contacts, interactions, documents, drafts,
 │                                 # source_configs, source_runs (Phase 5), courses, assignments, assessments,
-│                                 # syllabus_items, work_estimates, milestone_suggestions (Phase 6)
+│                                 # syllabus_items, work_estimates, milestone_suggestions (Phase 6),
+│                                 # gmail_items, gmail_processed_messages, gmail_drafts (Phase 7),
+│                                 # pgvector extension, conversations, messages, memory_items, memory_links,
+│                                 # assistant_actions, document_chunks, ai_usage_events (Phase 8, not yet
+│                                 # applied to the live project — see docs/PHASES/phase-8.md)
 └── public/sw.js                 # offline-fallback service worker + push/notificationclick handlers
 ```
 
@@ -112,8 +131,9 @@ gyst/
 | Scheduled jobs | Vercel Cron (`vercel.json`) hitting normal Next.js route handlers under `/api/cron/*`, bearer-secret auth via `CRON_SECRET` — not Supabase Edge Functions, to avoid a second runtime for a single-user app |
 | Canvas | Direct `fetch` calls to Canvas's REST API (`src/lib/canvas/client.ts`) with a static personal access token (`CANVAS_PERSONAL_ACCESS_TOKEN`) — no OAuth flow, no SDK dependency |
 | PDF text extraction | `pdf-parse` (wraps `pdfjs-dist`) — deterministic parsing, not an AI call; only *identifying* syllabus items from the extracted text needs a model |
+| Semantic memory | Postgres + `pgvector` (Phase 8) — `document_chunks`/`memory_items` embeddings, searched via `match_document_chunks`/`match_memory_items` RPCs (cosine distance); migration not yet applied to the live project |
 
-AI provider is **Google Gemini** (`gemini-2.5-flash-lite`, chosen for cost — see `docs/DECISIONS/0002-gemini-ai-provider.md`). The provider-neutral `AIClient` interface (`src/ai/client.ts`) covers `extractInboxItem`, `extractSyllabusItems` (Phase 6), and `extractGmailMessage` (Phase 7); `src/ai/providers/gemini.ts` implements it via raw `fetch` against Gemini's REST API (no SDK dependency, matching every other connector in this codebase), and prompt text lives in `src/ai/prompts/` as versioned files rather than inline strings. `getAIClient()` (`src/ai/index.ts`) returns a real client once `AI_PROVIDER=gemini` and `GEMINI_API_KEY` are set in `.env.local` — with either unset it still returns `null`, so `isAIExtractionEnabled()` keeps the Inbox "Extract with AI" action and the syllabus/Gmail extraction paths hidden rather than erroring. Adding a second provider means a new file implementing `AIClient` plus a branch in `getAIClient()` — no changes to `src/lib/syllabus/extract.ts`, `src/lib/gmail/extract.ts`, or any UI.
+AI provider is **Google Gemini** (`gemini-2.5-flash-lite`, chosen for cost — see `docs/DECISIONS/0002-gemini-ai-provider.md`; embeddings use `text-embedding-004`). The provider-neutral `AIClient` interface (`src/ai/client.ts`) covers `extractInboxItem`, `extractSyllabusItems` (Phase 6), `extractGmailMessage` (Phase 7), and `chat`/`embedText` (Phase 8, multi-turn function-calling + embeddings for the universal chatbot); `src/ai/providers/gemini.ts` implements all of it via raw `fetch` against Gemini's REST API (no SDK dependency, matching every other connector in this codebase), and prompt text lives in `src/ai/prompts/` as versioned files rather than inline strings. `getAIClient()` (`src/ai/index.ts`) returns a real client once `AI_PROVIDER=gemini` and `GEMINI_API_KEY` are set in `.env.local` — with either unset it still returns `null`, so `isAIExtractionEnabled()` keeps the Inbox "Extract with AI" action and the syllabus/Gmail extraction paths hidden rather than erroring, and `/chat` shows a "not configured" state instead of erroring. Adding a second provider means a new file implementing `AIClient` plus a branch in `getAIClient()` — no changes to `src/lib/syllabus/extract.ts`, `src/lib/gmail/extract.ts`, `src/lib/chat/`, or any UI.
 
 ## Notable decisions from Phase 1
 
@@ -145,13 +165,36 @@ See `docs/PHASES/phase-7.md`'s Notes section for the full list. Highlights: Gmai
 
 See `docs/DECISIONS/0002-gemini-ai-provider.md` for the full record. Highlights: Gemini 2.5 Flash-Lite chosen over Anthropic/OpenAI for per-token cost at this app's single-user volume; integration is raw `fetch` against Gemini's REST API (`src/ai/providers/gemini.ts`), not the `@google/genai` SDK, matching every other connector in this codebase; Gemini's native `responseSchema` forces JSON shape, but callers still re-validate with Zod since model output is untrusted regardless; this activates the previously-inert syllabus (6.6) and Gmail (7.4) extraction paths with zero changes to their code, confirming the provider-neutral `AIClient` design worked as intended. Job scoring dimensions, draft generation, and discovery classification (Phase 4/5) remain deterministic by design, unrelated to provider availability — see those phases' notes.
 
+## Notable decisions — Phase 8
+
+See `docs/PHASES/phase-8.md`'s Notes section for the full list. Highlights:
+chat "streaming" is transport-level, not generation-level — `AIClient.chat`
+is one non-streaming call (the tool-call loop needs the full response
+anyway), and `/api/chat` flushes the finished answer to the browser
+word-by-word over real SSE; read tools (`get_tasks`/`get_schedule`/
+`get_school_overview`/`get_recruiting_overview`/`get_documents`) return flat
+per-table lists rather than Supabase's embedded-join select syntax, so every
+tool stays testable against `FakeSupabase`; the only write-shaped tool,
+`propose_action`, never performs a real write — it only inserts an
+`assistant_actions` preview row, and a fixed three-type allowlist
+(`create_task`/`update_task`/`create_goal`, `src/lib/chat/action-schemas.ts`)
+is re-validated at approval time, not trusted from the proposal; health/
+wellness exclusion is enforced by a `registerTool` guard that throws on
+`dataTier: "highly_sensitive"` rather than by omission, so it's ready before
+Phase 9 adds real health tables; the new migration
+(`20260715000001_chat_memory_schema.sql`) has not been applied to the live
+Supabase project in this sandbox (no `SUPABASE_ACCESS_TOKEN`), so
+`database.types.ts` was hand-edited to match it — regenerate for real via
+`supabase db push && npm run db:types` before shipping.
+
 ## Planned, not yet built
 
 - A "confirm and promote to assessment" action for syllabus items — `syllabus_items` (Phase 6) has its own confirm/dismiss review queue but nothing yet turns a confirmed item into an `assessments` row, which is also why Canvas-vs-syllabus assessment dedup (task 6.9) has no live collision surface to resolve today.
-- pgvector semantic memory — later phases, per `PLAN.md` §4.
 - Automatic in-app deadline/block-reminder notifications outside recruiting — only the connector-error path and the new weekly recruiting digest send one today; Today's other reminder surfaces are still always-visible in-app lists, same reasoning as Phase 3.
 - Live end-to-end verification of the Gmail OAuth flow, sync, and draft-push against a real Gmail account — same sandbox limitation as every other browser-auth OAuth flow in this repo (Phase 3/4/5/6 all flagged the same gap); covered instead by unit tests against mocked `fetch` (`src/lib/gmail/client.test.ts`, `sync.test.ts`, `extract.test.ts`) and `tsc`/`eslint`.
 - A predicted-vs-actual duration accuracy view (Phase 6 task 6.8) — no completed school tasks have logged actual time yet in the live account, so there's nothing real to chart.
-- Live end-to-end verification of real AI extraction against Gemini — the adapter and prompts are wired and unit-tested against mocked `fetch` (`src/ai/providers/gemini.test.ts`), but no one has run it against a real `GEMINI_API_KEY` yet to confirm output quality on real syllabus/Gmail/inbox text; same "unverified beyond mocks" caveat every OAuth-gated phase has flagged, applied here to the AI call itself.
+- Live end-to-end verification of real AI extraction/chat/embeddings against Gemini — every adapter method and prompt is wired and unit-tested against mocked `fetch` (`src/ai/providers/gemini.test.ts`), but no one has run any of it against a real `GEMINI_API_KEY` yet to confirm output quality; same "unverified beyond mocks" caveat every OAuth-gated phase has flagged, applied here to the AI call itself.
+- The Phase 8 migration applied to the live Supabase project, and `database.types.ts` regenerated for real from it (see Notable decisions above).
+- Real per-token model streaming, conversation rename in the chat UI, and auto-indexing documents into `document_chunks` on upload — all deliberately deferred; see `docs/PHASES/phase-8.md`'s Notes for why.
 
 Keep this section truthful, not aspirational, as each phase lands.

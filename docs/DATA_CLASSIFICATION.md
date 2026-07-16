@@ -36,6 +36,10 @@ Every table/data type GYST stores falls into one of three tiers. This drives enc
 | `gmail_drafts` (Phase 7) | Private | App-authored reply content, not raw email; never sent automatically — the user always sends from Gmail itself. |
 | `gmail_processed_messages` (Phase 7) | Ordinary | Just a message ID and timestamp, no content — sync bookkeeping only. |
 | Canvas personal access token | Highly sensitive | Credential; lives only in server-side env vars (`CANVAS_PERSONAL_ACCESS_TOKEN`), never in the database or browser — no per-user OAuth flow exists for it, so there's no `oauth_tokens` row to encrypt. |
+| `document_chunks` (Phase 8) | Private | Extracted text + embeddings of the same documents that back them; mirrors `documents`' tier — chunk content is plaintext (Private tier doesn't require encryption), RLS-scoped. |
+| `ai_usage_events` (Phase 8) | Ordinary | Token counts and feature/provider labels only, no message content. |
+
+Chat/memory tables from `PLAN.md` §6 (`conversations`, `messages`, `memory_items`, `memory_links`, `assistant_actions`) are classified in the table above alongside the other Phase-0-anticipated rows. Phase 8's read-tool registry (`src/lib/chat/tools/`) never exposes `check_ins` or any future wellness/health table by construction — `registerTool()` throws if a tool declares `dataTier: "highly_sensitive"` — so health data is excluded from chat by omission today and by an enforced guard once Phase 9 adds real health tables.
 
 ## Cross-cutting rules
 

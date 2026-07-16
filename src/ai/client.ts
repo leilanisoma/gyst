@@ -1,7 +1,10 @@
 import type {
+  ChatMessageInput,
+  ChatTurnResult,
   ExtractionResult,
   GmailExtractionResult,
   SyllabusExtractionResult,
+  ToolDeclaration,
 } from "./types";
 
 /**
@@ -17,4 +20,21 @@ export interface AIClient {
   extractSyllabusItems(syllabusText: string): Promise<SyllabusExtractionResult>;
   /** `messageText` is one Gmail message's subject/from/body (PLAN.md §15 task 7.4) — never a whole thread or mailbox dump. */
   extractGmailMessage(messageText: string): Promise<GmailExtractionResult>;
+  /**
+   * One non-streaming model turn for the Phase 8 chatbot (PLAN.md §12).
+   * `messages` is the full thread the caller wants the model to see
+   * (system instruction passed separately since providers vary in how they
+   * accept it); `tools`, when non-empty, enables function calling. The
+   * orchestrator (`src/lib/chat/orchestrator.ts`) owns the tool-call loop —
+   * this method makes exactly one request per call. Real chunk-by-chunk
+   * token streaming isn't implemented (see `docs/PHASES/phase-8.md`); the
+   * API route fakes transport-level streaming of the final text instead.
+   */
+  chat(params: {
+    systemInstruction: string;
+    messages: ChatMessageInput[];
+    tools: ToolDeclaration[];
+  }): Promise<ChatTurnResult>;
+  /** Embeds one piece of text for pgvector storage/search (PLAN.md §4, §12 retrieval pipeline). Dimension is provider-specific — Gemini's text-embedding-004 returns 768. */
+  embedText(text: string): Promise<number[]>;
 }

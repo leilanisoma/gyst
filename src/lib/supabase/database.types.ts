@@ -2057,12 +2057,386 @@ export type Database = {
           },
         ]
       }
+      ai_usage_events: {
+        Row: {
+          created_at: string
+          feature: string
+          id: string
+          input_tokens: number
+          output_tokens: number
+          provider: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature: string
+          id?: string
+          input_tokens?: number
+          output_tokens?: number
+          provider: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feature?: string
+          id?: string
+          input_tokens?: number
+          output_tokens?: number
+          provider?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_actions: {
+        Row: {
+          action_type: string
+          arguments: Json
+          conversation_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          preview: string
+          result: Json | null
+          source_message_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          arguments: Json
+          conversation_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          preview: string
+          result?: Json | null
+          source_message_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          arguments?: Json
+          conversation_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          preview?: string
+          result?: Json | null
+          source_message_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_actions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_actions_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          summary: string | null
+          summary_through_created_at: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          summary?: string | null
+          summary_through_created_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          summary?: string | null
+          summary_through_created_at?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          content_hash: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          id: string
+          page: number | null
+          user_id: string
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          content_hash: string
+          created_at?: string
+          document_id: string
+          embedding?: number[] | string | null
+          id?: string
+          page?: number | null
+          user_id: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          content_hash?: string
+          created_at?: string
+          document_id?: string
+          embedding?: number[] | string | null
+          id?: string
+          page?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_chunks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memory_items: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          embedding: string | null
+          id: string
+          kind: string
+          last_used_at: string | null
+          learned_at: string
+          source: string
+          source_message_id: string | null
+          status: string
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          embedding?: number[] | string | null
+          id?: string
+          kind: string
+          last_used_at?: string | null
+          learned_at?: string
+          source: string
+          source_message_id?: string | null
+          status?: string
+          text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          embedding?: number[] | string | null
+          id?: string
+          kind?: string
+          last_used_at?: string | null
+          learned_at?: string
+          source?: string
+          source_message_id?: string | null
+          status?: string
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_items_source_message_id_fkey"
+            columns: ["source_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "memory_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      memory_links: {
+        Row: {
+          created_at: string
+          id: string
+          linked_id: string
+          linked_table: string
+          memory_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          linked_id: string
+          linked_table: string
+          memory_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          linked_id?: string
+          linked_table?: string
+          memory_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memory_links_memory_item_id_fkey"
+            columns: ["memory_item_id"]
+            isOneToOne: false
+            referencedRelation: "memory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          input_tokens: number | null
+          output_tokens: number | null
+          role: string
+          tool_call_id: string | null
+          tool_calls: Json | null
+          tool_name: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+          role: string
+          tool_call_id?: string | null
+          tool_calls?: Json | null
+          tool_name?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          input_tokens?: number | null
+          output_tokens?: number | null
+          role?: string
+          tool_call_id?: string | null
+          tool_calls?: Json | null
+          tool_name?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      match_document_chunks: {
+        Args: {
+          p_match_count?: number
+          p_query_embedding: number[]
+          p_user_id: string
+        }
+        Returns: {
+          chunk_index: number
+          content: string
+          document_id: string
+          id: string
+          page: number | null
+          similarity: number
+        }[]
+      }
+      match_memory_items: {
+        Args: {
+          p_match_count?: number
+          p_query_embedding: number[]
+          p_user_id: string
+        }
+        Returns: {
+          confidence: number | null
+          id: string
+          kind: string
+          similarity: number
+          text: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

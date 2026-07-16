@@ -14,6 +14,7 @@ import {
   getGmailIntegration,
 } from "@/lib/gmail/integration";
 import { GMAIL_SCOPES } from "@/lib/gmail/oauth";
+import { getDailyChatTokenLimit, getTodayFeatureTokenUsage } from "@/lib/chat/usage";
 import type { NotificationRules } from "@/lib/notifications";
 import type { RecurringSchedule } from "@/lib/recurring-schedules";
 
@@ -65,6 +66,9 @@ export default async function SettingsPage() {
     .from("push_subscriptions")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId);
+
+  const todayChatTokens = await getTodayFeatureTokenUsage(supabase, userId, "chat");
+  const dailyChatTokenLimit = getDailyChatTokenLimit();
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
@@ -151,6 +155,14 @@ export default async function SettingsPage() {
         <RecurringScheduleList
           schedules={(schedules ?? []) as RecurringSchedule[]}
         />
+      </div>
+
+      <div className="flex max-w-sm flex-col gap-2 border-t pt-4">
+        <h2 className="text-sm font-semibold">AI usage</h2>
+        <p className="text-muted-foreground text-sm">
+          Chat tokens used today: {todayChatTokens.toLocaleString()} /{" "}
+          {dailyChatTokenLimit.toLocaleString()}
+        </p>
       </div>
 
       <InstallInstructions />
