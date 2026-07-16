@@ -673,7 +673,7 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 
 **Exit:** revoking Health permissions stops collection, deleting synced summaries works, and the main chatbot does not see them by default.
 
-### Phase 9B - Cozy visual identity, motion, and companion character (4-8 sessions)
+### Phase 9C - Cozy visual identity, motion, and companion character (4-8 sessions)
 
 **Goal:** give the app its own emotional identity — satisfying interactions and a companion that reflects what you're actually doing — now that Calendar (Phase 3), Recruiting (Phase 4-5), School (Phase 6), and Wellness (Phase 9) provide real activity signal for it to reflect. Bundled as one phase rather than a motion pass now and a character pass later, so shared UI (hover states, transitions) isn't touched twice.
 
