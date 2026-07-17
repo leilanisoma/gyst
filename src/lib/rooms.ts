@@ -1,4 +1,10 @@
-import { Briefcase, GraduationCap, HeartPulse, Mail, type LucideIcon } from "lucide-react";
+import {
+  Briefcase,
+  GraduationCap,
+  HeartPulse,
+  Mail,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
  * The four full "rooms" (Phase 9D room map) — single source of truth for
@@ -16,7 +22,10 @@ export type RoomDefinition = {
   accent: string;
 };
 
-export const ROOMS: Record<"wellness" | "gmail" | "recruiting" | "school", RoomDefinition> = {
+export const ROOMS: Record<
+  "wellness" | "gmail" | "recruiting" | "school",
+  RoomDefinition
+> = {
   wellness: {
     id: "wellness",
     href: "/wellness",

@@ -173,9 +173,16 @@ export default async function TodayPage({
           of the full Living Room hub rebuild that will place and dress
           them properly. */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {Object.values(ROOMS).map((room) => (
-          <RoomDoorway key={room.id} {...room} />
-        ))}
+        {Object.values(ROOMS).map((room) => {
+          const Icon = room.icon;
+          return (
+            <RoomDoorway
+              key={room.id}
+              {...room}
+              icon={<Icon className="size-6 text-white" aria-hidden="true" />}
+            />
+          );
+        })}
       </div>
 
       {/* Living-room layout (Phase 9C): the companion and capture nook sit

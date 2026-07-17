@@ -1,25 +1,28 @@
 "use client";
 
 import { motion } from "motion/react";
-import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 /**
  * The landing side of a `RoomDoorway`'s zoom transition (Phase 9D). Same
  * `layoutId` (via `id`) as the doorway that links here — render this in
  * place of a page's plain `<h1>` so navigating from the hub feels like the
  * doorway grew into the page instead of a route swap.
+ *
+ * `icon` takes an already-rendered element, not a component reference —
+ * see `RoomDoorway` for why (Server->Client Component prop serialization).
  */
 export function RoomHeader({
   id,
   label,
   description,
-  icon: Icon,
+  icon,
   accent,
 }: {
   id: string;
   label: string;
   description?: string;
-  icon: LucideIcon;
+  icon: ReactNode;
   accent: string;
 }) {
   return (
@@ -32,7 +35,7 @@ export function RoomHeader({
         className="flex size-12 shrink-0 items-center justify-center rounded-full"
         style={{ backgroundColor: accent }}
       >
-        <Icon className="size-6 text-white" aria-hidden="true" />
+        {icon}
       </div>
       <div>
         <h1 className="text-lg font-semibold tracking-tight">{label}</h1>

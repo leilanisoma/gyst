@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { roomObjectMotionProps } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -13,13 +13,18 @@ import { cn } from "@/lib/utils";
  * Motion morphs one into the other on navigation instead of a plain route
  * swap — the "woosh" zoom Ishani asked for. `id` must be unique per room
  * and match the `RoomHeader`'s `id` on the far end.
+ *
+ * `icon` takes an already-rendered element (`<HeartPulse />`), not a
+ * component reference — a Lucide component itself isn't a plain
+ * serializable value, so it can't cross the Server->Client Component
+ * boundary when a server-rendered page passes room data down as props.
  */
 export function RoomDoorway({
   id,
   href,
   label,
   description,
-  icon: Icon,
+  icon,
   accent,
   className,
 }: {
@@ -27,7 +32,7 @@ export function RoomDoorway({
   href: string;
   label: string;
   description?: string;
-  icon: LucideIcon;
+  icon: ReactNode;
   accent: string;
   className?: string;
 }) {
@@ -47,7 +52,7 @@ export function RoomDoorway({
           className="flex size-12 items-center justify-center rounded-full"
           style={{ backgroundColor: accent }}
         >
-          <Icon className="size-6 text-white" aria-hidden="true" />
+          {icon}
         </div>
         <span className="text-sm font-semibold">{label}</span>
         {description && (

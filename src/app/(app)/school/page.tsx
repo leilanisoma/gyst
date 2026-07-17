@@ -115,7 +115,12 @@ export default async function SchoolPage() {
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col gap-2">
-        <RoomHeader {...ROOMS.school} />
+        <RoomHeader
+          {...ROOMS.school}
+          icon={
+            <ROOMS.school.icon className="size-6 text-white" aria-hidden="true" />
+          }
+        />
         <p className="text-muted-foreground text-sm">
           Canvas courses, deadlines, and study planning.
         </p>

@@ -52,7 +52,15 @@ export default async function RecruitingPage() {
     <main className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-4">
-          <RoomHeader {...ROOMS.recruiting} />
+          <RoomHeader
+            {...ROOMS.recruiting}
+            icon={
+              <ROOMS.recruiting.icon
+                className="size-6 text-white"
+                aria-hidden="true"
+              />
+            }
+          />
           <OpportunityForm />
         </div>
         <p className="text-muted-foreground text-sm">

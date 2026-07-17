@@ -24,7 +24,12 @@ export default async function GmailPage() {
   if (!integration || integration.status === "not_connected") {
     return (
       <main className="flex flex-1 flex-col gap-4 p-6">
-        <RoomHeader {...ROOMS.gmail} />
+        <RoomHeader
+          {...ROOMS.gmail}
+          icon={
+            <ROOMS.gmail.icon className="size-6 text-white" aria-hidden="true" />
+          }
+        />
         <p className="text-muted-foreground max-w-md text-sm">
           Connect Gmail from{" "}
           <Link href="/settings" className="underline">
@@ -76,7 +81,12 @@ export default async function GmailPage() {
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
-      <RoomHeader {...ROOMS.gmail} />
+      <RoomHeader
+        {...ROOMS.gmail}
+        icon={
+          <ROOMS.gmail.icon className="size-6 text-white" aria-hidden="true" />
+        }
+      />
       {!hasSearchQuery && (
         <p className="text-muted-foreground max-w-md text-sm">
           Set a Gmail search query or label in{" "}

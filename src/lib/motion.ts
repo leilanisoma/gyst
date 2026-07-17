@@ -48,8 +48,7 @@ export function prefersReducedMotion(): boolean {
  * like `"var(--chart-2)"`, not a new hex).
  */
 export function roomObjectMotionProps(accent: string) {
-  const restShadow =
-    "0 0 0 1px transparent, 0 10px 24px -8px transparent";
+  const restShadow = "0 0 0 1px transparent, 0 10px 24px -8px transparent";
   const hoverShadow = `0 0 0 1px ${accent}, 0 16px 32px -8px ${accent}`;
 
   return {

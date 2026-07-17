@@ -41,7 +41,15 @@ export default async function WellnessPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
-      <RoomHeader {...ROOMS.wellness} />
+      <RoomHeader
+        {...ROOMS.wellness}
+        icon={
+          <ROOMS.wellness.icon
+            className="size-6 text-white"
+            aria-hidden="true"
+          />
+        }
+      />
       <p className="text-muted-foreground max-w-lg text-sm">
         Lightweight, optional check-ins for supportive awareness — not a
         tracker to optimize. Every field is skippable.
