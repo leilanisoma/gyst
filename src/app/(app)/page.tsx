@@ -13,7 +13,7 @@ import { TaskSummaryList } from "@/components/today/task-summary-list";
 import { TimeBlockSuggestions } from "@/components/today/time-block-suggestions";
 import { TopOutcomesCard } from "@/components/today/top-outcomes-card";
 import { WeeklyGoalsList } from "@/components/today/weekly-goals-list";
-import { XpIndicator } from "@/components/today/xp-indicator";
+import { XpGrowthVisual } from "@/components/today/xp-growth-visual";
 import { buttonVariants } from "@/components/ui/button";
 import {
   deriveCompanionState,
@@ -160,11 +160,11 @@ export default async function TodayPage({
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
-      <div>
+      <div className="flex items-center gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">
           Hi, {firstName}.
         </h1>
-        <XpIndicator
+        <XpGrowthVisual
           xp={totalXp(xpEvents ?? [])}
           daysEngaged={daysEngagedThisWeek(xpEvents ?? [], todayString)}
         />

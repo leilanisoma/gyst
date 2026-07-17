@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   daysEngagedThisWeek,
+  growthStage,
   shouldAwardReturnBonus,
   totalXp,
 } from "./gamification";
@@ -54,5 +55,23 @@ describe("shouldAwardReturnBonus", () => {
     expect(
       shouldAwardReturnBonus(["2026-05-01", "2026-07-10"], "2026-07-12"),
     ).toBe(false);
+  });
+});
+
+describe("growthStage", () => {
+  it("is stage 0 (seed) below the first threshold", () => {
+    expect(growthStage(0)).toBe(0);
+    expect(growthStage(49)).toBe(0);
+  });
+
+  it("advances a stage exactly at each threshold", () => {
+    expect(growthStage(50)).toBe(1);
+    expect(growthStage(150)).toBe(2);
+    expect(growthStage(300)).toBe(3);
+    expect(growthStage(600)).toBe(4);
+  });
+
+  it("caps at the highest stage past the last threshold", () => {
+    expect(growthStage(10_000)).toBe(4);
   });
 });

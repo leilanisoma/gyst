@@ -21,6 +21,13 @@ export const XP_POINTS: Record<XpEventType, number> = {
 /** Days away before a return counts as "coming back after time away" rather than routine use. */
 export const ABSENCE_DAYS_THRESHOLD = 7;
 
+/**
+ * Total-XP thresholds for the ambient growth visual (Phase 9D §13) that
+ * replaces the numeric XP readout — a room element that grows/brightens
+ * instead of a count. Index into the array = growth stage.
+ */
+export const GROWTH_STAGE_XP_THRESHOLDS = [0, 50, 150, 300, 600] as const;
+
 export type XpEvent = { points: number; occurred_on: string };
 
 export function totalXp(events: XpEvent[]): number {
@@ -57,6 +64,15 @@ export function daysEngagedThisWeek(
       .filter((date) => date >= start && date <= today),
   );
   return dates.size;
+}
+
+/** Growth stage (0 = seed .. highest = fullest bloom) for a given total XP. */
+export function growthStage(xp: number): number {
+  let stage = 0;
+  for (let i = 0; i < GROWTH_STAGE_XP_THRESHOLDS.length; i++) {
+    if (xp >= GROWTH_STAGE_XP_THRESHOLDS[i]) stage = i;
+  }
+  return stage;
 }
 
 /**
