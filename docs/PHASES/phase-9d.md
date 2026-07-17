@@ -41,6 +41,17 @@ Ambient objects (live inside the Living Room scene itself, not separate rooms):
 
 Chat (companion blob) and top-bar chrome (bell, sign-out, email) are unchanged from the original plan below.
 
+## Room map v2 (revised later on 2026-07-17 — supersedes parts of the map above)
+
+After 9D-1 shipped with flat-colored-circle placeholders, Ishani's reaction was that it needed to look genuinely illustrated (Animal Crossing: New Horizons + Cozy Grove/Spiritfarer), not hand-coded SVG. Two changes came out of that conversation, on top of the room map above:
+
+- **Art pipeline:** background art is AI-generated via a local ComfyUI (Stable Diffusion) install on Ishani's Mac — not hand-coded SVG, not a cloud API. Style: DreamShaper XL (SFW Lightning) + an Animal Crossing SDXL LoRA. Full install instructions, model download commands, and the working prompt/denoise recipe live in `~/tools/gyst-art-gen/SESSION_RECAP.md` **on that machine only** (it includes an API key, so it's intentionally not committed here — ask Ishani or read that file directly if continuing this work).
+- **Navigation mechanic changed for three of the four full rooms.** Wellness (Garden), School (Nook), and Recruiting (Study Desk) are no longer reached by clicking a doorway that zooms in — they're reached by **sliding left/right** through a filmstrip, order: Garden — Living Room — Nook — Study Desk, via arrow buttons and drag/swipe. Implemented in commit `2a3f2bf` (`src/lib/room-sequence.ts`, `RouteTransition`, `RoomSlideArrows`) — routing/motion shell only, no art wired in yet.
+  - **Gmail stays a small icon object inside the Living Room** (alongside Inbox/journal and Settings/thermostat), not a separate room — this was genuinely reconsidered mid-session (Ishani first treated it as a full room like the table above says, then confirmed it should just be a mailbox icon like journal/thermostat once asked directly). Table above is stale on this point.
+  - **Open follow-up, not yet decided:** the `RoomDoorway`/`RoomHeader` zoom-transition mechanic from 9D-1 was built for the click-to-zoom model. It's not clear yet whether anything still needs it (maybe nothing does, now that Gmail/Inbox/Settings are icons and Wellness/School/Recruiting slide) — worth asking Ishani directly rather than assuming when picking this back up, and cleaning up the now-unused Wellness/School/Recruiting entries in the Today page's doorway grid either way.
+
+Art status as of 2026-07-17: Living Room hub (4 day-period backgrounds) and the mailbox/journal/thermostat object icons are finished and committed (`public/rooms/`, commit `4b6a7d5`) but **not wired into any component**. Garden/Nook/Study Desk each have a locked base composition but still need their day-period relighting pass (~12 more images, ~60-65 min on Ishani's Mac) — queued but not run when the session ended.
+
 ## Open questions to resolve before/while building
 
 - Exact palette values per day-period (dawn/day/dusk/night) — not yet specified beyond "warmer, gamier, Animal Crossing-ish."
