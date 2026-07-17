@@ -3,6 +3,7 @@ import type { NotificationItem } from "./notification-bell";
 import { TopBar } from "./top-bar";
 import { RouteTransition } from "./route-transition";
 import { CompanionChatLauncher } from "@/components/chat/companion-chat-launcher";
+import { RoomSlideArrows } from "@/components/room/room-slide-arrows";
 import type { CompanionState } from "@/lib/companion";
 
 export function AppShell({
@@ -21,7 +22,8 @@ export function AppShell({
   return (
     <div className="flex min-h-screen flex-col">
       <TopBar email={email} notifications={notifications} />
-      <div className="flex-1">
+      <RoomSlideArrows />
+      <div className="flex-1 overflow-x-hidden">
         <RouteTransition>{children}</RouteTransition>
       </div>
       {chatAvailable && <CompanionChatLauncher state={companionState} />}
