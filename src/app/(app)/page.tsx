@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
-import { CompanionBlob } from "@/components/companion/companion-blob";
 import { AmbientObject } from "@/components/room/ambient-object";
 import { RoomDoorway } from "@/components/room/room-doorway";
 import { AMBIENT_OBJECTS, ROOMS } from "@/lib/rooms";
@@ -16,15 +15,9 @@ import { WeeklyGoalsList } from "@/components/today/weekly-goals-list";
 import { XpGrowthVisual } from "@/components/today/xp-growth-visual";
 import { buttonVariants } from "@/components/ui/button";
 import {
-  deriveCompanionState,
-  type CompanionEvent,
-  type CompanionSchedule,
-} from "@/lib/companion";
-import {
   getLocalDateString,
   getLocalDayOfWeek,
   getLocalDayRange,
-  getLocalTimeOfDay,
 } from "@/lib/date-range";
 import { daysEngagedThisWeek, totalXp } from "@/lib/gamification";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
@@ -34,15 +27,6 @@ import type { CheckIn } from "@/lib/check-ins";
 import type { DailyPlan } from "@/lib/daily-plans";
 import type { Task } from "@/lib/tasks";
 import type { TimeBlockSuggestion } from "@/lib/time-block-suggestions";
-
-/** Stages that no longer represent live recruiting momentum. */
-const INACTIVE_APPLICATION_STAGES = new Set([
-  "discovered",
-  "offer",
-  "rejected",
-  "withdrawn",
-  "archived",
-]);
 
 const WEEK_DAYS = 7;
 
@@ -126,37 +110,12 @@ export default async function TodayPage({
     .eq("day_of_week", getLocalDayOfWeek(now, timeZone))
     .eq("active", true);
 
-  const { data: dueApplications } = await supabase
-    .from("applications")
-    .select("id, stage")
-    .lte("next_action_date", todayString);
-
   const timeline = buildDailyTimeline(
     todayEvents ?? [],
     todaySchedules ?? [],
     now,
     timeZone,
   );
-
-  const inProgressTaskAreas = [
-    ...new Set(
-      (tasks ?? [])
-        .filter((task) => task.status === "in_progress")
-        .map((task) => task.area),
-    ),
-  ];
-
-  const companionState = deriveCompanionState({
-    nowTimeOfDay: getLocalTimeOfDay(now, timeZone),
-    nowIso: now.toISOString(),
-    todaySchedules: (todaySchedules ?? []) as CompanionSchedule[],
-    todayEvents: (todayEvents ?? []) as CompanionEvent[],
-    inProgressTaskAreas,
-    energy: (checkIn as CheckIn | null)?.energy ?? null,
-    recruitingActionDueOrOverdue: (dueApplications ?? []).some(
-      (application) => !INACTIVE_APPLICATION_STAGES.has(application.stage),
-    ),
-  });
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -186,15 +145,13 @@ export default async function TodayPage({
         })}
       </div>
 
-      {/* Living-room layout (Phase 9C/9D): the companion, capture nook, and
-          the journal/thermostat ambient objects sit in their own zone
+      {/* Living-room layout (Phase 9C/9D): the capture nook and the
+          journal/thermostat ambient objects sit in their own zone
           alongside the main task/planning area, instead of everything
-          stacking in one column. */}
+          stacking in one column. The companion itself now lives in the
+          global chat launcher (AppShell), not a card here. */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <aside className="order-first flex w-full flex-col gap-4 lg:order-last lg:w-72 lg:shrink-0">
-          <div className="bg-card ring-foreground/10 shadow-cozy flex flex-col items-center gap-2 rounded-xl p-4 ring-1">
-            <CompanionBlob state={companionState} />
-          </div>
           <div className="bg-card ring-foreground/10 shadow-cozy rounded-xl p-4 ring-1">
             <CaptureForm />
           </div>

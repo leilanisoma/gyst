@@ -18,8 +18,8 @@ import {
 import type { ChatPanelData } from "@/lib/chat/panel-data";
 
 /**
- * Shared by the full `/chat` page and the floating chat widget
- * (`src/components/chat/floating-chat.tsx`). `mode="page"` keeps the
+ * Shared by the full `/chat` page and the companion chat launcher
+ * (`src/components/chat/companion-chat-launcher.tsx`). `mode="page"` keeps the
  * conversation sidebar and reflects the active conversation in the URL
  * (so it's bookmarkable/back-button-able); `mode="floating"` drops the
  * sidebar (a corner widget has no room for one) and never touches the

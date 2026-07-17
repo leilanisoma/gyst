@@ -18,6 +18,7 @@ describe("AppShell", () => {
         email="test@example.com"
         notifications={[]}
         chatAvailable={true}
+        companionState="idle"
       >
         <p>page content</p>
       </AppShell>,
@@ -41,6 +42,7 @@ describe("AppShell", () => {
         email="test@example.com"
         notifications={[]}
         chatAvailable={true}
+        companionState="idle"
       >
         <p>page content</p>
       </AppShell>,
@@ -56,6 +58,7 @@ describe("AppShell", () => {
         email="test@example.com"
         notifications={[]}
         chatAvailable={false}
+        companionState="idle"
       >
         <p>page content</p>
       </AppShell>,

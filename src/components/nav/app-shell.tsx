@@ -2,17 +2,20 @@ import type { ReactNode } from "react";
 import type { NotificationItem } from "./notification-bell";
 import { TopBar } from "./top-bar";
 import { RouteTransition } from "./route-transition";
-import { FloatingChat } from "@/components/chat/floating-chat";
+import { CompanionChatLauncher } from "@/components/chat/companion-chat-launcher";
+import type { CompanionState } from "@/lib/companion";
 
 export function AppShell({
   email,
   notifications,
   chatAvailable,
+  companionState,
   children,
 }: {
   email: string | undefined;
   notifications: NotificationItem[];
   chatAvailable: boolean;
+  companionState: CompanionState;
   children: ReactNode;
 }) {
   return (
@@ -21,7 +24,7 @@ export function AppShell({
       <div className="flex-1">
         <RouteTransition>{children}</RouteTransition>
       </div>
-      {chatAvailable && <FloatingChat />}
+      {chatAvailable && <CompanionChatLauncher state={companionState} />}
     </div>
   );
 }

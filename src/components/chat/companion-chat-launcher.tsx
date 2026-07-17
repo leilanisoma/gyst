@@ -1,6 +1,5 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -9,28 +8,31 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { CompanionBlob } from "@/components/companion/companion-blob";
+import type { CompanionState } from "@/lib/companion";
 import { ChatShell } from "./chat-shell";
 import { EMPTY_CHAT_PANEL_DATA } from "@/lib/chat/panel-data";
 
 /**
- * Global floating entry point into chat (replaces a top-level "Chat" nav
- * tab — the assistant is meant to be reachable from anywhere, not a
- * separate destination). Rendered once in `AppShell` for every
- * authenticated page, gated on AI being configured.
+ * Global chat entry point (Phase 9D) — the companion blob itself, not a
+ * plain icon button. Replaces `FloatingChat`; rendered once in `AppShell`
+ * for every authenticated page, gated on AI being configured. `state`
+ * comes from the `(app)` layout so it reflects real activity everywhere,
+ * not just Today where the companion originated (Phase 9C).
  */
-export function FloatingChat() {
+export function CompanionChatLauncher({ state }: { state: CompanionState }) {
   return (
     <Sheet>
       <SheetTrigger
         render={
           <Button
-            size="icon-lg"
+            variant="ghost"
             aria-label="Open chat"
-            className="fixed right-6 bottom-6 z-40 size-14 rounded-full shadow-lg"
+            className="bg-card/90 shadow-cozy fixed right-6 bottom-6 z-40 h-auto w-auto flex-col gap-1 rounded-2xl p-2 backdrop-blur"
           />
         }
       >
-        <MessageCircle className="size-6" />
+        <CompanionBlob state={state} size={56} />
       </SheetTrigger>
       <SheetContent
         side="right"
