@@ -3,7 +3,7 @@ import type { createClient } from "@/lib/supabase/server";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-const DEFAULT_TARGET_GRAD_YEAR = 2027;
+const DEFAULT_TARGET_GRAD_YEAR = 2028;
 
 /** Shared by the manual capture action and the discovery pipeline so both score against the same eligibility year. */
 export async function getTargetGradYear(

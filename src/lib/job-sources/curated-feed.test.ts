@@ -25,7 +25,7 @@ describe("curatedFeedAdapter.discover", () => {
     await curatedFeedAdapter.discover({});
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("SimplifyJobs/Summer2026-Internships"),
+      expect.stringContaining("SimplifyJobs/Summer2027-Internships"),
     );
   });
 });

@@ -54,7 +54,7 @@ export function OpportunityForm({
   const [isFinance, setIsFinance] = useState(false);
   const [established, setEstablished] = useState(false);
   const [deadline, setDeadline] = useState("");
-  const [gradYears, setGradYears] = useState("2027");
+  const [gradYears, setGradYears] = useState("2028");
   const [isPending, startTransition] = useTransition();
 
   function reset() {
@@ -68,7 +68,7 @@ export function OpportunityForm({
     setIsFinance(false);
     setEstablished(false);
     setDeadline("");
-    setGradYears("2027");
+    setGradYears("2028");
   }
 
   function save() {
@@ -183,7 +183,7 @@ export function OpportunityForm({
               id="opp-grad-years"
               value={gradYears}
               onChange={(event) => setGradYears(event.target.value)}
-              placeholder="2026, 2027, 2028"
+              placeholder="2027, 2028, 2029"
             />
           </div>
           <div className="flex flex-col gap-1.5">

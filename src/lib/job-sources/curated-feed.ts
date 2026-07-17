@@ -12,7 +12,7 @@ import { classify } from "./classify";
  * the current target grad year exists.
  */
 const DEFAULT_FEED_URL =
-  "https://raw.githubusercontent.com/SimplifyJobs/Summer2026-Internships/dev/.github/scripts/listings.json";
+  "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json";
 const DEFAULT_CATEGORIES = ["Product"];
 const DEFAULT_TERMS = ["Summer 2027"];
 
