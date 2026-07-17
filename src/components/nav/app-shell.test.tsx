@@ -12,7 +12,7 @@ vi.mock("@/app/login/actions", () => ({
 }));
 
 describe("AppShell", () => {
-  it("renders every nav destination and the page content, with no separate Chat tab", () => {
+  it("renders the top bar (home link, email, sign out) and the page content", () => {
     render(
       <AppShell
         email="test@example.com"
@@ -24,18 +24,14 @@ describe("AppShell", () => {
     );
 
     expect(screen.getByText("page content")).toBeInTheDocument();
-    for (const label of [
-      "Today",
-      "Inbox",
-      "Tasks",
-      "Recruiting",
-      "School",
-      "Gmail",
-      "Wellness",
-      "Settings",
-    ]) {
-      expect(screen.getAllByText(label).length).toBeGreaterThan(0);
-    }
+    expect(screen.getByRole("link", { name: "gyst" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(screen.getByText("test@example.com")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Sign out" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Chat")).not.toBeInTheDocument();
   });
 

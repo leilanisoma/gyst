@@ -5,7 +5,7 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/login/actions";
 
-export function SignOutButton() {
+export function SignOutButton({ className }: { className?: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -23,7 +23,7 @@ export function SignOutButton() {
       size="sm"
       onClick={handleSignOut}
       disabled={isPending}
-      className="w-full justify-start"
+      className={className}
     >
       {isPending ? "Signing out…" : "Sign out"}
     </Button>
