@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
+import { CompanionBlob } from "@/components/companion/companion-blob";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
@@ -12,9 +13,15 @@ import { WeeklyGoalsList } from "@/components/today/weekly-goals-list";
 import { XpIndicator } from "@/components/today/xp-indicator";
 import { buttonVariants } from "@/components/ui/button";
 import {
+  deriveCompanionState,
+  type CompanionEvent,
+  type CompanionSchedule,
+} from "@/lib/companion";
+import {
   getLocalDateString,
   getLocalDayOfWeek,
   getLocalDayRange,
+  getLocalTimeOfDay,
 } from "@/lib/date-range";
 import { daysEngagedThisWeek, totalXp } from "@/lib/gamification";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
@@ -24,6 +31,15 @@ import type { CheckIn } from "@/lib/check-ins";
 import type { DailyPlan } from "@/lib/daily-plans";
 import type { Task } from "@/lib/tasks";
 import type { TimeBlockSuggestion } from "@/lib/time-block-suggestions";
+
+/** Stages that no longer represent live recruiting momentum. */
+const INACTIVE_APPLICATION_STAGES = new Set([
+  "discovered",
+  "offer",
+  "rejected",
+  "withdrawn",
+  "archived",
+]);
 
 const WEEK_DAYS = 7;
 
@@ -95,7 +111,7 @@ export default async function TodayPage({
   const todayRange = getLocalDayRange(now, timeZone);
   const { data: todayEvents } = await supabase
     .from("events")
-    .select("id, title, start_at, end_at, all_day, location")
+    .select("id, title, start_at, end_at, all_day, location, course_id")
     .is("deleted_at", null)
     .lt("start_at", todayRange.end.toISOString())
     .gt("end_at", todayRange.start.toISOString())
@@ -103,9 +119,14 @@ export default async function TodayPage({
 
   const { data: todaySchedules } = await supabase
     .from("recurring_schedules")
-    .select("id, title, start_time, end_time, location")
+    .select("id, title, category, start_time, end_time, location")
     .eq("day_of_week", getLocalDayOfWeek(now, timeZone))
     .eq("active", true);
+
+  const { data: dueApplications } = await supabase
+    .from("applications")
+    .select("id, stage")
+    .lte("next_action_date", todayString);
 
   const timeline = buildDailyTimeline(
     todayEvents ?? [],
@@ -113,6 +134,26 @@ export default async function TodayPage({
     now,
     timeZone,
   );
+
+  const inProgressTaskAreas = [
+    ...new Set(
+      (tasks ?? [])
+        .filter((task) => task.status === "in_progress")
+        .map((task) => task.area),
+    ),
+  ];
+
+  const companionState = deriveCompanionState({
+    nowTimeOfDay: getLocalTimeOfDay(now, timeZone),
+    nowIso: now.toISOString(),
+    todaySchedules: (todaySchedules ?? []) as CompanionSchedule[],
+    todayEvents: (todayEvents ?? []) as CompanionEvent[],
+    inProgressTaskAreas,
+    energy: (checkIn as CheckIn | null)?.energy ?? null,
+    recruitingActionDueOrOverdue: (dueApplications ?? []).some(
+      (application) => !INACTIVE_APPLICATION_STAGES.has(application.stage),
+    ),
+  });
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -126,69 +167,81 @@ export default async function TodayPage({
         />
       </div>
 
-      <section className="flex max-w-xl flex-col gap-2">
-        <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
-        <FixedTimeline items={timeline} timeZone={timeZone} />
-      </section>
+      {/* Living-room layout (Phase 9C): the companion and capture nook sit
+          in their own zone alongside the main task/planning area, instead
+          of everything stacking in one column. */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <aside className="order-first flex w-full flex-col gap-4 lg:order-last lg:w-72 lg:shrink-0">
+          <div className="bg-card ring-foreground/10 shadow-cozy flex flex-col items-center gap-2 rounded-xl p-4 ring-1">
+            <CompanionBlob state={companionState} />
+          </div>
+          <div className="bg-card ring-foreground/10 shadow-cozy rounded-xl p-4 ring-1">
+            <CaptureForm />
+          </div>
+        </aside>
 
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-2">
-          <Link
-            href="/"
-            className={cn(
-              buttonVariants({
-                variant: view === "today" ? "default" : "outline",
-                size: "sm",
-              }),
-            )}
-          >
-            Today
-          </Link>
-          <Link
-            href="/?view=week"
-            className={cn(
-              buttonVariants({
-                variant: view === "week" ? "default" : "outline",
-                size: "sm",
-              }),
-            )}
-          >
-            This Week
-          </Link>
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
+          <section className="flex max-w-xl flex-col gap-2">
+            <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
+            <FixedTimeline items={timeline} timeZone={timeZone} />
+          </section>
+
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-2">
+              <Link
+                href="/"
+                className={cn(
+                  buttonVariants({
+                    variant: view === "today" ? "default" : "outline",
+                    size: "sm",
+                  }),
+                )}
+              >
+                Today
+              </Link>
+              <Link
+                href="/?view=week"
+                className={cn(
+                  buttonVariants({
+                    variant: view === "week" ? "default" : "outline",
+                    size: "sm",
+                  }),
+                )}
+              >
+                This Week
+              </Link>
+            </div>
+            <OverwhelmMode tasks={(tasks ?? []) as Task[]} now={now} />
+          </div>
+
+          {view === "today" ? (
+            <div className="flex max-w-xl flex-col gap-5">
+              <TopOutcomesCard
+                plan={(dailyPlan as DailyPlan | null) ?? null}
+                dateString={todayString}
+              />
+              <CheckInCard
+                checkIn={(checkIn as CheckIn | null) ?? null}
+                dateString={todayString}
+              />
+              <TimeBlockSuggestions
+                suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
+              />
+              <TodayView
+                tasks={(tasks ?? []) as Task[]}
+                now={now}
+                timeZone={timeZone}
+              />
+              <WeeklyGoalsList goals={weeklyGoals ?? []} />
+            </div>
+          ) : (
+            <WeekView
+              tasks={(tasks ?? []) as Task[]}
+              now={now}
+              timeZone={timeZone}
+            />
+          )}
         </div>
-        <OverwhelmMode tasks={(tasks ?? []) as Task[]} now={now} />
-      </div>
-
-      {view === "today" ? (
-        <div className="flex max-w-xl flex-col gap-5">
-          <TopOutcomesCard
-            plan={(dailyPlan as DailyPlan | null) ?? null}
-            dateString={todayString}
-          />
-          <CheckInCard
-            checkIn={(checkIn as CheckIn | null) ?? null}
-            dateString={todayString}
-          />
-          <TimeBlockSuggestions
-            suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
-          />
-          <TodayView
-            tasks={(tasks ?? []) as Task[]}
-            now={now}
-            timeZone={timeZone}
-          />
-          <WeeklyGoalsList goals={weeklyGoals ?? []} />
-        </div>
-      ) : (
-        <WeekView
-          tasks={(tasks ?? []) as Task[]}
-          now={now}
-          timeZone={timeZone}
-        />
-      )}
-
-      <div className="max-w-xl">
-        <CaptureForm />
       </div>
     </main>
   );

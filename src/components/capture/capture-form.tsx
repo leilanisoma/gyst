@@ -34,20 +34,22 @@ export function CaptureForm() {
       }}
       className="flex flex-col gap-2"
     >
-      <Textarea
-        ref={textareaRef}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={(event) => {
-          if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-            event.preventDefault();
-            submit();
-          }
-        }}
-        placeholder="Dump a thought — a task, a worry, an idea. Sort it out later."
-        rows={2}
-        autoFocus
-      />
+      <div className="origin-top transition-transform duration-[var(--motion-duration-base)] ease-[var(--motion-ease-out)] focus-within:scale-[1.01]">
+        <Textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          onKeyDown={(event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          placeholder="Dump a thought — a task, a worry, an idea. Sort it out later."
+          rows={2}
+          autoFocus
+        />
+      </div>
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-xs">⌘/Ctrl + Enter to save</p>
         <Button type="submit" size="sm" disabled={!text.trim() || isPending}>

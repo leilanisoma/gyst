@@ -41,7 +41,7 @@ export function TaskCard({
           : undefined
       }
       className={
-        "border-border bg-card flex flex-col gap-2 rounded-lg border p-3 text-sm shadow-sm " +
+        "border-border bg-card hover:shadow-cozy flex flex-col gap-2 rounded-lg border p-3 text-sm shadow-sm transition-[transform,box-shadow] duration-[var(--motion-duration-fast)] ease-[var(--motion-ease-out)] hover:scale-[1.015] active:scale-[0.985] " +
         (isDragging ? "z-10 opacity-70" : "")
       }
     >

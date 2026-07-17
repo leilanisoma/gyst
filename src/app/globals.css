@@ -46,6 +46,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-cozy: var(--cozy-shadow-value);
 }
 
 :root {
@@ -82,9 +83,24 @@
   --sidebar-accent-foreground: oklch(0.32 0.03 50);
   --sidebar-border: oklch(0.9 0.012 65);
   --sidebar-ring: oklch(0.7 0.09 40);
+
+  /*
+   * Motion tokens (Phase 9C). Same in light/dark — timing is a feel choice,
+   * not a color one. Mirrors DURATIONS/EASINGS in src/lib/motion.ts; keep
+   * both in sync by hand when tuning.
+   */
+  --motion-duration-fast: 150ms;
+  --motion-duration-base: 250ms;
+  --motion-duration-slow: 400ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --cozy-shadow-value:
+    0 1px 2px oklch(0.28 0.02 55 / 6%), 0 6px 16px oklch(0.28 0.02 55 / 8%);
 }
 
 .dark {
+  --cozy-shadow-value:
+    0 1px 2px oklch(0 0 0 / 25%), 0 6px 16px oklch(0 0 0 / 30%);
   --background: oklch(0.2 0.015 50);
   --foreground: oklch(0.94 0.012 70);
   --card: oklch(0.25 0.018 50);

@@ -9,6 +9,7 @@ function queryBuilder(result: { data: unknown }) {
   builder.neq = chain;
   builder.is = chain;
   builder.lt = chain;
+  builder.lte = chain;
   builder.gt = chain;
   builder.order = chain;
   builder.limit = chain;

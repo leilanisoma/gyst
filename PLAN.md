@@ -679,14 +679,14 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 
 **Goal:** give the app its own emotional identity — satisfying interactions and a companion that reflects what you're actually doing — now that Calendar (Phase 3), Recruiting (Phase 4-5), School (Phase 6), and Wellness (Phase 9) provide real activity signal for it to reflect. Bundled as one phase rather than a motion pass now and a character pass later, so shared UI (hover states, transitions) isn't touched twice.
 
-- [ ] Build a shared motion/animation utility layer (easing curves, spring configs, durations) reused across the app.
-- [ ] Add satisfying hover/press micro-interactions to core primitives (buttons, task cards, capture field) - expand/scale/spring on hover.
-- [ ] Smooth page and loading transitions (route changes, skeleton states) instead of abrupt swaps.
-- [ ] Finalize/refine the color palette and cozy design tokens established in Phase 1.
-- [ ] Reframe the Today dashboard with a "living room" spatial metaphor (zones for capture, tasks, and the companion).
-- [ ] Design and build the companion blob: base shape and face, idle animation, and a small set of expressive states.
-- [ ] Wire the companion's state to real activity signals already available by this point (calendar events, task area, application stage) - fencing/studying/recruiting/resting - no manual status-setting required.
-- [ ] Keep gamification "cozy progress" per PLAN.md §13: cosmetic-only companion reactions, no streaks, no loss aversion.
+- [x] Build a shared motion/animation utility layer (easing curves, spring configs, durations) reused across the app.
+- [x] Add satisfying hover/press micro-interactions to core primitives (buttons, task cards, capture field) - expand/scale/spring on hover.
+- [x] Smooth page and loading transitions (route changes, skeleton states) instead of abrupt swaps.
+- [x] Finalize/refine the color palette and cozy design tokens established in Phase 1.
+- [x] Reframe the Today dashboard with a "living room" spatial metaphor (zones for capture, tasks, and the companion).
+- [x] Design and build the companion blob: base shape and face, idle animation, and a small set of expressive states.
+- [x] Wire the companion's state to real activity signals already available by this point (calendar events, task area, application stage) - fencing/studying/recruiting/resting - no manual status-setting required.
+- [x] Keep gamification "cozy progress" per PLAN.md §13: cosmetic-only companion reactions, no streaks, no loss aversion.
 
 **Exit:** hovering or interacting with core UI feels satisfying and intentional, and the Today screen's companion visibly reflects your actual current context without manual input.
 
