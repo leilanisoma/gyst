@@ -39,3 +39,23 @@ export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
+/**
+ * Hover/press motion for room doorways and ambient scene objects (Phase
+ * 9D) — a lift plus a soft glow in the object's own accent color, shared so
+ * every clickable "thing in the room" (doorway, journal, thermostat) reads
+ * as the same kind of object. `accent` is a CSS color value (a theme var
+ * like `"var(--chart-2)"`, not a new hex).
+ */
+export function roomObjectMotionProps(accent: string) {
+  const restShadow =
+    "0 0 0 1px transparent, 0 10px 24px -8px transparent";
+  const hoverShadow = `0 0 0 1px ${accent}, 0 16px 32px -8px ${accent}`;
+
+  return {
+    initial: { boxShadow: restShadow },
+    whileHover: { scale: PRESS_SCALE.hover, boxShadow: hoverShadow },
+    whileTap: { scale: PRESS_SCALE.press },
+    transition: SPRINGS.snappy,
+  } as const;
+}

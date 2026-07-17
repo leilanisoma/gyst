@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { RoomHeader } from "@/components/room/room-header";
+import { ROOMS } from "@/lib/rooms";
 import { OpportunityForm } from "@/components/recruiting/opportunity-form";
 import { ApplicationsView } from "@/components/recruiting/applications-view";
 import { FollowUpsDue } from "@/components/recruiting/follow-ups-due";
@@ -48,15 +50,15 @@ export default async function RecruitingPage() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Recruiting</h1>
-          <p className="text-muted-foreground text-sm">
-            Every saved opportunity becomes a tracked application — no
-            separate spreadsheet.
-          </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-4">
+          <RoomHeader {...ROOMS.recruiting} />
+          <OpportunityForm />
         </div>
-        <OpportunityForm />
+        <p className="text-muted-foreground text-sm">
+          Every saved opportunity becomes a tracked application — no
+          separate spreadsheet.
+        </p>
       </div>
       <SourcesSection />
       <BookmarkletCard />

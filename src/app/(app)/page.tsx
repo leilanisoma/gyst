@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
 import { CompanionBlob } from "@/components/companion/companion-blob";
+import { RoomDoorway } from "@/components/room/room-doorway";
+import { ROOMS } from "@/lib/rooms";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
@@ -165,6 +167,15 @@ export default async function TodayPage({
           xp={totalXp(xpEvents ?? [])}
           daysEngaged={daysEngagedThisWeek(xpEvents ?? [], todayString)}
         />
+      </div>
+
+      {/* Room engine smoke test (Phase 9D-1) — placeholder doorways, ahead
+          of the full Living Room hub rebuild that will place and dress
+          them properly. */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {Object.values(ROOMS).map((room) => (
+          <RoomDoorway key={room.id} {...room} />
+        ))}
       </div>
 
       {/* Living-room layout (Phase 9C): the companion and capture nook sit

@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { RoomHeader } from "@/components/room/room-header";
+import { ROOMS } from "@/lib/rooms";
 import { getLocalDateString } from "@/lib/date-range";
 import { weeklyTrendObservations, type WellnessCheckIn } from "@/lib/wellness";
 import { WellnessCheckInForm } from "@/components/wellness/wellness-check-in-form";
@@ -39,13 +41,11 @@ export default async function WellnessPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Wellness</h1>
-        <p className="text-muted-foreground max-w-lg text-sm">
-          Lightweight, optional check-ins for supportive awareness — not a
-          tracker to optimize. Every field is skippable.
-        </p>
-      </div>
+      <RoomHeader {...ROOMS.wellness} />
+      <p className="text-muted-foreground max-w-lg text-sm">
+        Lightweight, optional check-ins for supportive awareness — not a
+        tracker to optimize. Every field is skippable.
+      </p>
 
       <section className="border-border bg-muted/40 text-muted-foreground rounded-lg border p-3 text-xs">
         This is not medical advice. If a period stops or something feels

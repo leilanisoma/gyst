@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { RoomHeader } from "@/components/room/room-header";
+import { ROOMS } from "@/lib/rooms";
 import { isCanvasConfigured } from "@/lib/env";
 import { getCanvasIntegration } from "@/lib/canvas/integration";
 import { CanvasSyncCard } from "@/components/school/canvas-sync-card";
@@ -112,8 +114,8 @@ export default async function SchoolPage() {
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">School</h1>
+      <div className="flex flex-col gap-2">
+        <RoomHeader {...ROOMS.school} />
         <p className="text-muted-foreground text-sm">
           Canvas courses, deadlines, and study planning.
         </p>
