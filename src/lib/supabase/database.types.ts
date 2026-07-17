@@ -2403,6 +2403,229 @@ export type Database = {
           },
         ]
       }
+      wellness_check_ins: {
+        Row: {
+          ate_consistently: string | null
+          check_in_date: string
+          created_at: string
+          energy: string | null
+          id: string
+          mood: string | null
+          note: string | null
+          recovery: string | null
+          sleep_perception: string | null
+          stress: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ate_consistently?: string | null
+          check_in_date?: string
+          created_at?: string
+          energy?: string | null
+          id?: string
+          mood?: string | null
+          note?: string | null
+          recovery?: string | null
+          sleep_perception?: string | null
+          stress?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ate_consistently?: string | null
+          check_in_date?: string
+          created_at?: string
+          energy?: string | null
+          id?: string
+          mood?: string | null
+          note?: string | null
+          recovery?: string | null
+          sleep_perception?: string | null
+          stress?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellness_check_ins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_pairing_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_pairing_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          last_used_at: string | null
+          revoked_at: string | null
+          token_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          last_used_at?: string | null
+          revoked_at?: string | null
+          token_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          last_used_at?: string | null
+          revoked_at?: string | null
+          token_hash?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_daily_summaries: {
+        Row: {
+          active_energy_kcal: number | null
+          created_at: string
+          id: string
+          resting_heart_rate: number | null
+          sleep_minutes: number | null
+          source: string
+          steps: number | null
+          summary_date: string
+          synced_at: string
+          updated_at: string
+          user_id: string
+          workout_minutes: number | null
+        }
+        Insert: {
+          active_energy_kcal?: number | null
+          created_at?: string
+          id?: string
+          resting_heart_rate?: number | null
+          sleep_minutes?: number | null
+          source?: string
+          steps?: number | null
+          summary_date: string
+          synced_at?: string
+          updated_at?: string
+          user_id: string
+          workout_minutes?: number | null
+        }
+        Update: {
+          active_energy_kcal?: number | null
+          created_at?: string
+          id?: string
+          resting_heart_rate?: number | null
+          sleep_minutes?: number | null
+          source?: string
+          steps?: number | null
+          summary_date?: string
+          synced_at?: string
+          updated_at?: string
+          user_id?: string
+          workout_minutes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_daily_summaries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cycle_observations: {
+        Row: {
+          created_at: string
+          flow: string | null
+          id: string
+          note_encrypted: string | null
+          observation_date: string
+          source: string
+          symptoms: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          flow?: string | null
+          id?: string
+          note_encrypted?: string | null
+          observation_date: string
+          source?: string
+          symptoms?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          flow?: string | null
+          id?: string
+          note_encrypted?: string | null
+          observation_date?: string
+          source?: string
+          symptoms?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cycle_observations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

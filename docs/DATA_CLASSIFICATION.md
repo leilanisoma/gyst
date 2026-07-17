@@ -25,8 +25,8 @@ Every table/data type GYST stores falls into one of three tiers. This drives enc
 | `recruiting_insights` | Ordinary | Aggregated metrics/hypotheses. |
 | `courses`, `assignments`, `assessments`, `syllabus_items`, `work_estimates`, `milestone_suggestions` | Ordinary | Academic scheduling data. Course calendar entries (exams, office hours) reuse the `events` table (Private tier above) rather than a separate `course_events` table. |
 | `wellness_check_ins`, `wellness_goals` | Private | Subjective, user-authored; not diagnostic. |
-| `health_daily_summaries` (HealthKit aggregates) | Highly sensitive | Health data; exclude from default AI context (`PLAN.md` §11, §14). |
-| `cycle_observations` | Highly sensitive | Menstrual-cycle data; separate permissions, explicit deletion controls, opt-in fields only. |
+| `health_daily_summaries` (manual daily entry, Phase 9B) | Highly sensitive | Health data; exclude from default AI context (`PLAN.md` §11, §14). Plain numeric/enum columns only (sleep/steps/heart-rate/energy/workout minutes) — no free text to encrypt, so RLS + AI exclusion is the control, per the tier's "and/or" language. Entered via a webapp form (`source = 'manual_entry'`); Phase 9B's native HealthKit sync was descoped (no Apple Developer Program enrollment) and its device-auth tables/routes removed — see `docs/PHASES/phase-9.md`. |
+| `cycle_observations` (Phase 9B) | Highly sensitive | Menstrual-cycle data; separate permissions, explicit deletion controls (distinct from `health_daily_summaries`'s), opt-in fields only. `flow`/`symptoms` are plain enum-ish columns; `note_encrypted` (free text) is AES-256-GCM, same as `gmail_items.excerpt_encrypted`. Populated only via manual entry or the manual/CSV import path (`PLAN.md` §8) — never a third-party API or scrape. |
 | `conversations`, `messages` | Private | May reference any other tier by content; treat conversation content at the level of what it discusses. |
 | `memory_items`, `memory_links` | Private (default); excludes highly sensitive by policy | Health, academic records, email bodies, and credentials are excluded from automatic memory per `PLAN.md` §12. |
 | `assistant_actions` | Ordinary | Action previews/execution logs; avoid logging highly sensitive payloads verbatim. |
@@ -39,7 +39,7 @@ Every table/data type GYST stores falls into one of three tiers. This drives enc
 | `document_chunks` (Phase 8) | Private | Extracted text + embeddings of the same documents that back them; mirrors `documents`' tier — chunk content is plaintext (Private tier doesn't require encryption), RLS-scoped. |
 | `ai_usage_events` (Phase 8) | Ordinary | Token counts and feature/provider labels only, no message content. |
 
-Chat/memory tables from `PLAN.md` §6 (`conversations`, `messages`, `memory_items`, `memory_links`, `assistant_actions`) are classified in the table above alongside the other Phase-0-anticipated rows. Phase 8's read-tool registry (`src/lib/chat/tools/`) never exposes `check_ins` or any future wellness/health table by construction — `registerTool()` throws if a tool declares `dataTier: "highly_sensitive"` — so health data is excluded from chat by omission today and by an enforced guard once Phase 9 adds real health tables.
+Chat/memory tables from `PLAN.md` §6 (`conversations`, `messages`, `memory_items`, `memory_links`, `assistant_actions`) are classified in the table above alongside the other Phase-0-anticipated rows. Phase 8's read-tool registry (`src/lib/chat/tools/`) never exposes `check_ins` or any wellness/health table by construction — `registerTool()` throws if a tool declares `dataTier: "highly_sensitive"` — so health data is excluded from chat by omission today (Phase 9A's `wellness_check_ins`, Phase 9B's `health_daily_summaries`/`cycle_observations`) and by an enforced guard for anything added later.
 
 ## Cross-cutting rules
 

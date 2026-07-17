@@ -96,6 +96,8 @@ After the PWA is useful, add a minimal SwiftUI companion that:
 
 Do not use React Native initially. A tiny native bridge plus the existing PWA is less work than rebuilding the entire interface.
 
+**2026-07-16 update:** descoped. Ishani declined the Apple Developer Program enrollment this requires, so the native companion described above will not be built. Apple Watch/HealthKit data (steps, sleep, resting heart rate, workouts) is entered manually in the webapp instead — see Phase 9B in §15 and `docs/PHASES/phase-9.md`. The built-and-tested device-pairing/token-exchange code was removed rather than left unused.
+
 ## 5. Information architecture
 
 ### Global navigation
@@ -322,11 +324,11 @@ Source order:
 
 Every source needs rate limits, caching, provenance, robots/terms review, parser fixtures, failure alerts, and a kill switch. Never bypass login walls, CAPTCHAs, or anti-bot controls.
 
-### Apple Health / Apple Watch - native companion required
+### Apple Health / Apple Watch - manual entry (native companion declined)
 
 - Phase 0-5: subjective daily check-ins and optional manual aggregate entry.
-- Later: SwiftUI HealthKit reader with explicit per-data-type permissions.
-- Sync only daily summaries needed for the selected UI.
+- ~~Later: SwiftUI HealthKit reader with explicit per-data-type permissions.~~ Declined 2026-07-16 (no Apple Developer Program enrollment) — manual entry is the permanent approach, not an interim one.
+- Sync (now: log) only daily summaries needed for the selected UI.
 - Treat Mira as manual/CSV input unless Mira provides Ishani with an authorized export or supported personal API. Do not scrape a health account.
 
 ### Phone reminders
@@ -661,17 +663,17 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 - [ ] Add granular data visibility, export, and deletion.
 - [ ] Add health disclaimer and safe-response policy.
 
-**9B - native companion**
+**9B - native companion, descoped 2026-07-16 to manual entry** (no Apple Developer Program enrollment — see `docs/PHASES/phase-9.md`)
 
-- [ ] Create minimal SwiftUI iPhone app.
-- [ ] Add Sign in and secure device-to-server token exchange.
-- [ ] Request chosen HealthKit permissions contextually.
-- [ ] Sync only approved daily summaries.
-- [ ] Handle permission revocation and deleted Health data.
-- [ ] Evaluate Mira export/import without assuming an API.
-- [ ] Complete security/privacy review before real data sync.
+- [ ] ~~Create minimal SwiftUI iPhone app.~~ Not pursued.
+- [ ] ~~Add Sign in and secure device-to-server token exchange.~~ Built, tested, then removed — no consumer without a native client.
+- [ ] ~~Request chosen HealthKit permissions contextually.~~ Not applicable.
+- [x] Sync only approved daily summaries → resolved as logging only approved daily summaries via a webapp form.
+- [x] Handle permission revocation and deleted Health data → resolved as delete-all-logged-entries.
+- [x] Evaluate Mira export/import without assuming an API → resolved via manual/CSV cycle-data import.
+- [x] Complete security/privacy review before real data sync → done, scoped to the manual-entry surface.
 
-**Exit:** revoking Health permissions stops collection, deleting synced summaries works, and the main chatbot does not see them by default.
+**Exit:** deleting logged/synced summaries works, and the main chatbot does not see them by default. ("Revoking Health permissions" no longer applies — there's no OS permission without a native client.)
 
 ### Phase 9C - Cozy visual identity, motion, and companion character (4-8 sessions)
 
@@ -789,7 +791,7 @@ Stop with a concise summary, files changed, tests run, and blockers.
 
 ## 18. Cost plan
 
-Target during development: **$0-5/month**, excluding an optional Apple Developer membership when the native companion is needed.
+Target during development: **$0-5/month**. (The native companion's Apple Developer membership line item no longer applies — declined 2026-07-16, see §8/§15.)
 
 - Next.js/Vercel: free tier initially.
 - Supabase: free tier initially; monitor database/storage and paused-project policies.
@@ -808,7 +810,7 @@ Add usage counters before adding scheduled AI jobs. A cheap model invoked on an 
 | The planner creates unrealistic days | Capacity cap, buffers, energy input, acceptance metrics, deterministic tests. |
 | Job scraping breaks or violates terms | Adapter architecture, public sources, manual/share fallback, no login/CAPTCHA bypass. |
 | Stanford Canvas access is restricted | Test immediately; retain `.ics`, syllabus, and Gmail fallbacks. |
-| HealthKit is unavailable to the web app | Defer a minimal native companion; use check-ins first. |
+| HealthKit is unavailable to the web app | Declined the native companion (no Apple Developer Program enrollment); use check-ins plus manual entry instead — see §8/§15. |
 | Permanent memory becomes creepy or wrong | Review queue, source/confidence, correction, deletion, excluded sensitive categories. |
 | Sensitive data leaks into AI prompts | Feature-specific context builders, redaction, logging controls, no credentials/raw HealthKit. |
 | Notifications increase anxiety | Quiet hours, digest-first design, actionability rules, easy global pause. |
