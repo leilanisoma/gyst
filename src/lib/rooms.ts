@@ -1,8 +1,10 @@
 import {
+  BookOpen,
   Briefcase,
   GraduationCap,
   HeartPulse,
   Mail,
+  Thermometer,
   type LucideIcon,
 } from "lucide-react";
 
@@ -57,5 +59,36 @@ export const ROOMS: Record<
     description: "The study nook",
     icon: GraduationCap,
     accent: "var(--chart-1)",
+  },
+};
+
+/**
+ * Small ambient objects in the Living Room scene (Phase 9D room map) —
+ * Inbox and Settings no longer get their own doorway, just a bedside
+ * journal and a wall thermostat. No `RoomHeader` counterpart: see
+ * `AmbientObject` for why.
+ */
+export type AmbientObjectDefinition = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  accent: string;
+};
+
+export const AMBIENT_OBJECTS: Record<
+  "inbox" | "settings",
+  AmbientObjectDefinition
+> = {
+  inbox: {
+    href: "/inbox",
+    label: "Journal",
+    icon: BookOpen,
+    accent: "var(--chart-5)",
+  },
+  settings: {
+    href: "/settings",
+    label: "Thermostat",
+    icon: Thermometer,
+    accent: "var(--muted-foreground)",
   },
 };

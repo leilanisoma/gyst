@@ -2,8 +2,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
 import { CompanionBlob } from "@/components/companion/companion-blob";
+import { AmbientObject } from "@/components/room/ambient-object";
 import { RoomDoorway } from "@/components/room/room-doorway";
-import { ROOMS } from "@/lib/rooms";
+import { AMBIENT_OBJECTS, ROOMS } from "@/lib/rooms";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
@@ -169,9 +170,9 @@ export default async function TodayPage({
         />
       </div>
 
-      {/* Room engine smoke test (Phase 9D-1) — placeholder doorways, ahead
-          of the full Living Room hub rebuild that will place and dress
-          them properly. */}
+      {/* The four full rooms (Phase 9D room map) — doorways replacing the
+          sidebar as primary navigation. Placeholder accents/layout; each
+          gets its own themed dressing in 9D-2..9D-5. */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {Object.values(ROOMS).map((room) => {
           const Icon = room.icon;
@@ -185,9 +186,10 @@ export default async function TodayPage({
         })}
       </div>
 
-      {/* Living-room layout (Phase 9C): the companion and capture nook sit
-          in their own zone alongside the main task/planning area, instead
-          of everything stacking in one column. */}
+      {/* Living-room layout (Phase 9C/9D): the companion, capture nook, and
+          the journal/thermostat ambient objects sit in their own zone
+          alongside the main task/planning area, instead of everything
+          stacking in one column. */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <aside className="order-first flex w-full flex-col gap-4 lg:order-last lg:w-72 lg:shrink-0">
           <div className="bg-card ring-foreground/10 shadow-cozy flex flex-col items-center gap-2 rounded-xl p-4 ring-1">
@@ -195,6 +197,23 @@ export default async function TodayPage({
           </div>
           <div className="bg-card ring-foreground/10 shadow-cozy rounded-xl p-4 ring-1">
             <CaptureForm />
+          </div>
+          <div className="flex gap-2">
+            {Object.entries(AMBIENT_OBJECTS).map(([key, object]) => {
+              const Icon = object.icon;
+              return (
+                <AmbientObject
+                  key={key}
+                  href={object.href}
+                  label={object.label}
+                  accent={object.accent}
+                  className="flex-1"
+                  icon={
+                    <Icon className="size-4 text-white" aria-hidden="true" />
+                  }
+                />
+              );
+            })}
           </div>
         </aside>
 
