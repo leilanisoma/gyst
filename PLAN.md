@@ -699,7 +699,7 @@ Room map (confirmed 2026-07-17): four full rooms with zoom transitions - Wellnes
 
 Split into sub-phases (2026-07-17) so each session ships one coherent slice - the shared foundation first, then one sub-phase per room:
 
-- [ ] **9D-1 - Foundation:** day-period palette tokens, the reusable room engine (`RoomDoorway`/`RoomHeader` with a Framer Motion shared-element zoom), shared hover/glow/expand mechanics for room objects, the rebuilt Today page as the Living Room hub (four placeholder doorways, the journal and thermostat ambient objects, the ambient task list), sidebar retirement, the ambient XP/growth visual, and the companion blob as global chat launcher. No room gets final theming yet.
+- [x] **9D-1 - Foundation:** day-period palette tokens, the reusable room engine (`RoomDoorway`/`RoomHeader` with a Framer Motion shared-element zoom), shared hover/glow/expand mechanics for room objects, the rebuilt Today page as the Living Room hub (four placeholder doorways, the journal and thermostat ambient objects, the ambient task list), sidebar retirement, the ambient XP/growth visual, and the companion blob as global chat launcher. No room gets final theming yet. Built 2026-07-17; not yet visually verified in-browser (auth-gated — Ishani checking herself).
 - [ ] **9D-2** - Wellness room: garden theming.
 - [ ] **9D-3** - Gmail room: mailbox theming.
 - [ ] **9D-4** - Recruiting room: office/desk theming.

@@ -55,15 +55,15 @@ Chat (companion blob) and top-bar chrome (bell, sign-out, email) are unchanged f
 
 **Goal:** ship the Living Room hub shell and every reusable interaction/visual mechanic a room needs, with placeholder dressing. No individual room gets its final theme yet — that's 9D-2 onward.
 
-- [ ] Add a day-period helper (dawn/day/dusk/night, derived from local time) and rework `globals.css` design tokens into an Animal-Crossing-style pastel palette with per-period variants. Replace, don't layer on top of, the Phase 1/9C token set.
-- [ ] Build a reusable room engine (`RoomDoorway` + `RoomHeader` or equivalent) using a Framer Motion shared-element (`layoutId`) transition so clicking a room object "zooms" into its destination page.
-- [ ] Build the shared hover/interaction mechanics for room objects (expand, glow, lift — whichever combination reads best) as a reusable primitive, not per-object one-offs.
-- [ ] Rebuild the Today page as the "Living Room" hub: existing widgets (capture, timeline) become scene objects; placeholder doorways for Gmail/Recruiting/School/Wellness (theming deferred to 9D-2..9D-5) replace the sidebar as primary navigation. Inbox (journal) and Settings (thermostat) become ambient objects in the same scene; a small ambient task list stays on the hub for general/urgent items.
-- [ ] Retire `SidebarNav`/`MobileNav` as primary chrome. Relocate the notification bell, sign-out, and email display to whatever chrome remains (likely a minimal top bar).
-- [ ] Replace the numeric XP indicator with an ambient room-growth visual driven by the same `xp_events` data — no changes to `xp_events` schema or insertion logic, display layer only.
-- [ ] Promote the companion blob (Phase 9C) to a persistent, global, clickable chat launcher on every page, replacing the current floating chat button.
+- [x] Add a day-period helper (dawn/day/dusk/night, derived from local time) and rework `globals.css` design tokens into an Animal-Crossing-style pastel palette with per-period variants. Replace, don't layer on top of, the Phase 1/9C token set.
+- [x] Build a reusable room engine (`RoomDoorway` + `RoomHeader` or equivalent) using a Framer Motion shared-element (`layoutId`) transition so clicking a room object "zooms" into its destination page.
+- [x] Build the shared hover/interaction mechanics for room objects (expand, glow, lift — whichever combination reads best) as a reusable primitive, not per-object one-offs. → `roomObjectMotionProps()` in `src/lib/motion.ts`.
+- [x] Rebuild the Today page as the "Living Room" hub: existing widgets (capture, timeline) become scene objects; placeholder doorways for Gmail/Recruiting/School/Wellness (theming deferred to 9D-2..9D-5) replace the sidebar as primary navigation. Inbox (journal) and Settings (thermostat) become ambient objects in the same scene; a small ambient task list stays on the hub for general/urgent items.
+- [x] Retire `SidebarNav`/`MobileNav` as primary chrome. Relocate the notification bell, sign-out, and email display to whatever chrome remains (likely a minimal top bar). → `TopBar`; `NAV_ITEMS`/`NavLink` deleted as dead weight.
+- [x] Replace the numeric XP indicator with an ambient room-growth visual driven by the same `xp_events` data — no changes to `xp_events` schema or insertion logic, display layer only. → `XpGrowthVisual` (a little plant, `growthStage()` in `gamification.ts`).
+- [x] Promote the companion blob (Phase 9C) to a persistent, global, clickable chat launcher on every page, replacing the current floating chat button. → `CompanionChatLauncher`; companion-state derivation moved from the Today page into the `(app)` layout so it's live everywhere, not just Today.
 
-**Exit:** the sidebar and numeric XP are gone; the Today page is a working Living Room hub with all four doorways, both ambient objects, the ambient task list, the growth visual, and the global chat launcher functional — even before individual rooms get their final themed dressing; hover/zoom mechanics feel polished enough to reuse as-is for every room below.
+**Exit:** the sidebar and numeric XP are gone; the Today page is a working Living Room hub with all four doorways, both ambient objects, the ambient task list, the growth visual, and the global chat launcher functional — even before individual rooms get their final themed dressing; hover/zoom mechanics feel polished enough to reuse as-is for every room below. **Not yet verified in-browser** — auth-gated pages need Ishani's own session; she's checking visually herself (2026-07-17 call).
 
 ## 9D-2 — Wellness room: the garden
 
