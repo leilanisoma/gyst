@@ -693,17 +693,19 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 
 ### Phase 9D - Spatial living-room redesign (planned, not started)
 
-**Goal:** replace the dashboard-with-sidebar shell from Phase 1/9C with a literal spatial "room" you click into, per Ishani's 2026-07-17 direction: no fixed sidebar, no numeric XP, a warmer/gamier Animal-Crossing-style palette that shifts with time of day, and the companion blob repurposed as the persistent chat launcher. Full design detail lives in `docs/PHASES/phase-9d.md`; this entry tracks it at the roadmap level.
+**Goal:** replace the dashboard-with-sidebar shell from Phase 1/9C with a literal spatial "room" you click into, per Ishani's 2026-07-17 direction: no fixed sidebar, no numeric XP, a warmer/gamier Animal-Crossing-style palette that shifts with time of day, and the companion blob repurposed as the persistent chat launcher. Full design detail (including the room map) lives in `docs/PHASES/phase-9d.md`; this entry tracks it at the roadmap level.
 
-- [ ] Add a day-period helper (dawn/day/dusk/night) and rework `globals.css` tokens to an Animal-Crossing-style pastel palette with per-period variants.
-- [ ] Build a reusable room engine (`RoomDoorway`/`RoomHeader`) using a Framer Motion shared-element (`layoutId`) transition so clicking a room object "zooms" into its destination page instead of a plain route swap.
-- [ ] Rebuild the Today page as a "Living Room" hub: existing widgets as scene objects, doorways to Inbox/Tasks/Recruiting/School/Gmail/Wellness/Settings replacing the sidebar as primary navigation.
-- [ ] Retire `SidebarNav`/`MobileNav` as primary chrome; relocate the notification bell, sign-out, and email display accordingly.
-- [ ] Replace the numeric XP indicator with an ambient room-growth visual driven by the same `xp_events` data (see §13).
-- [ ] Promote the companion blob to a persistent, global, clickable chat launcher (replacing the current floating chat button) on every page, not just Today.
-- [ ] (Phase 2, one section per session) Give each of the 7 destination pages its own themed room dressing beyond a shared header treatment.
+Room map (confirmed 2026-07-17): four full rooms with zoom transitions - Wellness (garden), Gmail (mailbox), Recruiting (office/desk), School (study nook, absorbs the fuller task board/detail view). Inbox and Settings drop their standalone pages and become ambient objects in the Living Room hub itself - Inbox as a bedside journal, Settings as a wall thermostat/control panel - rather than doorways. General/urgent tasks keep a small ambient list on the Today hub; the universal task board stays cross-area (not folded entirely into School), since `tasks.area` spans recruiting/school/wellness/general (§5/§6).
 
-**Exit:** the sidebar and numeric XP are gone; navigating between sections feels like moving through a spatial room rather than switching dashboard tabs; the companion blob is reachable as the chat entry point from anywhere in the app.
+Split into sub-phases (2026-07-17) so each session ships one coherent slice - the shared foundation first, then one sub-phase per room:
+
+- [ ] **9D-1 - Foundation:** day-period palette tokens, the reusable room engine (`RoomDoorway`/`RoomHeader` with a Framer Motion shared-element zoom), shared hover/glow/expand mechanics for room objects, the rebuilt Today page as the Living Room hub (four placeholder doorways, the journal and thermostat ambient objects, the ambient task list), sidebar retirement, the ambient XP/growth visual, and the companion blob as global chat launcher. No room gets final theming yet.
+- [ ] **9D-2** - Wellness room: garden theming.
+- [ ] **9D-3** - Gmail room: mailbox theming.
+- [ ] **9D-4** - Recruiting room: office/desk theming.
+- [ ] **9D-5** - School room: study-nook theming, including how the fuller task board/detail view is presented there.
+
+**Exit:** the sidebar and numeric XP are gone; navigating between sections feels like moving through a spatial room rather than switching dashboard tabs; the companion blob is reachable as the chat entry point from anywhere in the app; all four rooms have their own themed dressing, not a shared generic skin.
 
 ### Phase 10 - Polish and reliability (ongoing)
 
