@@ -483,6 +483,7 @@ Use "cozy progress," not addictive mechanics.
 - Weekly quests are user-controlled and limited to three.
 - No leaderboards, loss aversion, paid rewards, or unbreakable streaks.
 - A consistency metric can count "days engaged this week" without resetting a lifetime identity.
+- **Planned (Phase 9D, not yet built):** replace the numeric XP/"days engaged" display with an ambient visual (a room element that grows/brightens) as the default view of the same underlying `xp_events` ledger — the ledger and its insertion logic stay exactly as described above; only the display changes. See `docs/PHASES/phase-9d.md`.
 
 ## 14. Privacy and security
 
@@ -689,6 +690,20 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 - [x] Keep gamification "cozy progress" per PLAN.md §13: cosmetic-only companion reactions, no streaks, no loss aversion.
 
 **Exit:** hovering or interacting with core UI feels satisfying and intentional, and the Today screen's companion visibly reflects your actual current context without manual input.
+
+### Phase 9D - Spatial living-room redesign (planned, not started)
+
+**Goal:** replace the dashboard-with-sidebar shell from Phase 1/9C with a literal spatial "room" you click into, per Ishani's 2026-07-17 direction: no fixed sidebar, no numeric XP, a warmer/gamier Animal-Crossing-style palette that shifts with time of day, and the companion blob repurposed as the persistent chat launcher. Full design detail lives in `docs/PHASES/phase-9d.md`; this entry tracks it at the roadmap level.
+
+- [ ] Add a day-period helper (dawn/day/dusk/night) and rework `globals.css` tokens to an Animal-Crossing-style pastel palette with per-period variants.
+- [ ] Build a reusable room engine (`RoomDoorway`/`RoomHeader`) using a Framer Motion shared-element (`layoutId`) transition so clicking a room object "zooms" into its destination page instead of a plain route swap.
+- [ ] Rebuild the Today page as a "Living Room" hub: existing widgets as scene objects, doorways to Inbox/Tasks/Recruiting/School/Gmail/Wellness/Settings replacing the sidebar as primary navigation.
+- [ ] Retire `SidebarNav`/`MobileNav` as primary chrome; relocate the notification bell, sign-out, and email display accordingly.
+- [ ] Replace the numeric XP indicator with an ambient room-growth visual driven by the same `xp_events` data (see §13).
+- [ ] Promote the companion blob to a persistent, global, clickable chat launcher (replacing the current floating chat button) on every page, not just Today.
+- [ ] (Phase 2, one section per session) Give each of the 7 destination pages its own themed room dressing beyond a shared header treatment.
+
+**Exit:** the sidebar and numeric XP are gone; navigating between sections feels like moving through a spatial room rather than switching dashboard tabs; the companion blob is reachable as the chat entry point from anywhere in the app.
 
 ### Phase 10 - Polish and reliability (ongoing)
 
