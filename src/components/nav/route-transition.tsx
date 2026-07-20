@@ -56,38 +56,50 @@ export function RouteTransition({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AnimatePresence mode="wait" initial={false} custom={direction}>
-      {isSlidable ? (
-        <motion.div
-          key={pathname}
-          custom={direction}
-          variants={slideVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.4}
-          onDragEnd={handleDragEnd}
-          transition={{ duration: DURATIONS.slow, ease: EASINGS.standard }}
-        >
-          {children}
-        </motion.div>
-      ) : (
-        // "Pop" transition (2026-07-17/2026-07-20): a little zoom-in bounce
-        // instead of a flat fade, so landing on Gmail/Inbox/Settings from
-        // one of their ambient objects feels like something opened rather
-        // than a plain page swap.
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0, scale: 0.94 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.96 }}
-          transition={SPRINGS.snappy}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    // No `mode="wait"` — that mode fully unmounts the exiting page before
+    // mounting the next one, which for a *slide* defeats the point (the
+    // two can't actually pass each other) and, worse, left a gap with
+    // nothing rendered at all between exit finishing and enter starting —
+    // long enough to show the bare page background through (the "yellow
+    // screen" flash, 2026-07-20). Default (sync) mode overlaps exit/enter,
+    // so both stacked `absolute` layers below are always covering the
+    // screen — never nothing.
+    <div className="relative">
+      <AnimatePresence initial={false} custom={direction}>
+        {isSlidable ? (
+          <motion.div
+            key={pathname}
+            className="absolute top-0 left-0 w-full"
+            custom={direction}
+            variants={slideVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.4}
+            onDragEnd={handleDragEnd}
+            transition={{ duration: DURATIONS.slow, ease: EASINGS.standard }}
+          >
+            {children}
+          </motion.div>
+        ) : (
+          // "Pop" transition (2026-07-17/2026-07-20): a little zoom-in
+          // bounce instead of a flat fade, so landing on Gmail/Inbox/
+          // Settings from one of their ambient objects feels like
+          // something opened rather than a plain page swap.
+          <motion.div
+            key={pathname}
+            className="absolute top-0 left-0 w-full"
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={SPRINGS.snappy}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
