@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { RoomHeader } from "@/components/room/room-header";
 import { RoomBackground } from "@/components/room/room-background";
+import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { ROOMS } from "@/lib/rooms";
 import { OpportunityForm } from "@/components/recruiting/opportunity-form";
 import { ApplicationsView } from "@/components/recruiting/applications-view";
@@ -46,39 +47,37 @@ export default async function RecruitingPage() {
   // the user already decided to pursue is exactly the clutter PLAN.md's
   // anxiety-aware UX principle warns against. They live in their own queue
   // (task 5.5) until promoted to "saved" or dismissed.
-  const pipelineApplications = applications.filter((a) => a.stage !== "discovered");
-  const discoveredApplications = applications.filter((a) => a.stage === "discovered");
+  const pipelineApplications = applications.filter(
+    (a) => a.stage !== "discovered",
+  );
+  const discoveredApplications = applications.filter(
+    (a) => a.stage === "discovered",
+  );
 
   return (
-    <main className="relative isolate flex flex-1 flex-col gap-6 p-6">
+    <main className="relative isolate flex h-screen flex-col items-center justify-center p-4">
       <RoomBackground room={ROOMS.recruiting.background} />
-      <div className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-4">
-          <RoomHeader
-            {...ROOMS.recruiting}
-            icon={
-              <ROOMS.recruiting.icon
-                className="size-6 text-white"
-                aria-hidden="true"
-              />
-            }
-          />
-          <OpportunityForm />
+      <RoomContentPanel>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-4">
+            <RoomHeader {...ROOMS.recruiting} />
+            <OpportunityForm />
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Every saved opportunity becomes a tracked application — no separate
+            spreadsheet.
+          </p>
         </div>
-        <p className="text-muted-foreground text-sm">
-          Every saved opportunity becomes a tracked application — no
-          separate spreadsheet.
-        </p>
-      </div>
-      <SourcesSection />
-      <BookmarkletCard />
-      <DiscoveryQueue applications={discoveredApplications} />
-      <FollowUpsDue applications={pipelineApplications} />
-      <ClosingSoon applications={pipelineApplications} />
-      <AnalyticsSection />
-      <ApplicationsView applications={pipelineApplications} />
-      <DocumentsSection />
-      <ContactsSection />
+        <SourcesSection />
+        <BookmarkletCard />
+        <DiscoveryQueue applications={discoveredApplications} />
+        <FollowUpsDue applications={pipelineApplications} />
+        <ClosingSoon applications={pipelineApplications} />
+        <AnalyticsSection />
+        <ApplicationsView applications={pipelineApplications} />
+        <DocumentsSection />
+        <ContactsSection />
+      </RoomContentPanel>
     </main>
   );
 }

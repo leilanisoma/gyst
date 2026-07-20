@@ -58,3 +58,21 @@ export function roomObjectMotionProps(accent: string) {
     transition: SPRINGS.snappy,
   } as const;
 }
+
+/**
+ * Hover/press motion for chrome-less floating objects directly on the room
+ * art (Phase 9D, 2026-07-20) — a lift plus a soft glow via `drop-shadow`
+ * filter instead of `roomObjectMotionProps`' `box-shadow`, since there's no
+ * card box left to put a box-shadow on.
+ */
+export function floatingObjectMotionProps(accent: string) {
+  return {
+    initial: { filter: "drop-shadow(0 0 0px transparent)" },
+    whileHover: {
+      scale: PRESS_SCALE.hover,
+      filter: `drop-shadow(0 0 18px ${accent})`,
+    },
+    whileTap: { scale: PRESS_SCALE.press },
+    transition: SPRINGS.snappy,
+  } as const;
+}

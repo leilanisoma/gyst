@@ -1,12 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fredoka, Geist_Mono, Quicksand } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import { DayPeriodProvider } from "@/components/theme/day-period-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Cozy-game aesthetic pass (Phase 9D, 2026-07-20): a rounded display font
+// for headings/titles, a rounded but still-legible one for body/UI text —
+// replaces Geist Sans, which read too SaaS-neutral for the room art.
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
+  subsets: ["latin"],
+});
+
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
   subsets: ["latin"],
 });
 
@@ -39,7 +47,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-day-period="day"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fredoka.variable} ${quicksand.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <DayPeriodProvider />

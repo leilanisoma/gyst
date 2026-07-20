@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { RoomBackground } from "@/components/room/room-background";
+import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { InstallInstructions } from "@/components/pwa/install-instructions";
 import { GoogleIntegrationCard } from "@/components/settings/google-integration-card";
 import { GmailIntegrationCard } from "@/components/settings/gmail-integration-card";
@@ -14,7 +16,10 @@ import {
   getGmailIntegration,
 } from "@/lib/gmail/integration";
 import { GMAIL_SCOPES } from "@/lib/gmail/oauth";
-import { getDailyChatTokenLimit, getTodayFeatureTokenUsage } from "@/lib/chat/usage";
+import {
+  getDailyChatTokenLimit,
+  getTodayFeatureTokenUsage,
+} from "@/lib/chat/usage";
 import type { NotificationRules } from "@/lib/notifications";
 import type { RecurringSchedule } from "@/lib/recurring-schedules";
 
@@ -67,105 +72,113 @@ export default async function SettingsPage() {
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId);
 
-  const todayChatTokens = await getTodayFeatureTokenUsage(supabase, userId, "chat");
+  const todayChatTokens = await getTodayFeatureTokenUsage(
+    supabase,
+    userId,
+    "chat",
+  );
   const dailyChatTokenLimit = getDailyChatTokenLimit();
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-      <dl className="grid max-w-sm gap-2 text-sm">
-        <div className="border-border flex justify-between border-b py-2">
-          <dt className="text-muted-foreground">Email</dt>
-          <dd>{profile?.email ?? data.user?.email}</dd>
-        </div>
-        <div className="border-border flex justify-between border-b py-2">
-          <dt className="text-muted-foreground">Timezone</dt>
-          <dd>{profile?.timezone ?? "UTC"}</dd>
-        </div>
-      </dl>
-      <p className="text-muted-foreground max-w-sm text-sm">
-        Working hours and AI limits arrive with `preferences` in a later phase.
-      </p>
-
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
-        <h2 className="text-sm font-semibold">Notifications</h2>
-        <NotificationSettingsCard
-          quietHoursStart={notificationRules.quiet_hours_start ?? "22:00"}
-          quietHoursEnd={notificationRules.quiet_hours_end ?? "07:00"}
-          pushSubscribed={Boolean(pushSubscriptionCount)}
-        />
-      </div>
-
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
-        <h2 className="text-sm font-semibold">Google Calendar</h2>
-        <GoogleIntegrationCard
-          status={integration?.status ?? "not_connected"}
-          accountEmail={integration?.account_email ?? null}
-          lastSyncedAt={integration?.last_synced_at ?? null}
-          error={integration?.error ?? null}
-          calendars={calendars}
-          initialFixedCalendarIds={
-            integration?.settings.fixed_calendar_ids ?? []
-          }
-          hasWriteScope={
-            integration?.granted_scopes.includes(
-              GOOGLE_SCOPES.calendarAppCreated,
-            ) ?? false
-          }
-        />
-      </div>
-
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
-        <h2 className="text-sm font-semibold">Gmail</h2>
-        <GmailIntegrationCard
-          status={gmailIntegration?.status ?? "not_connected"}
-          accountEmail={gmailIntegration?.account_email ?? null}
-          lastSyncedAt={gmailIntegration?.last_synced_at ?? null}
-          error={gmailIntegration?.error ?? null}
-          hasComposeScope={
-            gmailIntegration?.granted_scopes.includes(GMAIL_SCOPES.compose) ??
-            false
-          }
-          initialSearchQuery={gmailIntegration?.settings.search_query ?? ""}
-          initialRetentionDays={
-            gmailIntegration?.settings.retention_days ??
-            DEFAULT_GMAIL_RETENTION_DAYS
-          }
-        />
-      </div>
-
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">
-            Class &amp; fencing schedule
-          </h2>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          Fixed weekly commitments the day plan should protect. Add your real
-          schedule whenever you have it — the planner just needs it before it
-          can suggest time blocks.
+    <main className="relative isolate flex h-screen flex-col items-center justify-center p-4">
+      <RoomBackground room="living-room" />
+      <RoomContentPanel>
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <dl className="grid max-w-sm gap-2 text-sm">
+          <div className="border-border flex justify-between border-b py-2">
+            <dt className="text-muted-foreground">Email</dt>
+            <dd>{profile?.email ?? data.user?.email}</dd>
+          </div>
+          <div className="border-border flex justify-between border-b py-2">
+            <dt className="text-muted-foreground">Timezone</dt>
+            <dd>{profile?.timezone ?? "UTC"}</dd>
+          </div>
+        </dl>
+        <p className="text-muted-foreground max-w-sm text-sm">
+          Working hours and AI limits arrive with `preferences` in a later
+          phase.
         </p>
-        <div className="flex gap-2">
-          <RecurringScheduleForm category="class" triggerLabel="Add class" />
-          <RecurringScheduleForm
-            category="fencing"
-            triggerLabel="Add fencing session"
+
+        <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
+          <h2 className="text-sm font-semibold">Notifications</h2>
+          <NotificationSettingsCard
+            quietHoursStart={notificationRules.quiet_hours_start ?? "22:00"}
+            quietHoursEnd={notificationRules.quiet_hours_end ?? "07:00"}
+            pushSubscribed={Boolean(pushSubscriptionCount)}
           />
         </div>
-        <RecurringScheduleList
-          schedules={(schedules ?? []) as RecurringSchedule[]}
-        />
-      </div>
 
-      <div className="flex max-w-sm flex-col gap-2 border-t pt-4">
-        <h2 className="text-sm font-semibold">AI usage</h2>
-        <p className="text-muted-foreground text-sm">
-          Chat tokens used today: {todayChatTokens.toLocaleString()} /{" "}
-          {dailyChatTokenLimit.toLocaleString()}
-        </p>
-      </div>
+        <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
+          <h2 className="text-sm font-semibold">Google Calendar</h2>
+          <GoogleIntegrationCard
+            status={integration?.status ?? "not_connected"}
+            accountEmail={integration?.account_email ?? null}
+            lastSyncedAt={integration?.last_synced_at ?? null}
+            error={integration?.error ?? null}
+            calendars={calendars}
+            initialFixedCalendarIds={
+              integration?.settings.fixed_calendar_ids ?? []
+            }
+            hasWriteScope={
+              integration?.granted_scopes.includes(
+                GOOGLE_SCOPES.calendarAppCreated,
+              ) ?? false
+            }
+          />
+        </div>
 
-      <InstallInstructions />
+        <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
+          <h2 className="text-sm font-semibold">Gmail</h2>
+          <GmailIntegrationCard
+            status={gmailIntegration?.status ?? "not_connected"}
+            accountEmail={gmailIntegration?.account_email ?? null}
+            lastSyncedAt={gmailIntegration?.last_synced_at ?? null}
+            error={gmailIntegration?.error ?? null}
+            hasComposeScope={
+              gmailIntegration?.granted_scopes.includes(GMAIL_SCOPES.compose) ??
+              false
+            }
+            initialSearchQuery={gmailIntegration?.settings.search_query ?? ""}
+            initialRetentionDays={
+              gmailIntegration?.settings.retention_days ??
+              DEFAULT_GMAIL_RETENTION_DAYS
+            }
+          />
+        </div>
+
+        <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold">
+              Class &amp; fencing schedule
+            </h2>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            Fixed weekly commitments the day plan should protect. Add your real
+            schedule whenever you have it — the planner just needs it before it
+            can suggest time blocks.
+          </p>
+          <div className="flex gap-2">
+            <RecurringScheduleForm category="class" triggerLabel="Add class" />
+            <RecurringScheduleForm
+              category="fencing"
+              triggerLabel="Add fencing session"
+            />
+          </div>
+          <RecurringScheduleList
+            schedules={(schedules ?? []) as RecurringSchedule[]}
+          />
+        </div>
+
+        <div className="flex max-w-sm flex-col gap-2 border-t pt-4">
+          <h2 className="text-sm font-semibold">AI usage</h2>
+          <p className="text-muted-foreground text-sm">
+            Chat tokens used today: {todayChatTokens.toLocaleString()} /{" "}
+            {dailyChatTokenLimit.toLocaleString()}
+          </p>
+        </div>
+
+        <InstallInstructions />
+      </RoomContentPanel>
     </main>
   );
 }

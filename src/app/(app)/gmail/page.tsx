@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { RoomBackground } from "@/components/room/room-background";
+import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { decryptSecret } from "@/lib/crypto";
 import { getGmailIntegration } from "@/lib/gmail/integration";
 import { GMAIL_SCOPES } from "@/lib/gmail/oauth";
@@ -21,16 +23,19 @@ export default async function GmailPage() {
 
   if (!integration || integration.status === "not_connected") {
     return (
-      <main className="flex flex-1 flex-col gap-4 p-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
-        <p className="text-muted-foreground max-w-md text-sm">
-          Connect Gmail from{" "}
-          <Link href="/settings" className="underline">
-            Settings
-          </Link>{" "}
-          to see interview dates, application confirmations, deadlines, and
-          requested actions detected from a scoped search or label.
-        </p>
+      <main className="relative isolate flex h-screen flex-col items-center justify-center p-4">
+        <RoomBackground room="living-room" />
+        <RoomContentPanel>
+          <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
+          <p className="text-muted-foreground max-w-md text-sm">
+            Connect Gmail from{" "}
+            <Link href="/settings" className="underline">
+              Settings
+            </Link>{" "}
+            to see interview dates, application confirmations, deadlines, and
+            requested actions detected from a scoped search or label.
+          </p>
+        </RoomContentPanel>
       </main>
     );
   }
@@ -50,7 +55,9 @@ export default async function GmailPage() {
     gmail_thread_id: row.gmail_thread_id,
     kind: row.kind as GmailItemRow["kind"],
     title: row.title,
-    excerpt: row.excerpt_encrypted ? decryptSecret(row.excerpt_encrypted) : null,
+    excerpt: row.excerpt_encrypted
+      ? decryptSecret(row.excerpt_encrypted)
+      : null,
     date_at: row.date_at,
     requested_action: row.requested_action,
     confidence: row.confidence,
@@ -69,23 +76,28 @@ export default async function GmailPage() {
     status: row.status as GmailDraftRow["status"],
   }));
 
-  const hasComposeScope = integration.granted_scopes.includes(GMAIL_SCOPES.compose);
+  const hasComposeScope = integration.granted_scopes.includes(
+    GMAIL_SCOPES.compose,
+  );
   const hasSearchQuery = Boolean(integration.settings.search_query?.trim());
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
-      {!hasSearchQuery && (
-        <p className="text-muted-foreground max-w-md text-sm">
-          Set a Gmail search query or label in{" "}
-          <Link href="/settings" className="underline">
-            Settings
-          </Link>{" "}
-          before syncing — GYST never scans the whole inbox.
-        </p>
-      )}
-      <GmailReviewQueue items={items} />
-      <GmailDraftsSection drafts={drafts} hasComposeScope={hasComposeScope} />
+    <main className="relative isolate flex h-screen flex-col items-center justify-center p-4">
+      <RoomBackground room="living-room" />
+      <RoomContentPanel>
+        <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
+        {!hasSearchQuery && (
+          <p className="text-muted-foreground max-w-md text-sm">
+            Set a Gmail search query or label in{" "}
+            <Link href="/settings" className="underline">
+              Settings
+            </Link>{" "}
+            before syncing — GYST never scans the whole inbox.
+          </p>
+        )}
+        <GmailReviewQueue items={items} />
+        <GmailDraftsSection drafts={drafts} hasComposeScope={hasComposeScope} />
+      </RoomContentPanel>
     </main>
   );
 }

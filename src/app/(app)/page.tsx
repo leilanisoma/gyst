@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { CaptureForm } from "@/components/capture/capture-form";
 import { AmbientObject } from "@/components/room/ambient-object";
 import { RoomBackground } from "@/components/room/room-background";
+import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { AMBIENT_OBJECTS } from "@/lib/rooms";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
@@ -118,11 +118,11 @@ export default async function TodayPage({
   );
 
   return (
-    <main className="relative isolate flex flex-1 flex-col gap-6 p-6">
+    <main className="relative isolate h-screen overflow-hidden p-4">
       <RoomBackground room="living-room" />
 
-      <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">
+      <div className="absolute top-20 left-4 z-10 flex items-center gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight drop-shadow">
           Hi, {firstName}.
         </h1>
         <XpGrowthVisual
@@ -131,95 +131,99 @@ export default async function TodayPage({
         />
       </div>
 
-      {/* Living-room layout (Phase 9C/9D): the capture nook and the
-          mailbox/journal/thermostat ambient objects sit in their own zone
-          alongside the main task/planning area, instead of everything
-          stacking in one column. Wellness/School/Recruiting are reached
-          by sliding (`RoomSlideArrows`), not a doorway grid here. The
-          companion itself now lives in the global chat launcher
-          (AppShell), not a card here. */}
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <aside className="order-first flex w-full flex-col gap-4 lg:order-last lg:w-72 lg:shrink-0">
-          <div className="bg-card ring-foreground/10 shadow-cozy rounded-xl p-4 ring-1">
-            <CaptureForm />
-          </div>
+      {/* Living Room scene (Phase 9D, 2026-07-20): the mailbox/journal/
+          thermostat float directly on the art as big chrome-less images —
+          capture now lives on /inbox (behind the journal), and
+          Wellness/School/Recruiting are reached by sliding
+          (`RoomSlideArrows`), not a doorway grid here. The companion sits
+          on the couch (`CompanionChatLauncher`, pathname-aware). Coordinates
+          below are a first pass, picked by eye against the Living Room
+          art's open wall/floor space — expect to nudge after seeing it
+          live. */}
+      <AmbientObject
+        href={AMBIENT_OBJECTS.settings.href}
+        label={AMBIENT_OBJECTS.settings.label}
+        image={AMBIENT_OBJECTS.settings.image}
+        accent={AMBIENT_OBJECTS.settings.accent}
+        className="absolute top-[10%] left-[6%] w-28"
+      />
+      <AmbientObject
+        href={AMBIENT_OBJECTS.inbox.href}
+        label={AMBIENT_OBJECTS.inbox.label}
+        image={AMBIENT_OBJECTS.inbox.image}
+        accent={AMBIENT_OBJECTS.inbox.accent}
+        className="absolute top-[74%] left-[42%] w-32"
+      />
+      <AmbientObject
+        href={AMBIENT_OBJECTS.gmail.href}
+        label={AMBIENT_OBJECTS.gmail.label}
+        image={AMBIENT_OBJECTS.gmail.image}
+        accent={AMBIENT_OBJECTS.gmail.accent}
+        className="absolute top-[48%] right-[6%] w-28"
+      />
+
+      <RoomContentPanel className="fixed top-20 right-4 bottom-4 mx-0 w-full max-w-sm">
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
+          <FixedTimeline items={timeline} timeZone={timeZone} />
+        </section>
+
+        <div className="flex items-center justify-between gap-2">
           <div className="flex gap-2">
-            {Object.entries(AMBIENT_OBJECTS).map(([key, object]) => (
-              <AmbientObject
-                key={key}
-                href={object.href}
-                label={object.label}
-                image={object.image}
-                accent={object.accent}
-                className="flex-1"
-              />
-            ))}
+            <Link
+              href="/"
+              className={cn(
+                buttonVariants({
+                  variant: view === "today" ? "default" : "outline",
+                  size: "sm",
+                }),
+              )}
+            >
+              Today
+            </Link>
+            <Link
+              href="/?view=week"
+              className={cn(
+                buttonVariants({
+                  variant: view === "week" ? "default" : "outline",
+                  size: "sm",
+                }),
+              )}
+            >
+              This Week
+            </Link>
           </div>
-        </aside>
+          <OverwhelmMode tasks={(tasks ?? []) as Task[]} now={now} />
+        </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-6">
-          <section className="flex max-w-xl flex-col gap-2">
-            <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
-            <FixedTimeline items={timeline} timeZone={timeZone} />
-          </section>
-
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex gap-2">
-              <Link
-                href="/"
-                className={cn(
-                  buttonVariants({
-                    variant: view === "today" ? "default" : "outline",
-                    size: "sm",
-                  }),
-                )}
-              >
-                Today
-              </Link>
-              <Link
-                href="/?view=week"
-                className={cn(
-                  buttonVariants({
-                    variant: view === "week" ? "default" : "outline",
-                    size: "sm",
-                  }),
-                )}
-              >
-                This Week
-              </Link>
-            </div>
-            <OverwhelmMode tasks={(tasks ?? []) as Task[]} now={now} />
-          </div>
-
-          {view === "today" ? (
-            <div className="flex max-w-xl flex-col gap-5">
-              <TopOutcomesCard
-                plan={(dailyPlan as DailyPlan | null) ?? null}
-                dateString={todayString}
-              />
-              <CheckInCard
-                checkIn={(checkIn as CheckIn | null) ?? null}
-                dateString={todayString}
-              />
-              <TimeBlockSuggestions
-                suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
-              />
-              <TodayView
-                tasks={(tasks ?? []) as Task[]}
-                now={now}
-                timeZone={timeZone}
-              />
-              <WeeklyGoalsList goals={weeklyGoals ?? []} />
-            </div>
-          ) : (
-            <WeekView
+        {view === "today" ? (
+          <div className="flex flex-col gap-5">
+            <TopOutcomesCard
+              plan={(dailyPlan as DailyPlan | null) ?? null}
+              dateString={todayString}
+            />
+            <CheckInCard
+              checkIn={(checkIn as CheckIn | null) ?? null}
+              dateString={todayString}
+            />
+            <TimeBlockSuggestions
+              suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
+            />
+            <TodayView
               tasks={(tasks ?? []) as Task[]}
               now={now}
               timeZone={timeZone}
             />
-          )}
-        </div>
-      </div>
+            <WeeklyGoalsList goals={weeklyGoals ?? []} />
+          </div>
+        ) : (
+          <WeekView
+            tasks={(tasks ?? []) as Task[]}
+            now={now}
+            timeZone={timeZone}
+          />
+        )}
+      </RoomContentPanel>
     </main>
   );
 }
