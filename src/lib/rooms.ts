@@ -10,10 +10,9 @@ import {
 
 /**
  * The four full "rooms" (Phase 9D room map) — single source of truth for
- * the id/href/label/icon/accent every `RoomDoorway` and matching
- * `RoomHeader` must agree on, so the two never drift out of sync on the
- * `layoutId` that ties them together. Accents are placeholder chart-token
- * assignments; each room's real color identity is a 9D-2..9D-5 task.
+ * the href/label/icon/accent every `RoomDoorway` and matching `RoomHeader`
+ * uses. Accents are placeholder chart-token assignments; each room's real
+ * color identity is a 9D-2..9D-5 task.
  */
 export type RoomDefinition = {
   id: string;
