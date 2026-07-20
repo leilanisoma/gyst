@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Geist_Mono, Quicksand } from "next/font/google";
+import { Fredoka, Geist_Mono, Playfair_Display, Quicksand } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
@@ -15,6 +15,14 @@ const fredoka = Fredoka({
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
+  subsets: ["latin"],
+});
+
+// Night's moodier heading font (2026-07-20) — swapped in for `.font-heading`
+// only at night via a `[data-day-period="night"]` rule in globals.css;
+// Fredoka stays the heading font for dawn/day/dusk.
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair-display",
   subsets: ["latin"],
 });
 
@@ -47,7 +55,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-day-period="day"
-      className={`${fredoka.variable} ${quicksand.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fredoka.variable} ${quicksand.variable} ${playfairDisplay.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <DayPeriodProvider />

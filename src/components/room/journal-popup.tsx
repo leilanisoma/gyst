@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { AmbientObject } from "@/components/room/ambient-object";
+import { RoomPopupContent } from "@/components/room/room-popup-content";
 
 /**
  * The journal object on the Living Room hub (Phase 9D, 2026-07-20) — opens
@@ -35,10 +36,7 @@ export function JournalPopup({
         accent={accent}
         className={className}
       />
-      <DialogContent className="max-h-[85vh] w-full max-w-2xl overflow-y-auto sm:max-w-2xl">
-        <DialogTitle>Journal</DialogTitle>
-        <div className="flex flex-col gap-5">{children}</div>
-      </DialogContent>
+      <RoomPopupContent title="Journal">{children}</RoomPopupContent>
     </Dialog>
   );
 }

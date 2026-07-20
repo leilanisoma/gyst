@@ -275,3 +275,17 @@ html[data-day-period="dusk"] [data-room-bg-period="dusk"],
 html[data-day-period="night"] [data-room-bg-period="night"] {
   opacity: 1;
 }
+
+/*
+ * Night's moodier heading font (2026-07-20). Targets `.font-heading`
+ * directly rather than overriding the `--font-heading` theme variable —
+ * Tailwind v4's `@theme inline` inlines that variable straight into the
+ * generated `.font-heading` rule at build time (referencing
+ * `--font-fredoka` directly, not `--font-heading`), so a later
+ * `--font-heading` override at this cascade layer would do nothing. Two
+ * combined selectors here always beats Tailwind's single-class rule on
+ * specificity, regardless of source order.
+ */
+[data-day-period="night"] .font-heading {
+  font-family: var(--font-playfair-display), Georgia, serif;
+}

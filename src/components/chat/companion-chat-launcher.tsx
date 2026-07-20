@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { CompanionBlob } from "@/components/companion/companion-blob";
 import type { CompanionState } from "@/lib/companion";
+import { useDraggablePosition } from "@/lib/use-draggable-position";
 import { cn } from "@/lib/utils";
 import { ChatShell } from "./chat-shell";
 import { EMPTY_CHAT_PANEL_DATA } from "@/lib/chat/panel-data";
@@ -24,31 +26,43 @@ import { EMPTY_CHAT_PANEL_DATA } from "@/lib/chat/panel-data";
  * (Phase 9C).
  *
  * On the Living Room hub (`/`) it sits on the couch instead of its usual
- * fixed bottom-right spot (2026-07-20) — coordinates picked by eye against
- * the couch in the Living Room art.
+ * fixed bottom-right spot; everywhere it's also draggable, position
+ * persisted per device (`useDraggablePosition`). The outer `<div>` owns the
+ * rest-position anchor (including the couch's centering translate) via
+ * plain CSS; the inner draggable button owns Framer's drag transform —
+ * kept on separate elements so the two transforms don't fight over the
+ * same `transform` property.
  */
 export function CompanionChatLauncher({ state }: { state: CompanionState }) {
   const pathname = usePathname();
   const onCouch = pathname === "/";
+  const { dragProps, guardClick } = useDraggablePosition("companion");
 
   return (
     <Sheet>
-      <SheetTrigger
-        render={
-          <button
-            type="button"
-            aria-label="Open chat"
-            className={cn(
-              "fixed z-40 cursor-pointer border-0 bg-transparent p-0",
-              onCouch
-                ? "top-[60%] left-[36%] -translate-x-1/2 -translate-y-1/2"
-                : "right-6 bottom-6",
-            )}
-          />
-        }
+      <div
+        className={cn(
+          "fixed z-40",
+          onCouch
+            ? "top-[60%] left-[36%] -translate-x-1/2 -translate-y-1/2"
+            : "right-6 bottom-6",
+        )}
       >
-        <CompanionBlob state={state} size={64} showLabel={false} />
-      </SheetTrigger>
+        <SheetTrigger
+          render={
+            <motion.button
+              type="button"
+              aria-label="Open chat"
+              draggable={false}
+              {...dragProps}
+              className="cursor-grab border-0 bg-transparent p-0 active:cursor-grabbing"
+              onClick={guardClick(() => {})}
+            />
+          }
+        >
+          <CompanionBlob state={state} size={64} showLabel={false} />
+        </SheetTrigger>
+      </div>
       <SheetContent
         side="right"
         className="flex w-full flex-col gap-0 p-0 sm:max-w-md"

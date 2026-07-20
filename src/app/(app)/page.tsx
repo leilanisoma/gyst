@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AmbientObject } from "@/components/room/ambient-object";
 import { JournalPopup } from "@/components/room/journal-popup";
+import { PlannerPopup } from "@/components/room/planner-popup";
 import { RoomBackground } from "@/components/room/room-background";
 import { AMBIENT_OBJECTS } from "@/lib/rooms";
 import { CaptureForm } from "@/components/capture/capture-form";
@@ -21,6 +22,7 @@ import {
   getLocalDayRange,
 } from "@/lib/date-range";
 import { daysEngagedThisWeek, totalXp } from "@/lib/gamification";
+import { getGreetingPhrase } from "@/lib/greeting";
 import { bucketTodayTasks, bucketWeekTasks } from "@/lib/today";
 import { buildDailyTimeline } from "@/lib/timeline";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,13 @@ import type { Task } from "@/lib/tasks";
 import type { TimeBlockSuggestion } from "@/lib/time-block-suggestions";
 
 const WEEK_DAYS = 7;
+
+/** "ishani.s.sood" -> "Ishani" — just the first segment, capitalized. */
+function firstNameFromEmail(email: string | undefined): string {
+  const local = email?.split("@")[0] ?? "";
+  const first = local.split(/[._+-]/)[0] || "there";
+  return first.charAt(0).toUpperCase() + first.slice(1);
+}
 
 export default async function TodayPage({
   searchParams,
@@ -41,7 +50,7 @@ export default async function TodayPage({
 
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
-  const firstName = data.user?.email?.split("@")[0] ?? "there";
+  const firstName = firstNameFromEmail(data.user?.email);
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -123,9 +132,63 @@ export default async function TodayPage({
       <RoomBackground room="living-room" />
 
       <div className="absolute top-20 left-4 z-10 flex items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight drop-shadow">
-          Hi, {firstName}.
-        </h1>
+        <PlannerPopup
+          name={firstName}
+          fallbackGreeting={getGreetingPhrase(now)}
+        >
+          <section className="flex flex-col gap-2">
+            <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
+            <FixedTimeline items={timeline} timeZone={timeZone} />
+          </section>
+
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-2">
+              <Link
+                href="/"
+                className={cn(
+                  buttonVariants({
+                    variant: view === "today" ? "default" : "outline",
+                    size: "sm",
+                  }),
+                )}
+              >
+                Today
+              </Link>
+              <Link
+                href="/?view=week"
+                className={cn(
+                  buttonVariants({
+                    variant: view === "week" ? "default" : "outline",
+                    size: "sm",
+                  }),
+                )}
+              >
+                This Week
+              </Link>
+            </div>
+            <OverwhelmMode tasks={(tasks ?? []) as Task[]} now={now} />
+          </div>
+
+          {view === "today" ? (
+            <div className="flex flex-col gap-5">
+              <TimeBlockSuggestions
+                suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
+              />
+              <TodayView
+                tasks={(tasks ?? []) as Task[]}
+                now={now}
+                timeZone={timeZone}
+              />
+              <WeeklyGoalsList goals={weeklyGoals ?? []} />
+            </div>
+          ) : (
+            <WeekView
+              tasks={(tasks ?? []) as Task[]}
+              now={now}
+              timeZone={timeZone}
+            />
+          )}
+        </PlannerPopup>
         <XpGrowthVisual
           xp={totalXp(xpEvents ?? [])}
           daysEngaged={daysEngagedThisWeek(xpEvents ?? [], todayString)}
@@ -163,59 +226,6 @@ export default async function TodayPage({
           checkIn={(checkIn as CheckIn | null) ?? null}
           dateString={todayString}
         />
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
-          <FixedTimeline items={timeline} timeZone={timeZone} />
-        </section>
-
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex gap-2">
-            <Link
-              href="/"
-              className={cn(
-                buttonVariants({
-                  variant: view === "today" ? "default" : "outline",
-                  size: "sm",
-                }),
-              )}
-            >
-              Today
-            </Link>
-            <Link
-              href="/?view=week"
-              className={cn(
-                buttonVariants({
-                  variant: view === "week" ? "default" : "outline",
-                  size: "sm",
-                }),
-              )}
-            >
-              This Week
-            </Link>
-          </div>
-          <OverwhelmMode tasks={(tasks ?? []) as Task[]} now={now} />
-        </div>
-
-        {view === "today" ? (
-          <div className="flex flex-col gap-5">
-            <TimeBlockSuggestions
-              suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
-            />
-            <TodayView
-              tasks={(tasks ?? []) as Task[]}
-              now={now}
-              timeZone={timeZone}
-            />
-            <WeeklyGoalsList goals={weeklyGoals ?? []} />
-          </div>
-        ) : (
-          <WeekView
-            tasks={(tasks ?? []) as Task[]}
-            now={now}
-            timeZone={timeZone}
-          />
-        )}
-
         <Link href="/inbox" className="text-muted-foreground text-xs underline">
           View full inbox
         </Link>
