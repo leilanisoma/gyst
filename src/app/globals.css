@@ -289,3 +289,50 @@ html[data-day-period="night"] [data-room-bg-period="night"] {
 [data-day-period="night"] .font-heading {
   font-family: var(--font-playfair-display), Georgia, serif;
 }
+
+/*
+ * "Liquid glass" panel (2026-07-20) — the Apple-style shiny/translucent
+ * material for `RoomContentPanel` and the in-scene popups (`RoomPopupContent`
+ * / `DialogContent`), replacing the flatter `bg-card/75 backdrop-blur-xl`
+ * look. Layers: a heavily saturated blur (the "vibrancy" that makes the
+ * room art behind it read as bright/HD instead of muddy), a diagonal glass
+ * sheen (`::before`), and three stacked shadows — an inset top highlight
+ * (the glass edge catching light), an inset bottom shadow (depth/curvature),
+ * and a soft outer drop shadow (elevation off the room art). Plain rule
+ * (outside any `@layer`) so it reliably wins over the Tailwind utilities
+ * (`bg-popover`, `bg-card/75`, etc.) still present on some callers, the same
+ * cascade-layers behavior the night-font rule above already relies on.
+ */
+.room-glass {
+  position: relative;
+  background: color-mix(in oklch, var(--card) 45%, transparent);
+  -webkit-backdrop-filter: blur(28px) saturate(2.1);
+  backdrop-filter: blur(28px) saturate(2.1);
+  border: 1px solid color-mix(in oklch, white 45%, transparent);
+  box-shadow:
+    inset 0 2px 1px color-mix(in oklch, white 70%, transparent),
+    inset 0 -16px 24px -12px color-mix(in oklch, black 14%, transparent),
+    0 24px 48px -16px color-mix(in oklch, black 38%, transparent);
+}
+.room-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    125deg,
+    color-mix(in oklch, white 65%, transparent) 0%,
+    transparent 32%,
+    transparent 78%,
+    color-mix(in oklch, white 30%, transparent) 100%
+  );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+[data-day-period="night"] .room-glass {
+  border-color: color-mix(in oklch, white 14%, transparent);
+  box-shadow:
+    inset 0 1px 1px color-mix(in oklch, white 20%, transparent),
+    inset 0 -14px 20px -12px color-mix(in oklch, black 35%, transparent),
+    0 24px 48px -16px color-mix(in oklch, black 55%, transparent);
+}

@@ -3,8 +3,11 @@ import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 /**
  * Shared `DialogContent` shape for the hub's in-scene popups (Phase 9D,
- * 2026-07-20) — `JournalPopup` and `PlannerPopup` both use this so they
- * read as the same kind of popup rather than two one-off layouts.
+ * 2026-07-20) — `AmbientObjectPopup` and `PlannerPopup` both use this so
+ * they read as the same kind of popup rather than two one-off layouts.
+ * `.room-glass` (`globals.css`) gives it the same liquid-glass material as
+ * `RoomContentPanel`, so a popup and its matching full page (Gmail,
+ * Settings) look identical.
  */
 export function RoomPopupContent({
   title,
@@ -14,7 +17,7 @@ export function RoomPopupContent({
   children: ReactNode;
 }) {
   return (
-    <DialogContent className="max-h-[85vh] w-full max-w-2xl overflow-y-auto sm:max-w-2xl">
+    <DialogContent className="room-glass max-h-[85vh] w-full max-w-2xl overflow-y-auto sm:max-w-2xl">
       <DialogTitle>{title}</DialogTitle>
       <div className="flex flex-col gap-5">{children}</div>
     </DialogContent>
