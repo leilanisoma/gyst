@@ -142,6 +142,7 @@ export default async function TodayPage({
           art's open wall/floor space — expect to nudge after seeing it
           live. */}
       <AmbientObject
+        id="settings"
         href={AMBIENT_OBJECTS.settings.href}
         label={AMBIENT_OBJECTS.settings.label}
         image={AMBIENT_OBJECTS.settings.image}
@@ -220,6 +221,7 @@ export default async function TodayPage({
         </Link>
       </JournalPopup>
       <AmbientObject
+        id="gmail"
         href={AMBIENT_OBJECTS.gmail.href}
         label={AMBIENT_OBJECTS.gmail.label}
         image={AMBIENT_OBJECTS.gmail.image}

@@ -28,6 +28,7 @@ export function JournalPopup({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <AmbientObject
+        id="journal"
         onClick={() => setOpen(true)}
         label="Journal"
         image={image}
