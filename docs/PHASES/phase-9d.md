@@ -104,6 +104,14 @@ Ishani wanted the Wellness/School/Recruiting panels (and "the other" — Gmail/S
 - Plain rule, outside any `@layer` — same reasoning as the night-font rule above: Tailwind's own utilities live inside a cascade layer, and unlayered rules always win regardless of source order or specificity, so `.room-glass` reliably beats leftover `bg-popover`/`bg-card` utility classes on callers without needing `!important`.
 - Hit one real bug getting here: `backdrop-filter` (unprefixed) was silently disappearing from the compiled CSS — inspecting the actual build output (not just trusting the source) showed only `-webkit-backdrop-filter` survived when the unprefixed property was written *before* the prefixed one; swapping the order (prefixed first, standard second — the conventional order) fixed it. Verified live via Playwright (composited a `.room-glass` div over the actual Garden background PNG and screenshotted it) rather than assuming the CSS was right.
 
+## Room map v8 — no more flat-color loading flash (2026-07-20, same day)
+
+Ishani noticed a "yellow screen" flash switching between rooms. Root cause: `src/app/(app)/loading.tsx` (pre-9D — plain gray `Skeleton` bars on a bare `<main>`, no `RoomBackground`) is Next.js's automatic `<Suspense>` fallback shown the instant a route's async Server Component starts fetching, and it applied to every `(app)` route without its own more specific `loading.tsx` (none existed). With `--background` now a warm cream/yellow for the day period (room map v3's retheme), that bare fallback read as a jarring flat-yellow flash mid-navigation — exactly the "internal vs external" split Ishani asked for (data fetching should stay invisible; something else should show instead) was already the *intent* of `loading.tsx`, just not room-aware.
+
+- New `RoomLoading` (`src/components/room/room-loading.tsx`) — the room's own `RoomBackground` plus a pulsing `Skeleton`-filled `RoomContentPanel` (so it's already wearing the liquid-glass look from room map v7), instead of a flat color.
+- `wellness/loading.tsx`, `school/loading.tsx`, `recruiting/loading.tsx` each render `RoomLoading` with their own `ROOMS.*.background`; the root `(app)/loading.tsx` renders it with `"living-room"` as the fallback for everything else (Gmail/Inbox/Settings, which already use the Living Room background themselves, plus anything without its own `loading.tsx`).
+- No change to `RouteTransition`/`AnimatePresence` — Next.js resolves the `loading.tsx` swap via `<Suspense>` inside the same mounted route transition, so the enter/exit motion still fires once per navigation; the loading skeleton and the final content are two states of the *same* transition, not a second one.
+
 ## Open questions to resolve before/while building
 
 - Exact palette values per day-period (dawn/day/dusk/night) — not yet specified beyond "warmer, gamier, Animal Crossing-ish."
