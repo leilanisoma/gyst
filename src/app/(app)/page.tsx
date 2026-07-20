@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AmbientObject } from "@/components/room/ambient-object";
+import { JournalPopup } from "@/components/room/journal-popup";
 import { RoomBackground } from "@/components/room/room-background";
-import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { AMBIENT_OBJECTS } from "@/lib/rooms";
+import { CaptureForm } from "@/components/capture/capture-form";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
@@ -147,22 +148,20 @@ export default async function TodayPage({
         accent={AMBIENT_OBJECTS.settings.accent}
         className="absolute top-[10%] left-[6%] w-28"
       />
-      <AmbientObject
-        href={AMBIENT_OBJECTS.inbox.href}
-        label={AMBIENT_OBJECTS.inbox.label}
+      <JournalPopup
         image={AMBIENT_OBJECTS.inbox.image}
         accent={AMBIENT_OBJECTS.inbox.accent}
         className="absolute top-[74%] left-[42%] w-32"
-      />
-      <AmbientObject
-        href={AMBIENT_OBJECTS.gmail.href}
-        label={AMBIENT_OBJECTS.gmail.label}
-        image={AMBIENT_OBJECTS.gmail.image}
-        accent={AMBIENT_OBJECTS.gmail.accent}
-        className="absolute top-[48%] right-[6%] w-28"
-      />
-
-      <RoomContentPanel className="fixed top-20 right-4 bottom-4 mx-0 w-full max-w-sm">
+      >
+        <CaptureForm />
+        <TopOutcomesCard
+          plan={(dailyPlan as DailyPlan | null) ?? null}
+          dateString={todayString}
+        />
+        <CheckInCard
+          checkIn={(checkIn as CheckIn | null) ?? null}
+          dateString={todayString}
+        />
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-semibold">Today&rsquo;s timeline</h2>
           <FixedTimeline items={timeline} timeZone={timeZone} />
@@ -198,14 +197,6 @@ export default async function TodayPage({
 
         {view === "today" ? (
           <div className="flex flex-col gap-5">
-            <TopOutcomesCard
-              plan={(dailyPlan as DailyPlan | null) ?? null}
-              dateString={todayString}
-            />
-            <CheckInCard
-              checkIn={(checkIn as CheckIn | null) ?? null}
-              dateString={todayString}
-            />
             <TimeBlockSuggestions
               suggestions={(suggestions ?? []) as TimeBlockSuggestion[]}
             />
@@ -223,7 +214,18 @@ export default async function TodayPage({
             timeZone={timeZone}
           />
         )}
-      </RoomContentPanel>
+
+        <Link href="/inbox" className="text-muted-foreground text-xs underline">
+          View full inbox
+        </Link>
+      </JournalPopup>
+      <AmbientObject
+        href={AMBIENT_OBJECTS.gmail.href}
+        label={AMBIENT_OBJECTS.gmail.label}
+        image={AMBIENT_OBJECTS.gmail.image}
+        accent={AMBIENT_OBJECTS.gmail.accent}
+        className="absolute top-[48%] right-[6%] w-28"
+      />
     </main>
   );
 }

@@ -4,7 +4,7 @@ import { AnimatePresence, motion, type PanInfo } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
-import { DURATIONS, EASINGS } from "@/lib/motion";
+import { DURATIONS, EASINGS, SPRINGS } from "@/lib/motion";
 import { adjacentRoomHrefs, roomSequenceIndex, slideDirection } from "@/lib/room-sequence";
 
 /** How far (px) a drag has to travel before it counts as a swipe-to-navigate. */
@@ -74,12 +74,16 @@ export function RouteTransition({ children }: { children: ReactNode }) {
           {children}
         </motion.div>
       ) : (
+        // "Pop" transition (2026-07-17/2026-07-20): a little zoom-in bounce
+        // instead of a flat fade, so landing on Gmail/Inbox/Settings from
+        // one of their ambient objects feels like something opened rather
+        // than a plain page swap.
         <motion.div
           key={pathname}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: DURATIONS.base, ease: EASINGS.out }}
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.96 }}
+          transition={SPRINGS.snappy}
         >
           {children}
         </motion.div>

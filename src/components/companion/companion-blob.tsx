@@ -72,10 +72,12 @@ const BLOB_PATH =
 export function CompanionBlob({
   state,
   size = 112,
+  showLabel = true,
   className,
 }: {
   state: CompanionState;
   size?: number;
+  showLabel?: boolean;
   className?: string;
 }) {
   const [reduceMotion] = useState(() => prefersReducedMotion());
@@ -155,7 +157,7 @@ export function CompanionBlob({
         </AnimatePresence>
       </motion.svg>
 
-      {Icon && (
+      {showLabel && Icon && (
         <motion.div
           key={`icon-${state}`}
           initial={{ opacity: 0, y: -4 }}
@@ -167,7 +169,7 @@ export function CompanionBlob({
           <span>{COMPANION_STATE_LABELS[state]}</span>
         </motion.div>
       )}
-      {!Icon && (
+      {showLabel && !Icon && (
         <span className="text-muted-foreground text-xs">
           {COMPANION_STATE_LABELS[state]}
         </span>
