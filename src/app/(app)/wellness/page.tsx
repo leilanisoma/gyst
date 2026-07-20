@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { RoomHeader } from "@/components/room/room-header";
+import { RoomBackground } from "@/components/room/room-background";
 import { ROOMS } from "@/lib/rooms";
 import { getLocalDateString } from "@/lib/date-range";
 import { weeklyTrendObservations, type WellnessCheckIn } from "@/lib/wellness";
@@ -40,7 +41,8 @@ export default async function WellnessPage() {
   const healthSummaries = user ? await listDailySummaries(supabase, user.id) : [];
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
+    <main className="relative isolate mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-6">
+      <RoomBackground room={ROOMS.wellness.background} />
       <RoomHeader
         {...ROOMS.wellness}
         icon={

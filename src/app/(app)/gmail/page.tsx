@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { RoomHeader } from "@/components/room/room-header";
-import { ROOMS } from "@/lib/rooms";
 import { decryptSecret } from "@/lib/crypto";
 import { getGmailIntegration } from "@/lib/gmail/integration";
 import { GMAIL_SCOPES } from "@/lib/gmail/oauth";
@@ -24,12 +22,7 @@ export default async function GmailPage() {
   if (!integration || integration.status === "not_connected") {
     return (
       <main className="flex flex-1 flex-col gap-4 p-6">
-        <RoomHeader
-          {...ROOMS.gmail}
-          icon={
-            <ROOMS.gmail.icon className="size-6 text-white" aria-hidden="true" />
-          }
-        />
+        <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
         <p className="text-muted-foreground max-w-md text-sm">
           Connect Gmail from{" "}
           <Link href="/settings" className="underline">
@@ -81,12 +74,7 @@ export default async function GmailPage() {
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-6">
-      <RoomHeader
-        {...ROOMS.gmail}
-        icon={
-          <ROOMS.gmail.icon className="size-6 text-white" aria-hidden="true" />
-        }
-      />
+      <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
       {!hasSearchQuery && (
         <p className="text-muted-foreground max-w-md text-sm">
           Set a Gmail search query or label in{" "}

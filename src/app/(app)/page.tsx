@@ -2,8 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CaptureForm } from "@/components/capture/capture-form";
 import { AmbientObject } from "@/components/room/ambient-object";
-import { RoomDoorway } from "@/components/room/room-doorway";
-import { AMBIENT_OBJECTS, ROOMS } from "@/lib/rooms";
+import { RoomBackground } from "@/components/room/room-background";
+import { AMBIENT_OBJECTS } from "@/lib/rooms";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
@@ -118,7 +118,9 @@ export default async function TodayPage({
   );
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6">
+    <main className="relative isolate flex flex-1 flex-col gap-6 p-6">
+      <RoomBackground room="living-room" />
+
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">
           Hi, {firstName}.
@@ -129,48 +131,29 @@ export default async function TodayPage({
         />
       </div>
 
-      {/* The four full rooms (Phase 9D room map) — doorways replacing the
-          sidebar as primary navigation. Placeholder accents/layout; each
-          gets its own themed dressing in 9D-2..9D-5. */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {Object.values(ROOMS).map((room) => {
-          const Icon = room.icon;
-          return (
-            <RoomDoorway
-              key={room.id}
-              {...room}
-              icon={<Icon className="size-6 text-white" aria-hidden="true" />}
-            />
-          );
-        })}
-      </div>
-
       {/* Living-room layout (Phase 9C/9D): the capture nook and the
-          journal/thermostat ambient objects sit in their own zone
+          mailbox/journal/thermostat ambient objects sit in their own zone
           alongside the main task/planning area, instead of everything
-          stacking in one column. The companion itself now lives in the
-          global chat launcher (AppShell), not a card here. */}
+          stacking in one column. Wellness/School/Recruiting are reached
+          by sliding (`RoomSlideArrows`), not a doorway grid here. The
+          companion itself now lives in the global chat launcher
+          (AppShell), not a card here. */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <aside className="order-first flex w-full flex-col gap-4 lg:order-last lg:w-72 lg:shrink-0">
           <div className="bg-card ring-foreground/10 shadow-cozy rounded-xl p-4 ring-1">
             <CaptureForm />
           </div>
           <div className="flex gap-2">
-            {Object.entries(AMBIENT_OBJECTS).map(([key, object]) => {
-              const Icon = object.icon;
-              return (
-                <AmbientObject
-                  key={key}
-                  href={object.href}
-                  label={object.label}
-                  accent={object.accent}
-                  className="flex-1"
-                  icon={
-                    <Icon className="size-4 text-white" aria-hidden="true" />
-                  }
-                />
-              );
-            })}
+            {Object.entries(AMBIENT_OBJECTS).map(([key, object]) => (
+              <AmbientObject
+                key={key}
+                href={object.href}
+                label={object.label}
+                image={object.image}
+                accent={object.accent}
+                className="flex-1"
+              />
+            ))}
           </div>
         </aside>
 

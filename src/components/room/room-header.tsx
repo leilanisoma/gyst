@@ -1,15 +1,16 @@
 import type { ReactNode } from "react";
 
 /**
- * A room destination page's header (Phase 9D) — render this in place of a
- * plain `<h1>` for the same illustrated-icon treatment as `RoomDoorway`.
- * Previously shared a `layoutId` with the doorway for a shared-element
- * zoom transition; that mechanic was removed 2026-07-20 in favor of the
- * filmstrip slide (`RouteTransition`/`RoomSlideArrows`) for rooms in
- * `ROOM_SEQUENCE`, and a plain route swap otherwise.
+ * A room destination page's header (Phase 9D) — an icon-in-circle plus
+ * title/description, used by Wellness/School/Recruiting (the three rooms
+ * in `ROOM_SEQUENCE`, reached by sliding via `RouteTransition`/
+ * `RoomSlideArrows`, not a click-to-zoom doorway — that mechanic existed
+ * briefly in 9D-1 and was removed 2026-07-20).
  *
- * `icon` takes an already-rendered element, not a component reference —
- * see `RoomDoorway` for why (Server->Client Component prop serialization).
+ * `icon` takes an already-rendered element (`<HeartPulse />`), not a
+ * component reference — a Lucide component itself isn't a plain
+ * serializable value, so it can't cross the Server->Client Component
+ * boundary when a server-rendered page passes room data down as props.
  */
 export function RoomHeader({
   label,

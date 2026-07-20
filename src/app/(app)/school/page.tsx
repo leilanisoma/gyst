@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { RoomHeader } from "@/components/room/room-header";
+import { RoomBackground } from "@/components/room/room-background";
 import { ROOMS } from "@/lib/rooms";
 import { isCanvasConfigured } from "@/lib/env";
 import { getCanvasIntegration } from "@/lib/canvas/integration";
@@ -113,7 +114,8 @@ export default async function SchoolPage() {
     }));
 
   return (
-    <main className="flex flex-1 flex-col gap-6 p-6">
+    <main className="relative isolate flex flex-1 flex-col gap-6 p-6">
+      <RoomBackground room={ROOMS.school.background} />
       <div className="flex flex-col gap-2">
         <RoomHeader
           {...ROOMS.school}

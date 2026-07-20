@@ -258,3 +258,20 @@
     @apply font-sans;
   }
 }
+
+/*
+ * Room background art (Phase 9D, 2026-07-20): `RoomBackground` stacks one
+ * `<img data-room-bg-period>` per day period; only the one matching
+ * `DayPeriodProvider`'s `data-day-period` on `<html>` is visible, mirroring
+ * the attribute-matching approach the color tokens above already use.
+ */
+[data-room-bg-period] {
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+html[data-day-period="dawn"] [data-room-bg-period="dawn"],
+html[data-day-period="day"] [data-room-bg-period="day"],
+html[data-day-period="dusk"] [data-room-bg-period="dusk"],
+html[data-day-period="night"] [data-room-bg-period="night"] {
+  opacity: 1;
+}
