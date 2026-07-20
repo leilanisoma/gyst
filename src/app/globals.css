@@ -256,6 +256,10 @@
   }
   html {
     @apply font-sans;
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -304,8 +308,7 @@ html[data-day-period="night"] [data-room-bg-period="night"] {
  * cascade-layers behavior the night-font rule above already relies on.
  */
 .room-glass {
-  position: relative;
-  background: color-mix(in oklch, var(--card) 45%, transparent);
+  background: color-mix(in oklch, var(--card) 72%, transparent);
   -webkit-backdrop-filter: blur(28px) saturate(2.1);
   backdrop-filter: blur(28px) saturate(2.1);
   border: 1px solid color-mix(in oklch, white 45%, transparent);
@@ -313,6 +316,10 @@ html[data-day-period="night"] [data-room-bg-period="night"] {
     inset 0 2px 1px color-mix(in oklch, white 70%, transparent),
     inset 0 -16px 24px -12px color-mix(in oklch, black 14%, transparent),
     0 24px 48px -16px color-mix(in oklch, black 38%, transparent);
+  scrollbar-width: none;
+}
+.room-glass::-webkit-scrollbar {
+  display: none;
 }
 .room-glass::before {
   content: "";

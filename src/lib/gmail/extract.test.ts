@@ -4,7 +4,7 @@ import type { AIClient } from "@/ai/client";
 import type { GmailMessageContent } from "./client";
 
 let fakeClient: AIClient | null = null;
-vi.mock("@/ai", () => ({ getAIClient: () => fakeClient }));
+vi.mock("@/ai", () => ({ getGmailAIClient: () => fakeClient }));
 
 const MESSAGE: GmailMessageContent = {
   id: "msg-1",

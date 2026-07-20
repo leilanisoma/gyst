@@ -41,7 +41,10 @@ export function buildGmailAuthUrl(options: {
   url.searchParams.set("redirect_uri", env.GMAIL_REDIRECT_URI);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("access_type", "offline");
-  url.searchParams.set("prompt", "consent");
+  // select_account forces the account chooser every time, so a stale
+  // browser session never silently reconnects the wrong Google account
+  // (Gmail and Calendar are deliberately different accounts here).
+  url.searchParams.set("prompt", "consent select_account");
   url.searchParams.set("include_granted_scopes", "true");
   url.searchParams.set("scope", options.scopes.join(" "));
   url.searchParams.set("state", options.state);

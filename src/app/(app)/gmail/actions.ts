@@ -129,12 +129,12 @@ export async function pushGmailDraft(draftId: string): Promise<ActionResult> {
     return { ok: false, error: "This draft is already in Gmail." };
   }
 
-  const accessToken = await getValidGmailAccessToken(supabase, user.id);
-  if (!accessToken) {
-    return { ok: false, error: "Gmail isn't connected." };
-  }
-
   try {
+    const accessToken = await getValidGmailAccessToken(supabase, user.id);
+    if (!accessToken) {
+      return { ok: false, error: "Gmail isn't connected." };
+    }
+
     const original = await getMessage(accessToken, draft.in_reply_to_message_id);
     const created = await createDraft(accessToken, {
       threadId: draft.gmail_thread_id,

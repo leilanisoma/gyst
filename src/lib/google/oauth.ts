@@ -34,7 +34,9 @@ export function buildGoogleAuthUrl(options: {
   url.searchParams.set("access_type", "offline");
   // Force the consent screen so a refresh_token is issued every time,
   // including incremental-scope upgrades (Phase 3's write-scope request).
-  url.searchParams.set("prompt", "consent");
+  // select_account forces the account chooser too, so a stale browser
+  // session never silently reconnects the wrong Google account.
+  url.searchParams.set("prompt", "consent select_account");
   url.searchParams.set("include_granted_scopes", "true");
   url.searchParams.set("scope", options.scopes.join(" "));
   url.searchParams.set("state", options.state);

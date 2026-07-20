@@ -1,5 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
-import { getAIClient } from "@/ai";
+import { getGmailAIClient } from "@/ai";
 import { GmailExtractionResultSchema } from "@/ai/types";
 import { encryptSecret } from "@/lib/crypto";
 import type { GmailMessageContent } from "./client";
@@ -14,10 +14,11 @@ export type ExtractGmailItemsResult =
  * Asks the configured AIClient to identify interview dates, application
  * confirmations, deadlines, and requested actions in one Gmail message
  * (PLAN.md §15 task 7.4). Every item lands `confirmed: false` — same
- * require-confirmation rule as 6.4/6.6's Canvas/syllabus candidates. Gated
- * behind `getAIClient()` exactly like syllabus extraction
- * (`src/lib/syllabus/extract.ts`); with no provider wired in yet, this
- * always returns the "not available" error and never runs.
+ * require-confirmation rule as 6.4/6.6's Canvas/syllabus candidates. Uses
+ * `getGmailAIClient()` (Groq, falling back to the global Gemini client —
+ * docs/DECISIONS/0003-groq-for-gmail-extraction.md) rather than
+ * `getAIClient()` directly, so this feature can run on a different provider
+ * than chat/inbox/syllabus extraction.
  *
  * Only the AI's own short excerpt is persisted (encrypted) — the message's
  * full body/headers are never written to Supabase (task 7.8, "no full
@@ -29,7 +30,7 @@ export async function extractGmailItemsFromMessage(
   message: GmailMessageContent,
   retentionDays: number,
 ): Promise<ExtractGmailItemsResult> {
-  const client = getAIClient();
+  const client = getGmailAIClient();
   if (!client) {
     return {
       ok: false,

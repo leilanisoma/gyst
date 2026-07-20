@@ -1,5 +1,6 @@
 import type { AIClient } from "./client";
 import { createGeminiClient } from "./providers/gemini";
+import { createGroqClient } from "./providers/groq";
 
 /**
  * Both functions below are the single source of truth for whether AI
@@ -21,4 +22,17 @@ export function getAIClient(): AIClient | null {
     return createGeminiClient(apiKey);
   }
   return null;
+}
+
+/**
+ * Gmail extraction only (docs/DECISIONS/0003-groq-for-gmail-extraction.md)
+ * — uses Groq instead of the global `AI_PROVIDER` for this one feature,
+ * since it's a cheap/fast classification-only task. Falls back to
+ * `getAIClient()` (Gemini) when `GROQ_API_KEY` is unset, so removing the
+ * key degrades Gmail extraction back to Gemini rather than disabling it.
+ */
+export function getGmailAIClient(): AIClient | null {
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (groqApiKey) return createGroqClient(groqApiKey);
+  return getAIClient();
 }

@@ -130,7 +130,15 @@ export async function runGoogleSync(
   supabase: SupabaseServerClient,
   userId: string,
 ): Promise<RunGoogleSyncResult> {
-  const accessToken = await getValidGoogleAccessToken(supabase, userId);
+  let accessToken: string | null;
+  try {
+    accessToken = await getValidGoogleAccessToken(supabase, userId);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown token refresh error.";
+    await markGoogleError(supabase, userId, message);
+    return { ok: false, error: message };
+  }
   if (!accessToken) {
     return { ok: false, error: "Google Calendar isn't connected." };
   }

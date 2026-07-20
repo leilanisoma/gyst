@@ -28,7 +28,15 @@ export async function runGmailSync(
   supabase: SupabaseServerClient,
   userId: string,
 ): Promise<RunGmailSyncResult> {
-  const accessToken = await getValidGmailAccessToken(supabase, userId);
+  let accessToken: string | null;
+  try {
+    accessToken = await getValidGmailAccessToken(supabase, userId);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown token refresh error.";
+    await markGmailError(supabase, userId, message);
+    return { ok: false, error: message };
+  }
   if (!accessToken) {
     return { ok: false, error: "Gmail isn't connected." };
   }

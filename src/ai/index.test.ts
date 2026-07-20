@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getAIClient, isAIExtractionEnabled } from "./index";
+import { getAIClient, getGmailAIClient, isAIExtractionEnabled } from "./index";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -26,5 +26,28 @@ describe("AI extraction feature flag", () => {
     expect(isAIExtractionEnabled()).toBe(true);
     const client = getAIClient();
     expect(client?.provider).toBe("gemini");
+  });
+});
+
+describe("Gmail-scoped AI client", () => {
+  it("returns a Groq client when GROQ_API_KEY is set", () => {
+    vi.stubEnv("GROQ_API_KEY", "test-groq-key");
+    const client = getGmailAIClient();
+    expect(client?.provider).toBe("groq");
+  });
+
+  it("falls back to the global client (Gemini) when GROQ_API_KEY is unset", () => {
+    vi.stubEnv("GROQ_API_KEY", "");
+    vi.stubEnv("AI_PROVIDER", "gemini");
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const client = getGmailAIClient();
+    expect(client?.provider).toBe("gemini");
+  });
+
+  it("returns null when neither Groq nor a global provider is configured", () => {
+    vi.stubEnv("GROQ_API_KEY", "");
+    vi.stubEnv("AI_PROVIDER", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
+    expect(getGmailAIClient()).toBeNull();
   });
 });

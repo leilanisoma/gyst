@@ -36,17 +36,19 @@ export async function SettingsContent() {
   const gmailIntegration = await getGmailIntegration(supabase, userId);
   let calendars: { id: string; summary: string }[] = [];
   if (integration?.status !== "not_connected" && integration) {
-    const accessToken = await getValidGoogleAccessToken(supabase, userId);
-    if (accessToken) {
-      try {
+    try {
+      const accessToken = await getValidGoogleAccessToken(supabase, userId);
+      if (accessToken) {
         calendars = (await listCalendars(accessToken)).map((cal) => ({
           id: cal.id,
           summary: cal.summary,
         }));
-      } catch {
-        // Sync status/errors surface from the integration row itself; the
-        // calendar picker just stays empty if this best-effort fetch fails.
       }
+    } catch {
+      // Sync status/errors surface from the integration row itself; the
+      // calendar picker just stays empty if this best-effort fetch fails
+      // (including a revoked refresh token, which would otherwise crash
+      // this Server Component's render).
     }
   }
 
@@ -85,8 +87,8 @@ export async function SettingsContent() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-      <dl className="grid max-w-sm gap-2 text-sm">
+      <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+      <dl className="grid gap-2 text-base">
         <div className="border-border flex justify-between border-b py-2">
           <dt className="text-muted-foreground">Email</dt>
           <dd>{profile?.email ?? data.user?.email}</dd>
@@ -96,13 +98,13 @@ export async function SettingsContent() {
           <dd>{profile?.timezone ?? "UTC"}</dd>
         </div>
       </dl>
-      <p className="text-muted-foreground max-w-sm text-sm">
+      <p className="text-muted-foreground text-base">
         Working hours and AI limits arrive with `preferences` in a later
         phase.
       </p>
 
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
-        <h2 className="text-sm font-semibold">Notifications</h2>
+      <div className="flex flex-col gap-3 border-t pt-4">
+        <h2 className="text-lg font-semibold">Notifications</h2>
         <NotificationSettingsCard
           quietHoursStart={notificationRules.quiet_hours_start ?? "22:00"}
           quietHoursEnd={notificationRules.quiet_hours_end ?? "07:00"}
@@ -110,8 +112,8 @@ export async function SettingsContent() {
         />
       </div>
 
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
-        <h2 className="text-sm font-semibold">Google Calendar</h2>
+      <div className="flex flex-col gap-3 border-t pt-4">
+        <h2 className="text-lg font-semibold">Google Calendar</h2>
         <GoogleIntegrationCard
           status={integration?.status ?? "not_connected"}
           accountEmail={integration?.account_email ?? null}
@@ -129,8 +131,8 @@ export async function SettingsContent() {
         />
       </div>
 
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
-        <h2 className="text-sm font-semibold">Gmail</h2>
+      <div className="flex flex-col gap-3 border-t pt-4">
+        <h2 className="text-lg font-semibold">Gmail</h2>
         <GmailIntegrationCard
           status={gmailIntegration?.status ?? "not_connected"}
           accountEmail={gmailIntegration?.account_email ?? null}
@@ -148,13 +150,13 @@ export async function SettingsContent() {
         />
       </div>
 
-      <div className="flex max-w-sm flex-col gap-3 border-t pt-4">
+      <div className="flex flex-col gap-3 border-t pt-4">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold">
+          <h2 className="text-lg font-semibold">
             Class &amp; fencing schedule
           </h2>
         </div>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Fixed weekly commitments the day plan should protect. Add your real
           schedule whenever you have it — the planner just needs it before it
           can suggest time blocks.
@@ -171,9 +173,9 @@ export async function SettingsContent() {
         />
       </div>
 
-      <div className="flex max-w-sm flex-col gap-2 border-t pt-4">
-        <h2 className="text-sm font-semibold">AI usage</h2>
-        <p className="text-muted-foreground text-sm">
+      <div className="flex flex-col gap-2 border-t pt-4">
+        <h2 className="text-lg font-semibold">AI usage</h2>
+        <p className="text-muted-foreground text-base">
           Chat tokens used today: {todayChatTokens.toLocaleString()} /{" "}
           {dailyChatTokenLimit.toLocaleString()}
         </p>
