@@ -32,8 +32,8 @@ gyst/
 │   │   ├── api/chat/         # streaming chat turn endpoint (SSE), authenticated (Phase 8)
 │   │   ├── api/cron/         # discover-jobs (daily), weekly-digest, sync-canvas (daily, Phase 6) — bearer-secret auth (CRON_SECRET), no user session
 │   │   ├── api/google/       # connect/callback route handlers (OAuth redirect + code exchange)
-│   │   ├── login/            # magic-link sign-in
-│   │   ├── auth/callback/    # PKCE code exchange
+│   │   ├── login/            # password sign-in (docs/DECISIONS/0004-password-auth-for-login.md)
+│   │   ├── auth/callback/    # PKCE code exchange — unused since the login flow moved off magic link (0004); left in place, harmless
 │   │   ├── auth/error/
 │   │   ├── offline/          # service-worker fallback page (inline-styled, no deps)
 │   │   ├── manifest.ts       # PWA manifest
@@ -126,7 +126,7 @@ gyst/
 | Mobile delivery | PWA — manifest, generated icons, install instructions (Settings), offline fallback |
 | Styling | Tailwind CSS v4 + shadcn/ui (Base UI primitives), a warm "cozy" cream/terracotta theme |
 | Database | Supabase Postgres, linked project, migrations in `supabase/migrations/` |
-| Auth | Supabase Auth magic link, restricted to `ALLOWED_USER_EMAIL` at both the DB (trigger on `auth.users`) and app (`src/proxy.ts`) layers; RLS (`auth.uid() = user_id`/`id`) on every table |
+| Auth | Supabase Auth password sign-in (`docs/DECISIONS/0004-password-auth-for-login.md`), restricted to `ALLOWED_USER_EMAIL` at both the DB (trigger on `auth.users`) and app (`src/proxy.ts`) layers; RLS (`auth.uid() = user_id`/`id`) on every table |
 | Drag-and-drop | @dnd-kit/core (Kanban board) |
 | Validation | Zod (env vars, AI extraction schemas) |
 | Testing | Vitest + React Testing Library (unit/component), Playwright installed for e2e (not yet used for a checked-in suite — verification so far has been ad hoc scripts run and discarded per session) |
