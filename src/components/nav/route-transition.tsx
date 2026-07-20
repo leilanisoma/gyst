@@ -63,8 +63,14 @@ export function RouteTransition({ children }: { children: ReactNode }) {
     // long enough to show the bare page background through (the "yellow
     // screen" flash, 2026-07-20). Default (sync) mode overlaps exit/enter,
     // so both stacked `absolute` layers below are always covering the
-    // screen — never nothing.
-    <div className="relative">
+    // screen — never nothing. `h-screen` here is load-bearing, not
+    // decorative: once both layers are `position: absolute`, this wrapper
+    // has no intrinsic height on its own, and the parent's
+    // `overflow-x-hidden` (in `AppShell`) then computes its *other* axis
+    // (`overflow-y`) to `auto` per the CSS overflow spec — against a
+    // collapsed 0px-tall box, that clips/scrolls away everything, which is
+    // exactly what "no background or anything" was (2026-07-20 follow-up).
+    <div className="relative h-screen">
       <AnimatePresence initial={false} custom={direction}>
         {isSlidable ? (
           <motion.div
