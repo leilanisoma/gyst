@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { AmbientObject } from "@/components/room/ambient-object";
-import { JournalPopup } from "@/components/room/journal-popup";
+import { AmbientObjectPopup } from "@/components/room/ambient-object-popup";
 import { PlannerPopup } from "@/components/room/planner-popup";
 import { RoomBackground } from "@/components/room/room-background";
 import { AMBIENT_OBJECTS } from "@/lib/rooms";
 import { CaptureForm } from "@/components/capture/capture-form";
+import { GmailContent } from "@/app/(app)/gmail/gmail-content";
+import { SettingsContent } from "@/app/(app)/settings/settings-content";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
@@ -204,15 +205,20 @@ export default async function TodayPage({
           below are a first pass, picked by eye against the Living Room
           art's open wall/floor space — expect to nudge after seeing it
           live. */}
-      <AmbientObject
+      <AmbientObjectPopup
         id="settings"
-        href={AMBIENT_OBJECTS.settings.href}
         label={AMBIENT_OBJECTS.settings.label}
+        title="Settings"
         image={AMBIENT_OBJECTS.settings.image}
         accent={AMBIENT_OBJECTS.settings.accent}
         className="absolute top-[10%] left-[6%] w-28"
-      />
-      <JournalPopup
+      >
+        <SettingsContent />
+      </AmbientObjectPopup>
+      <AmbientObjectPopup
+        id="journal"
+        label="Journal"
+        title="Journal"
         image={AMBIENT_OBJECTS.inbox.image}
         accent={AMBIENT_OBJECTS.inbox.accent}
         className="absolute top-[74%] left-[42%] w-32"
@@ -229,15 +235,17 @@ export default async function TodayPage({
         <Link href="/inbox" className="text-muted-foreground text-xs underline">
           View full inbox
         </Link>
-      </JournalPopup>
-      <AmbientObject
+      </AmbientObjectPopup>
+      <AmbientObjectPopup
         id="gmail"
-        href={AMBIENT_OBJECTS.gmail.href}
         label={AMBIENT_OBJECTS.gmail.label}
+        title="Gmail"
         image={AMBIENT_OBJECTS.gmail.image}
         accent={AMBIENT_OBJECTS.gmail.accent}
         className="absolute top-[48%] right-[6%] w-28"
-      />
+      >
+        <GmailContent />
+      </AmbientObjectPopup>
     </main>
   );
 }
