@@ -25,6 +25,7 @@ function fakeClient(embed: (text: string) => Promise<number[]>): AIClient {
       usage: { inputTokens: 0, outputTokens: 0 },
     }),
     embedText: embed,
+    classifyEducationFit: async () => ({ requiresUnmetEducation: false, reasoning: "" }),
   };
 }
 

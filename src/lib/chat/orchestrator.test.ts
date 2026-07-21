@@ -21,6 +21,7 @@ function fakeClient(chatResponses: ChatTurnResult[]): AIClient {
       return response;
     },
     embedText: async () => [0.1, 0.2],
+    classifyEducationFit: async () => ({ requiresUnmetEducation: false, reasoning: "" }),
   };
 }
 

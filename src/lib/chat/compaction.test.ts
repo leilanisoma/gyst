@@ -15,6 +15,7 @@ function fakeClient(text: string): AIClient {
       usage: { inputTokens: 0, outputTokens: 0 },
     }),
     embedText: async () => [],
+    classifyEducationFit: async () => ({ requiresUnmetEducation: false, reasoning: "" }),
   };
 }
 

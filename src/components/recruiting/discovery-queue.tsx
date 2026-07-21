@@ -86,9 +86,9 @@ export function DiscoveryQueue({
             const score = firstScore(opportunity.job_scores);
 
             return (
-              <div key={application.id} className="flex items-start justify-between gap-3 rounded-lg border p-3">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
+              <div key={application.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border p-3">
+                <div className="flex min-w-0 flex-col gap-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{opportunity.title}</span>
                     <span className="text-muted-foreground text-sm">@ {opportunity.company?.name ?? "Unknown"}</span>
                     {score && (
@@ -115,7 +115,7 @@ export function DiscoveryQueue({
                     </Link>
                   )}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-shrink-0 flex-wrap items-center justify-end gap-1">
                   <Button
                     size="sm"
                     variant={opportunity.feedback === "up" ? "default" : "ghost"}

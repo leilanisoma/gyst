@@ -1,7 +1,22 @@
-import { describe, expect, it } from "vitest";
-import { ingestNormalizedJob } from "./ingest";
+import { describe, expect, it, vi } from "vitest";
+import { ingestNormalizedJob, type ResumeFitContext } from "./ingest";
 import { FakeSupabase } from "@/lib/test/fake-supabase";
+import type { AIClient } from "@/ai/client";
+import type { EducationFitResult } from "@/ai/types";
 import type { NormalizedJob } from "./types";
+
+function fakeResumeFit(
+  classify: (title: string, description: string | null) => EducationFitResult,
+): ResumeFitContext {
+  return {
+    resumeText: "B.S. Computer Science, expected 2028.",
+    aiClient: {
+      classifyEducationFit: vi.fn(async (_resumeText, title, description) =>
+        classify(title, description),
+      ),
+    } as unknown as AIClient,
+  };
+}
 
 const USER_ID = "user-1";
 
@@ -73,6 +88,56 @@ describe("ingestNormalizedJob", () => {
     expect(second).toBe("updated");
     expect(db.tables.opportunities).toHaveLength(1);
     expect(db.tables.applications).toHaveLength(1);
+  });
+
+  it("excludes a posting the resume-fit classifier flags as requiring an unmet degree", async () => {
+    const db = makeDb();
+    const resumeFit = fakeResumeFit(() => ({
+      requiresUnmetEducation: true,
+      reasoning: "Requires a completed PhD; resume shows an in-progress bachelor's.",
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await ingestNormalizedJob(db as any, USER_ID, "greenhouse", job, resumeFit);
+
+    expect(resumeFit.aiClient.classifyEducationFit).toHaveBeenCalledTimes(1);
+    expect(db.tables.job_scores![0]).toMatchObject({
+      excluded: true,
+      total_score: 0,
+      exclusion_reason: "Requires a completed PhD; resume shows an in-progress bachelor's.",
+    });
+  });
+
+  it("skips the resume-fit classifier call entirely for a posting already excluded as pure SWE", async () => {
+    const db = makeDb();
+    const resumeFit = fakeResumeFit(() => ({ requiresUnmetEducation: false, reasoning: "" }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await ingestNormalizedJob(db as any, USER_ID, "greenhouse", { ...job, isSwe: true }, resumeFit);
+
+    expect(resumeFit.aiClient.classifyEducationFit).not.toHaveBeenCalled();
+    expect(db.tables.job_scores![0]).toMatchObject({
+      excluded: true,
+      exclusion_reason: "Pure software engineering role",
+    });
+  });
+
+  it("ingests normally when the resume-fit classifier throws", async () => {
+    const db = makeDb();
+    const resumeFit: ResumeFitContext = {
+      resumeText: "B.S. Computer Science, expected 2028.",
+      aiClient: {
+        classifyEducationFit: vi.fn(async () => {
+          throw new Error("Gemini request failed");
+        }),
+      } as unknown as AIClient,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = await ingestNormalizedJob(db as any, USER_ID, "greenhouse", job, resumeFit);
+
+    expect(result).toBe("created");
+    expect(db.tables.job_scores![0]).toMatchObject({ excluded: false });
   });
 
   it("re-activates a previously expired opportunity if the source sees it again", async () => {

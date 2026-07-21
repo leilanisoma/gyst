@@ -1,5 +1,6 @@
 import type { createClient } from "@/lib/supabase/server";
 import type { SupabaseServiceClient } from "@/lib/supabase/service";
+import type { AIClient } from "@/ai/client";
 import { findOrCreateCompany } from "@/lib/companies";
 import { buildJobScoreRow, scoreOpportunity } from "@/lib/job-scoring";
 import { opportunityFingerprint } from "@/lib/recruiting";
@@ -21,11 +22,17 @@ export type IngestResult = "created" | "updated" | "error";
  * (task 5.5) instead of looking like something the user already decided to
  * pursue.
  */
+export type ResumeFitContext = {
+  aiClient: AIClient;
+  resumeText: string;
+};
+
 export async function ingestNormalizedJob(
   supabase: AnySupabaseClient,
   userId: string,
   sourceId: AdapterId,
   job: NormalizedJob,
+  resumeFit?: ResumeFitContext,
 ): Promise<IngestResult> {
   const fingerprint = opportunityFingerprint({
     companyName: job.companyName,
@@ -80,6 +87,25 @@ export async function ingestNormalizedJob(
 
   if (opportunityError || !opportunity) return "error";
 
+  let requiresUnmetEducation = false;
+  let educationMismatchReason: string | null = null;
+  // Skip the classification call entirely when the role is already excluded
+  // by the cheap deterministic checks — no point spending a Gemini call on
+  // something that's getting a 0 either way.
+  if (resumeFit && !job.isSwe && !job.isFinance) {
+    try {
+      const fit = await resumeFit.aiClient.classifyEducationFit(
+        resumeFit.resumeText,
+        job.title,
+        job.description,
+      );
+      requiresUnmetEducation = fit.requiresUnmetEducation;
+      educationMismatchReason = fit.requiresUnmetEducation ? fit.reasoning : null;
+    } catch {
+      // Best-effort — a classification failure shouldn't block ingestion.
+    }
+  }
+
   const targetGradYear = await getTargetGradYear(supabase, userId);
   const breakdown = scoreOpportunity({
     roleFamily: job.roleFamily,
@@ -90,6 +116,8 @@ export async function ingestNormalizedJob(
     targetGradYear,
     established: false,
     deadline: job.deadline,
+    requiresUnmetEducation,
+    educationMismatchReason,
   });
   await supabase.from("job_scores").insert(buildJobScoreRow(opportunity.id, breakdown));
 

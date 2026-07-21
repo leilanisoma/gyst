@@ -2,6 +2,7 @@ import type { AIClient } from "../client";
 import type {
   ChatMessageInput,
   ChatTurnResult,
+  EducationFitResult,
   ExtractionResult,
   GmailExtractionResult,
   SyllabusExtractionResult,
@@ -10,6 +11,7 @@ import type {
 import { buildInboxExtractionPrompt } from "../prompts/inbox-extraction";
 import { buildSyllabusExtractionPrompt } from "../prompts/syllabus-extraction";
 import { buildGmailExtractionPrompt } from "../prompts/gmail-extraction";
+import { buildEducationFitPrompt } from "../prompts/education-fit";
 
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const MODEL = "gemini-2.5-flash-lite";
@@ -153,6 +155,15 @@ const GMAIL_SCHEMA: GeminiSchema = {
     },
   },
   required: ["items"],
+};
+
+const EDUCATION_FIT_SCHEMA: GeminiSchema = {
+  type: "OBJECT",
+  properties: {
+    requiresUnmetEducation: { type: "BOOLEAN" },
+    reasoning: { type: "STRING" },
+  },
+  required: ["requiresUnmetEducation", "reasoning"],
 };
 
 /**
@@ -375,6 +386,19 @@ export function createGeminiClient(apiKey: string): AIClient {
 
     async embedText(text: string): Promise<number[]> {
       return embedContent(apiKey, text);
+    },
+
+    async classifyEducationFit(
+      resumeText: string,
+      jobTitle: string,
+      jobDescription: string | null,
+    ): Promise<EducationFitResult> {
+      const result = await generateJson(
+        apiKey,
+        buildEducationFitPrompt(resumeText, jobTitle, jobDescription),
+        EDUCATION_FIT_SCHEMA,
+      );
+      return result as EducationFitResult;
     },
   };
 }

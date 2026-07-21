@@ -45,6 +45,7 @@ describe("extractSyllabusItemsFromDocument", () => {
       provider: "fake",
       chat: async () => ({ text: "", toolCalls: [], usage: { inputTokens: 0, outputTokens: 0 } }),
       embedText: async () => [],
+      classifyEducationFit: async () => ({ requiresUnmetEducation: false, reasoning: "" }),
       extractInboxItem: async () => ({ items: [] }),
       extractSyllabusItems: async (text: string) => ({
         items: [
@@ -87,6 +88,7 @@ describe("extractSyllabusItemsFromDocument", () => {
       provider: "fake",
       chat: async () => ({ text: "", toolCalls: [], usage: { inputTokens: 0, outputTokens: 0 } }),
       embedText: async () => [],
+      classifyEducationFit: async () => ({ requiresUnmetEducation: false, reasoning: "" }),
       extractInboxItem: async () => ({ items: [] }),
       extractSyllabusItems: async () => ({ items: [] }),
       extractGmailMessage: async () => ({ items: [] }),

@@ -1,6 +1,8 @@
 import type { createClient } from "@/lib/supabase/server";
 import type { SupabaseServiceClient } from "@/lib/supabase/service";
-import { ingestNormalizedJob } from "./ingest";
+import { getAIClient } from "@/ai";
+import { ingestNormalizedJob, type ResumeFitContext } from "./ingest";
+import { getActiveResumeText } from "./resume-fit";
 import { getAdapter } from "./registry";
 import type { AdapterId, SourceConfig } from "./types";
 
@@ -37,6 +39,7 @@ export async function runDiscoveryForSource(
   supabase: AnySupabaseClient,
   userId: string,
   sourceConfig: SourceConfigRow,
+  resumeFit?: ResumeFitContext,
 ): Promise<SourceRunSummary> {
   const adapter = getAdapter(sourceConfig.adapter_id);
   const { data: run } = await supabase
@@ -54,7 +57,13 @@ export async function runDiscoveryForSource(
     for (const raw of rawJobs) {
       const normalized = adapter.normalize(raw, sourceConfig.config);
       seenExternalIds.push(normalized.externalId);
-      const result = await ingestNormalizedJob(supabase, userId, sourceConfig.adapter_id, normalized);
+      const result = await ingestNormalizedJob(
+        supabase,
+        userId,
+        sourceConfig.adapter_id,
+        normalized,
+        resumeFit,
+      );
       if (result === "created") created++;
       else if (result === "updated") updated++;
     }
@@ -133,7 +142,14 @@ async function expireUnseenOpportunities(
   return staleIds.length;
 }
 
-/** Runs every enabled source for the user, sequentially — a daily job over a handful of sources has no need for concurrency. */
+/**
+ * Runs every enabled source for the user, sequentially — a daily job over a
+ * handful of sources has no need for concurrency. The resume is fetched
+ * and extracted once per run (not once per posting) and passed to every
+ * source — `getActiveResumeText` returns null when no resume is uploaded
+ * yet, in which case the education-fit classification is skipped rather
+ * than blocking discovery.
+ */
 export async function runAllDiscovery(
   supabase: AnySupabaseClient,
   userId: string,
@@ -144,9 +160,16 @@ export async function runAllDiscovery(
     .eq("user_id", userId)
     .eq("enabled", true);
 
+  const aiClient = getAIClient();
+  const resumeText = aiClient ? await getActiveResumeText(supabase, userId) : null;
+  const resumeFit: ResumeFitContext | undefined =
+    aiClient && resumeText ? { aiClient, resumeText } : undefined;
+
   const summaries: SourceRunSummary[] = [];
   for (const sourceConfig of sourceConfigs ?? []) {
-    summaries.push(await runDiscoveryForSource(supabase, userId, sourceConfig as SourceConfigRow));
+    summaries.push(
+      await runDiscoveryForSource(supabase, userId, sourceConfig as SourceConfigRow, resumeFit),
+    );
   }
   return summaries;
 }

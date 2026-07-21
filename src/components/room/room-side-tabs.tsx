@@ -84,7 +84,7 @@ export function RoomSideTabs({ tabs }: { tabs: RoomSideTabDef[] }) {
             instead of popping out instantly and leaving nothing to see
             collapse. */}
         {renderedTab && (
-          <div className="room-glass flex h-full max-h-[80vh] w-full flex-col gap-3 overflow-y-auto rounded-3xl p-6">
+          <div className="room-glass flex max-h-[80vh] w-full flex-col gap-3 overflow-y-auto rounded-3xl p-6">
             <h2 className="font-heading text-base font-semibold">{renderedTab.label}</h2>
             {renderedTab.content}
           </div>

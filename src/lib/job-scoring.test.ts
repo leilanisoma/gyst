@@ -57,6 +57,28 @@ describe("scoreOpportunity", () => {
     expect(result.exclusionReason).toBe("Closed role");
   });
 
+  it("hard-excludes a role requiring a degree the resume doesn't show", () => {
+    const result = scoreOpportunity(
+      {
+        ...base,
+        requiresUnmetEducation: true,
+        educationMismatchReason: "Posting requires a completed PhD; resume shows an in-progress bachelor's.",
+      },
+      now,
+    );
+    expect(result.excluded).toBe(true);
+    expect(result.exclusionReason).toBe(
+      "Posting requires a completed PhD; resume shows an in-progress bachelor's.",
+    );
+    expect(result.total).toBe(0);
+  });
+
+  it("falls back to a generic reason when the classifier gives none", () => {
+    const result = scoreOpportunity({ ...base, requiresUnmetEducation: true }, now);
+    expect(result.excluded).toBe(true);
+    expect(result.exclusionReason).toBe("Requires a degree beyond your resume");
+  });
+
   it("gives a lower role-family score outside the target families", () => {
     const result = scoreOpportunity({ ...base, roleFamily: "other" }, now);
     expect(result.roleFamily).toBe(5);

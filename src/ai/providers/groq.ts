@@ -1,6 +1,7 @@
 import type { AIClient } from "../client";
 import type {
   ChatTurnResult,
+  EducationFitResult,
   ExtractionResult,
   GmailExtractionResult,
   SyllabusExtractionResult,
@@ -100,6 +101,10 @@ export function createGroqClient(apiKey: string): AIClient {
 
     async embedText(): Promise<number[]> {
       unsupported("embedText");
+    },
+
+    async classifyEducationFit(): Promise<EducationFitResult> {
+      unsupported("classifyEducationFit");
     },
   };
 }

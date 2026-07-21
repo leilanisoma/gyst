@@ -1,6 +1,7 @@
 import type {
   ChatMessageInput,
   ChatTurnResult,
+  EducationFitResult,
   ExtractionResult,
   GmailExtractionResult,
   SyllabusExtractionResult,
@@ -37,4 +38,16 @@ export interface AIClient {
   }): Promise<ChatTurnResult>;
   /** Embeds one piece of text for pgvector storage/search (PLAN.md §4, §12 retrieval pipeline). Dimension is provider-specific — Gemini's text-embedding-004 returns 768. */
   embedText(text: string): Promise<number[]>;
+  /**
+   * Classifies whether a job posting explicitly requires an education level
+   * (e.g. a PhD) beyond what the resume shows — feeds the recruiting fit
+   * score's hard-exclusion check (PLAN.md §9 skills/experience,
+   * `src/lib/job-scoring.ts`). Classification only; the score arithmetic
+   * that uses this result stays in ordinary code per CLAUDE.md.
+   */
+  classifyEducationFit(
+    resumeText: string,
+    jobTitle: string,
+    jobDescription: string | null,
+  ): Promise<EducationFitResult>;
 }

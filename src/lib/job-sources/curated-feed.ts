@@ -7,12 +7,16 @@ import { classify } from "./classify";
  * generated specifically for programmatic consumption by tools like this
  * one (see `.github/scripts/listings.json` in the repo and third-party
  * consumers such as swelist.com) — reviewed under PLAN.md §8's "terms
- * review" requirement before use. The repo is renamed each cycle; update
- * `feedUrl` in the source_config once a "SummerYYYY-Internships" repo for
- * the current target grad year exists.
+ * review" requirement before use. The repo is renamed each cycle, but the
+ * feed is cumulative across terms (it carries "Summer 2027"-tagged listings
+ * well before Simplify renames the repo itself) — filter by `terms`, don't
+ * rely on the repo name matching the target cycle. Confirmed live
+ * 2026-07-21: `SimplifyJobs/Summer2027-Internships` 404s (not created yet);
+ * `Summer2026-Internships` is still the active repo and already carries
+ * Summer 2027 listings. Update this once Simplify renames it.
  */
 const DEFAULT_FEED_URL =
-  "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json";
+  "https://raw.githubusercontent.com/SimplifyJobs/Summer2026-Internships/dev/.github/scripts/listings.json";
 const DEFAULT_CATEGORIES = ["Product"];
 const DEFAULT_TERMS = ["Summer 2027"];
 

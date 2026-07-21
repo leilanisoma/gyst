@@ -49,9 +49,12 @@ export default async function RecruitingPage() {
   // (board/table/timeline) — mixing an automated firehose in with roles
   // the user already decided to pursue is exactly the clutter PLAN.md's
   // anxiety-aware UX principle warns against. They live in their own queue
-  // (task 5.5) until promoted to "saved" or dismissed.
+  // (task 5.5) until promoted to "saved" or dismissed. Archived
+  // applications (dismissed via "Not relevant" or the stage dropdown) are
+  // done-for-good the same way — they shouldn't resurface in the pipeline
+  // just because "archived" isn't "discovered".
   const pipelineApplications = applications.filter(
-    (a) => a.stage !== "discovered",
+    (a) => a.stage !== "discovered" && a.stage !== "archived",
   );
   const discoveredApplications = applications.filter(
     (a) => a.stage === "discovered",
@@ -97,6 +100,7 @@ export default async function RecruitingPage() {
             {
               id: "discovery",
               label: "Discovery queue",
+              width: "w-[min(560px,88vw)]",
               content: <DiscoveryQueue applications={discoveredApplications} />,
             },
             {

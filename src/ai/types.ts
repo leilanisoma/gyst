@@ -47,6 +47,12 @@ export const GmailExtractionResultSchema = z.object({
 });
 export type GmailExtractionResult = z.infer<typeof GmailExtractionResultSchema>;
 
+export const EducationFitResultSchema = z.object({
+  requiresUnmetEducation: z.boolean(),
+  reasoning: z.string(),
+});
+export type EducationFitResult = z.infer<typeof EducationFitResultSchema>;
+
 // --- Chat (Phase 8: PLAN.md §12) ---
 
 /** One function/tool the model may call. `parameters` is a JSON Schema object, not a Zod schema — Gemini's function-calling API wants raw JSON Schema. */

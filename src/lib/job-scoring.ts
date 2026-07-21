@@ -23,6 +23,10 @@ export type ScoreOpportunityInput = {
   targetGradYear: number;
   established: boolean;
   deadline: string | null;
+  /** True when `AIClient.classifyEducationFit` found the posting requires a degree level (e.g. PhD) the resume doesn't show — a hard exclusion, same tier as pure-SWE/pure-finance. */
+  requiresUnmetEducation?: boolean;
+  /** The classifier's reasoning, surfaced as the exclusion reason instead of a generic string when available. */
+  educationMismatchReason?: string | null;
   /** Manual overrides for the dimensions PLAN.md §9 expects a person to correct, not compute. */
   skillsExperienceOverride?: number;
   interestIndustryOverride?: number;
@@ -46,6 +50,8 @@ export function scoreOpportunity(
     exclusionReason = "Pure software engineering role";
   } else if (input.isFinance) {
     exclusionReason = "Pure finance role";
+  } else if (input.requiresUnmetEducation) {
+    exclusionReason = input.educationMismatchReason ?? "Requires a degree beyond your resume";
   } else if (
     input.eligibleGradYears.length > 0 &&
     !input.eligibleGradYears.includes(input.targetGradYear)
