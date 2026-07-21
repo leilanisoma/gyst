@@ -695,6 +695,8 @@ Each phase ends with a usable vertical slice. Do not start the next phase until 
 
 **Goal:** replace the dashboard-with-sidebar shell from Phase 1/9C with a literal spatial "room" you click into, per Ishani's 2026-07-17 direction: no fixed sidebar, no numeric XP, a warmer/gamier Animal-Crossing-style palette that shifts with time of day, and the companion blob repurposed as the persistent chat launcher. Full design detail (including the room map) lives in `docs/PHASES/phase-9d.md`; this entry tracks it at the roadmap level.
 
+**Recommended order (Ishani, 2026-07-21):** ship Phase 11 (automations reliability, below) before the remaining room visuals — three of five cron jobs are likely silently not firing under the Vercel Hobby cap, and that's worth fixing before adding more surface area. Then 9D-2/9D-4/9D-5 (room visuals for Wellness/Recruiting/School). Companion redesign (9D-6) goes last.
+
 Room map (confirmed 2026-07-17): four full rooms with zoom transitions - Wellness (garden), Gmail (mailbox), Recruiting (office/desk), School (study nook, absorbs the fuller task board/detail view). Inbox and Settings drop their standalone pages and become ambient objects in the Living Room hub itself - Inbox as a bedside journal, Settings as a wall thermostat/control panel - rather than doorways. General/urgent tasks keep a small ambient list on the Today hub; the universal task board stays cross-area (not folded entirely into School), since `tasks.area` spans recruiting/school/wellness/general (§5/§6).
 
 Split into sub-phases (2026-07-17) so each session ships one coherent slice - the shared foundation first, then one sub-phase per room:
@@ -704,8 +706,9 @@ Split into sub-phases (2026-07-17) so each session ships one coherent slice - th
 - [ ] **9D-3** - Gmail room: mailbox theming.
 - [ ] **9D-4** - Recruiting room: office/desk theming.
 - [ ] **9D-5** - School room: study-nook theming, including how the fuller task board/detail view is presented there.
+- [ ] **9D-6** - Companion character redesign and per-room presence: replace the hand-coded SVG blob with art that matches the illustrated room style, and give it a real position/behavior in Wellness/Recruiting/School (not just a fixed bottom-right button outside the hub). State-derivation logic (Phase 9C) is unchanged - display layer only.
 
-**Exit:** the sidebar and numeric XP are gone; navigating between sections feels like moving through a spatial room rather than switching dashboard tabs; the companion blob is reachable as the chat entry point from anywhere in the app; all four rooms have their own themed dressing, not a shared generic skin.
+**Exit:** the sidebar and numeric XP are gone; navigating between sections feels like moving through a spatial room rather than switching dashboard tabs; the companion blob is reachable as the chat entry point from anywhere in the app and visually belongs in every room, not just the hub; all four rooms have their own themed dressing, not a shared generic skin.
 
 ### Phase 10 - Polish and reliability (ongoing)
 
@@ -716,6 +719,19 @@ Split into sub-phases (2026-07-17) so each session ships one coherent slice - th
 - [ ] Measure capture speed, planning acceptance, notification usefulness, and job relevance.
 - [ ] Remove features that create upkeep without repeated value.
 - [ ] Conduct monthly dependency/security updates.
+
+### Phase 11 - Automations reliability: migrate scheduling to Supabase pg_cron
+
+**Goal:** fix a real gap surfaced 2026-07-20 (see `docs/PHASES/phase-10.md`): `vercel.json` schedules five cron jobs (`discover-jobs`, `weekly-digest`, `sync-canvas`, `sync-gmail`, `purge-gmail-items`), but the Vercel Hobby plan caps cron at 2 jobs/day - so at most two of the five are actually firing. Decided 2026-07-21: move scheduling to Supabase `pg_cron`/`pg_net` rather than upgrading to Vercel Pro, since it removes the cap without an ongoing cost and every route already authenticates via a `CRON_SECRET` bearer header (`getCronEnv()`), which `net.http_post` can send identically - no route code changes needed.
+
+- [ ] Write a decision doc (`docs/DECISIONS/0005-pg-cron-scheduling.md`) covering the approach and secret storage (Supabase Vault vs. a config table).
+- [ ] Migration: enable `pg_cron` and `pg_net` extensions.
+- [ ] Migration: `cron.schedule()` one job per route, each calling `net.http_post` against the existing `/api/cron/*` routes with the `Authorization: Bearer` header, at whatever cadence actually makes sense per job (no longer forced to daily).
+- [ ] Remove the five entries from `vercel.json` once pg_cron is confirmed calling all five routes.
+- [ ] Verify each job fires and its target data actually updates (new discovered jobs, synced Gmail items, synced Canvas items, a delivered weekly digest, purged expired Gmail items) - not just that the HTTP call returns 200.
+- [ ] Add minimal last-run visibility (e.g. a `cron_runs` table or reuse the Phase 5 source-adapter health-check pattern) so a silently-broken job doesn't go unnoticed the way the Vercel cap did.
+
+**Exit:** all five automations run on their intended schedule, verified against actual data changes, not just HTTP 200s; a broken job is visible without checking logs by hand.
 
 ## 16. Claude Code execution protocol
 

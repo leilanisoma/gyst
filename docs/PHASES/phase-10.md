@@ -110,7 +110,8 @@ Supabase-triggered email, but nothing in login depends on it anymore.
   `net.http_post`, secret in Supabase Vault) to support more automations
   than Vercel Hobby's 2-job/daily-only cap allows. Not implemented — no
   migration written, no decision doc yet. Next session should pick this
-  up before adding another automation.
+  up before adding another automation. **Promoted to its own phase
+  2026-07-21** — see `docs/PHASES/phase-11.md` / `PLAN.md` §15 Phase 11.
 - **No in-browser visual confirmation from this session** of the popup
   centering/scrollbar/Settings-layout fixes, or of the live
   Google/Gmail reconnect flow on the production domain — verified via

@@ -1806,6 +1806,7 @@ export type Database = {
         Row: {
           area: string
           created_at: string
+          deadline_notified_at: string | null
           due_date: string | null
           earliest_start: string | null
           energy: string | null
@@ -1828,6 +1829,7 @@ export type Database = {
         Insert: {
           area?: string
           created_at?: string
+          deadline_notified_at?: string | null
           due_date?: string | null
           earliest_start?: string | null
           energy?: string | null
@@ -1850,6 +1852,7 @@ export type Database = {
         Update: {
           area?: string
           created_at?: string
+          deadline_notified_at?: string | null
           due_date?: string | null
           earliest_start?: string | null
           energy?: string | null

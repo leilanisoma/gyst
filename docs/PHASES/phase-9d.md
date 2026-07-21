@@ -4,6 +4,8 @@ Goal: replace the dashboard-with-sidebar shell (Phase 1/9C) with a literal spati
 
 Split into sub-phases (2026-07-17) so each session ships one coherent slice: the shared foundation first (hub shell + all interaction mechanics), then one sub-phase per room. Do not start a room sub-phase before 9D-1's exit criteria pass — every room reuses `RoomDoorway`/`RoomHeader` and the hover/glow mechanics built there.
 
+**Order decided 2026-07-21:** do `docs/PHASES/phase-11.md` (automations reliability) first — it's a silent correctness gap, not polish. Then 9D-2/9D-4/9D-5 (the three remaining room-visual passes below). Companion redesign is now its own sub-phase, 9D-6, and goes last.
+
 ## Why (Ishani's direction, 2026-07-17)
 
 - Hate the current sidebar and current color palette — both go away.
@@ -153,6 +155,15 @@ Ishani reported the flash was still there after this. The `loading.tsx` fix was 
 
 - [ ] Theme the School destination as a study nook using the mechanics/tokens from 9D-1, including how the fuller task board/detail view is presented there (see open questions).
 
+## 9D-6 — Companion character redesign and per-room presence
+
+**Goal:** the companion's *state logic* (Phase 9C) is done and stays as-is — this is display-layer only. Two problems to fix:
+
+- [ ] Replace `CompanionBlob`'s hand-coded SVG with art that actually matches the illustrated Animal-Crossing-style room art (garden/nook/study-desk/living-room PNGs) instead of reading as a vector shape dropped onto a photo-real background. Likely the same ComfyUI pipeline used for the room backgrounds/object cutouts (see room map v2/v4 above for that pipeline's location and prior art), producing a small sprite sheet or per-state PNG set rather than one SVG with swapped face paths.
+- [ ] Give the companion a real position and behavior on Wellness/Recruiting/School, not the generic fixed-bottom-right `CompanionChatLauncher` spot it currently falls back to outside the hub (`src/components/chat/companion-chat-launcher.tsx`, pathname-aware only for `/` today). Each room should place it somewhere that makes sense in that scene (e.g. on the garden path, on the study desk), the same way the hub places it on the couch.
+
+**Exit:** the companion reads as part of the illustrated world in every room, not a leftover UI blob; its position and idle behavior vary sensibly per room the way its couch placement already does on the hub.
+
 ## Exit criteria (whole phase)
 
-> The sidebar and numeric XP are gone; navigating between sections feels like moving through a spatial room rather than switching dashboard tabs; the companion blob is reachable as the chat entry point from anywhere in the app; all four rooms (garden/mailbox/office/study nook) have their own themed dressing, not a shared generic skin.
+> The sidebar and numeric XP are gone; navigating between sections feels like moving through a spatial room rather than switching dashboard tabs; the companion blob is reachable as the chat entry point from anywhere in the app and visually belongs in every room; all four rooms (garden/mailbox/office/study nook) have their own themed dressing, not a shared generic skin.
