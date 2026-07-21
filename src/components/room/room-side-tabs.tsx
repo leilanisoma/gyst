@@ -27,9 +27,18 @@ export function RoomSideTabs({ tabs }: { tabs: RoomSideTabDef[] }) {
   useEffect(() => {
     if (!activeId) return;
     function handlePointerDown(e: PointerEvent) {
+      const target = e.target as Node;
+      // Base UI (Select, Dialog, Popover, ...) portals its open popup content
+      // straight to <body>, tagged with this attribute regardless of which
+      // component rendered it — outside `containerRef` in the DOM even
+      // though it's visually part of this panel (e.g. the stage dropdown's
+      // options). Without this check, picking a stage closed the whole tab.
+      const insidePortal =
+        target instanceof Element && target.closest("[data-base-ui-portal]");
       if (
         containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
+        !containerRef.current.contains(target) &&
+        !insidePortal
       ) {
         setActiveId(null);
       }
