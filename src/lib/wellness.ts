@@ -94,6 +94,32 @@ const TREND_RULES: TrendRule[] = [
 
 const MIN_OBSERVATION_COUNT = 2;
 
+/** 5-stage thresholds (days checked in this week) for the greenhouse's ambient growth plant — same 5-stage scale as the hub's XP visual, fed by check-in consistency instead. */
+const CHECK_IN_GROWTH_THRESHOLDS = [0, 1, 3, 5, 7] as const;
+
+/** Distinct days with a check-in in the trailing 7 days (inclusive of `today`). */
+export function checkInDaysThisWeek(
+  checkIns: WellnessCheckIn[],
+  today: string,
+): number {
+  const start = shiftDateString(today, -6);
+  const dates = new Set(
+    checkIns
+      .map((checkIn) => checkIn.check_in_date)
+      .filter((date) => date >= start && date <= today),
+  );
+  return dates.size;
+}
+
+/** Growth stage (0..4) for the greenhouse's ambient plant, from `checkInDaysThisWeek`. */
+export function wellnessGrowthStage(daysCheckedIn: number): number {
+  let stage = 0;
+  for (let i = 0; i < CHECK_IN_GROWTH_THRESHOLDS.length; i++) {
+    if (daysCheckedIn >= CHECK_IN_GROWTH_THRESHOLDS[i]) stage = i;
+  }
+  return stage;
+}
+
 /**
  * Descriptive-only weekly observations from the trailing 7 days (inclusive
  * of `today`). Returns an empty array when there isn't a repeated (2+ day)

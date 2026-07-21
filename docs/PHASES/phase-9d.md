@@ -141,7 +141,11 @@ Ishani reported the flash was still there after this. The `loading.tsx` fix was 
 
 ## 9D-2 — Wellness room: the garden
 
-- [ ] Theme the Wellness destination as a garden using the mechanics/tokens from 9D-1 — no new interaction primitives, just dressing + content layout for that page.
+- [x] Theme the Wellness destination as a garden using the mechanics/tokens from 9D-1 — no new interaction primitives, just dressing + content layout for that page.
+
+**Done 2026-07-21.** Decided with Ishani up front (asked before starting, per her request): split the single centered panel into two smaller `RoomContentPanel`s placed left/right so the greenhouse's bench-and-rug centerpiece stays visible instead of being covered; today's check-in + weekly trends stay always-visible in the left panel (the "star"), while history/health-metrics/cycle-tracking/data-controls collapse behind native `<details>` in a right "More" panel; added a new ambient growth visual — `GrowthPlant` (`src/components/room/growth-plant.tsx`, extracted from the hub's `XpGrowthVisual` so both share the animation code), a small potted plant fed by `checkInDaysThisWeek`/`wellnessGrowthStage` (`src/lib/wellness.ts`) rather than XP, since wellness check-ins don't feed `xp_events` — sitting in the open floor gap between the bench and rug. Caught and fixed two real bugs via actual Playwright screenshots against the running dev server (not just code review): the bare growth-plant SVG was nearly invisible at low stages against the busy art (fixed by adding an optional terracotta-pot backing, `pot` prop, so it reads as an object even at stage 0), and its leaves render in `--chart-2` which is blue, not green — invisible at the hub's tiny inline scale, obvious once rendered 3x bigger standalone (fixed via a new `leafColor` prop, default unchanged for the hub, `--chart-1` — an existing green token — for Wellness). Also fixed a mobile-only regression the new layout introduced: the top panel's `top-4` collided with `FloatingChrome`'s fixed top-left/top-right pills; moved to `top-16` on mobile only.
+
+**Decided as the shared template** (Ishani, 2026-07-21) for 9D-4/9D-5: split-panel layout with one "star" panel always visible and secondary content collapsed behind `<details>`, unless Recruiting/School's content clearly needs something different.
 
 ## 9D-3 — Gmail room: the mailbox
 

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { weeklyTrendObservations, type WellnessCheckIn } from "./wellness";
+import {
+  checkInDaysThisWeek,
+  weeklyTrendObservations,
+  wellnessGrowthStage,
+  type WellnessCheckIn,
+} from "./wellness";
 
 function checkIn(
   date: string,
@@ -93,5 +98,33 @@ describe("weeklyTrendObservations", () => {
     ];
     const [observation] = weeklyTrendObservations(checkIns, today);
     expect(observation).not.toMatch(/diagnos|caus|disorder|deficien/i);
+  });
+});
+
+describe("checkInDaysThisWeek", () => {
+  const today = "2026-07-15";
+
+  it("counts distinct check-in dates within the trailing 7 days", () => {
+    const checkIns = [
+      checkIn("2026-07-14"),
+      checkIn(today),
+      checkIn("2026-07-01"), // outside the window
+    ];
+    expect(checkInDaysThisWeek(checkIns, today)).toBe(2);
+  });
+
+  it("returns 0 with no check-ins", () => {
+    expect(checkInDaysThisWeek([], today)).toBe(0);
+  });
+});
+
+describe("wellnessGrowthStage", () => {
+  it("maps days-checked-in to a 0..4 stage", () => {
+    expect(wellnessGrowthStage(0)).toBe(0);
+    expect(wellnessGrowthStage(1)).toBe(1);
+    expect(wellnessGrowthStage(2)).toBe(1);
+    expect(wellnessGrowthStage(3)).toBe(2);
+    expect(wellnessGrowthStage(5)).toBe(3);
+    expect(wellnessGrowthStage(7)).toBe(4);
   });
 });

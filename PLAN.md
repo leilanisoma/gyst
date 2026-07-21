@@ -702,7 +702,7 @@ Room map (confirmed 2026-07-17): four full rooms with zoom transitions - Wellnes
 Split into sub-phases (2026-07-17) so each session ships one coherent slice - the shared foundation first, then one sub-phase per room:
 
 - [x] **9D-1 - Foundation:** day-period palette tokens, the reusable room engine (`RoomDoorway`/`RoomHeader` with a Framer Motion shared-element zoom), shared hover/glow/expand mechanics for room objects, the rebuilt Today page as the Living Room hub (four placeholder doorways, the journal and thermostat ambient objects, the ambient task list), sidebar retirement, the ambient XP/growth visual, and the companion blob as global chat launcher. No room gets final theming yet. Built 2026-07-17; not yet visually verified in-browser (auth-gated — Ishani checking herself).
-- [ ] **9D-2** - Wellness room: garden theming.
+- [x] **9D-2** - Wellness room: garden theming. Done 2026-07-21 - split into two panels so the greenhouse's bench/rug stays visible, check-in + weekly trends always shown, everything else collapsed behind `<details>`, plus a new ambient `GrowthPlant` fed by check-in consistency (`docs/PHASES/phase-9d.md` for the full account, including two rendering bugs caught via real screenshots). Established as the default template for 9D-4/9D-5.
 - [ ] **9D-3** - Gmail room: mailbox theming.
 - [ ] **9D-4** - Recruiting room: office/desk theming.
 - [ ] **9D-5** - School room: study-nook theming, including how the fuller task board/detail view is presented there.

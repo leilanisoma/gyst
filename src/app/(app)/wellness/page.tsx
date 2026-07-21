@@ -1,10 +1,17 @@
+import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { RoomHeader } from "@/components/room/room-header";
 import { RoomBackground } from "@/components/room/room-background";
 import { RoomContentPanel } from "@/components/room/room-content-panel";
+import { GrowthPlant } from "@/components/room/growth-plant";
 import { ROOMS } from "@/lib/rooms";
 import { getLocalDateString } from "@/lib/date-range";
-import { weeklyTrendObservations, type WellnessCheckIn } from "@/lib/wellness";
+import {
+  checkInDaysThisWeek,
+  weeklyTrendObservations,
+  wellnessGrowthStage,
+  type WellnessCheckIn,
+} from "@/lib/wellness";
 import { WellnessCheckInForm } from "@/components/wellness/wellness-check-in-form";
 import { WellnessHistory } from "@/components/wellness/wellness-history";
 import { WellnessDataControls } from "@/components/wellness/wellness-data-controls";
@@ -14,6 +21,27 @@ import { listCycleObservations } from "@/lib/health/cycle-observations";
 import { listDailySummaries } from "@/lib/health/daily-summaries";
 
 const HISTORY_LIMIT = 30;
+
+/** One collapsed-by-default section in the "more" panel — native `<details>`, no new dependency for something this simple. */
+function CollapsibleSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="group border-border/60 border-b pb-3 last:border-b-0 last:pb-0">
+      <summary className="marker:content-none flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
+        {title}
+        <span className="text-muted-foreground text-xs transition-transform group-open:rotate-180">
+          ▾
+        </span>
+      </summary>
+      <div className="mt-3 flex flex-col gap-3">{children}</div>
+    </details>
+  );
+}
 
 export default async function WellnessPage() {
   const supabase = await createClient();
@@ -49,12 +77,32 @@ export default async function WellnessPage() {
     ? await listDailySummaries(supabase, user.id)
     : [];
 
+  const daysCheckedIn = checkInDaysThisWeek(checkIns, todayString);
+  const growthStage = wellnessGrowthStage(daysCheckedIn);
+  const growthBrightness = 0.75 + (daysCheckedIn / 7) * 0.4;
+
   return (
-    <main className="relative isolate flex h-screen flex-col items-center justify-center p-4">
+    <main className="relative isolate h-screen overflow-hidden">
       <RoomBackground room={ROOMS.wellness.background} />
-      <RoomContentPanel>
+
+      <div
+        className="absolute top-[63%] left-[43%] z-10 hidden md:block"
+        style={{ filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.35))" }}
+      >
+        <GrowthPlant
+          stage={growthStage}
+          brightness={growthBrightness}
+          ariaLabel={`Growing steadily — checked in ${daysCheckedIn} of the last 7 days`}
+          title={`${daysCheckedIn}/7 days checked in this week`}
+          size={3.2}
+          pot
+          leafColor="var(--chart-1)"
+        />
+      </div>
+
+      <RoomContentPanel className="absolute inset-x-4 top-16 max-h-[40vh] md:inset-x-auto md:top-1/2 md:left-[4%] md:max-h-[75vh] md:w-[380px] md:-translate-y-1/2">
         <RoomHeader {...ROOMS.wellness} />
-        <p className="text-muted-foreground max-w-lg text-sm">
+        <p className="text-muted-foreground text-sm">
           Lightweight, optional check-ins for supportive awareness — not a
           tracker to optimize. Every field is skippable.
         </p>
@@ -94,34 +142,28 @@ export default async function WellnessPage() {
             </p>
           )}
         </section>
+      </RoomContentPanel>
 
-        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
-          <h2 className="text-sm font-semibold">History</h2>
+      <RoomContentPanel className="absolute inset-x-4 bottom-4 max-h-[38vh] md:inset-x-auto md:top-1/2 md:right-[4%] md:max-h-[75vh] md:w-[340px] md:-translate-y-1/2">
+        <h2 className="font-heading text-base font-semibold">More</h2>
+        <CollapsibleSection title="History">
           <WellnessHistory checkIns={checkIns} />
-        </section>
-
-        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
-          <h2 className="text-sm font-semibold">
-            Health metrics (optional, manual)
-          </h2>
+        </CollapsibleSection>
+        <CollapsibleSection title="Health metrics (optional, manual)">
           <HealthSummaryForm
             dateString={todayString}
             summaries={healthSummaries}
           />
-        </section>
-
-        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
-          <h2 className="text-sm font-semibold">Cycle tracking (optional)</h2>
+        </CollapsibleSection>
+        <CollapsibleSection title="Cycle tracking (optional)">
           <CycleImportCard observations={cycleObservations} />
-        </section>
-
-        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
-          <h2 className="text-sm font-semibold">Your data</h2>
+        </CollapsibleSection>
+        <CollapsibleSection title="Your data">
           <p className="text-muted-foreground text-xs">
             Export everything you&rsquo;ve logged, or delete it all at once.
           </p>
           <WellnessDataControls />
-        </section>
+        </CollapsibleSection>
       </RoomContentPanel>
     </main>
   );

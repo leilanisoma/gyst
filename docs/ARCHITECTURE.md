@@ -28,7 +28,11 @@ gyst/
 │   │   │   │                 # approve/reject, getChatPanelData for client-driven refetch), memory-actions.ts
 │   │   │   │                 # (confirm/edit/archive/delete/export), documents-actions.ts (index for search);
 │   │   │   │                 # memory/ subpage
-│   │   │   └── wellness/     # stub page
+│   │   │   └── wellness/     # check-in form, weekly trend observations, history, manual health-metrics
+│   │   │                     # entry, cycle tracking, export/delete-all (Phase 9A/9B); themed as a greenhouse
+│   │   │                     # room (Phase 9D-2) — two RoomContentPanels placed over the art (check-in +
+│   │   │                     # trends always visible; history/health/cycle/data collapsed behind <details>),
+│   │   │                     # plus an ambient GrowthPlant fed by check-in consistency, not XP
 │   │   ├── api/chat/         # streaming chat turn endpoint (SSE), authenticated (Phase 8)
 │   │   ├── api/cron/         # discover-jobs (3h), weekly-digest, sync-canvas (daily), sync-gmail (hourly), sync-calendar (nightly), deadline-reminders (daily), purge-gmail-items (daily) — bearer-secret auth (CRON_SECRET), no user session; scheduled by Supabase pg_cron (Phase 11), not vercel.json
 │   │   ├── api/google/       # connect/callback route handlers (OAuth redirect + code exchange)
