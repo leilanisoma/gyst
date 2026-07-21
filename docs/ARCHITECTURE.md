@@ -30,7 +30,7 @@ gyst/
 │   │   │   │                 # memory/ subpage
 │   │   │   └── wellness/     # stub page
 │   │   ├── api/chat/         # streaming chat turn endpoint (SSE), authenticated (Phase 8)
-│   │   ├── api/cron/         # discover-jobs (daily), weekly-digest, sync-canvas (daily, Phase 6) — bearer-secret auth (CRON_SECRET), no user session
+│   │   ├── api/cron/         # discover-jobs (3h), weekly-digest, sync-canvas (daily), sync-gmail (hourly), sync-calendar (nightly), deadline-reminders (daily), purge-gmail-items (daily) — bearer-secret auth (CRON_SECRET), no user session; scheduled by Supabase pg_cron (Phase 11), not vercel.json
 │   │   ├── api/google/       # connect/callback route handlers (OAuth redirect + code exchange)
 │   │   ├── login/            # password sign-in (docs/DECISIONS/0004-password-auth-for-login.md)
 │   │   ├── auth/callback/    # PKCE code exchange — unused since the login flow moved off magic link (0004); left in place, harmless
@@ -134,7 +134,7 @@ gyst/
 | Google Calendar | Direct `fetch` calls to Google's OAuth/Calendar REST endpoints (`src/lib/google/`) — no `googleapis` SDK dependency |
 | Token encryption | Node `crypto` (AES-256-GCM), `ENCRYPTION_KEY` env var — never plaintext at rest |
 | Web push | `web-push` (VAPID), wrapped by `src/lib/webpush.ts` |
-| Scheduled jobs | Vercel Cron (`vercel.json`) hitting normal Next.js route handlers under `/api/cron/*`, bearer-secret auth via `CRON_SECRET` — not Supabase Edge Functions, to avoid a second runtime for a single-user app |
+| Scheduled jobs | Supabase `pg_cron`/`pg_net` (Phase 11) hitting normal Next.js route handlers under `/api/cron/*`, bearer-secret auth via `CRON_SECRET` (looked up from Supabase Vault at schedule time, never committed) — not Vercel Cron (Hobby plan caps at 2 jobs/day, insufficient once cadences went below daily) and not Supabase Edge Functions, to avoid a second runtime for a single-user app |
 | Canvas | Direct `fetch` calls to Canvas's REST API (`src/lib/canvas/client.ts`) with a static personal access token (`CANVAS_PERSONAL_ACCESS_TOKEN`) — no OAuth flow, no SDK dependency |
 | PDF text extraction | `pdf-parse` (wraps `pdfjs-dist`) — deterministic parsing, not an AI call; only *identifying* syllabus items from the extracted text needs a model |
 | Semantic memory | Postgres + `pgvector` (Phase 8) — `document_chunks`/`memory_items` embeddings, searched via `match_document_chunks`/`match_memory_items` RPCs (cosine distance); migration not yet applied to the live project |
@@ -157,7 +157,23 @@ See `docs/PHASES/phase-4.md`'s Notes section for the full list. Highlights: ever
 
 ## Notable decisions from Phase 5
 
-See `docs/PHASES/phase-5.md`'s Notes section for the full list. Highlights: `JobSourceAdapter` (discover/normalize/healthCheck) with real Greenhouse/Lever adapters and a curated internship-feed adapter (Pitt CSC/Simplify's `listings.json`); discovery lands in a new `discovered` application stage, kept out of the main board/table (a firehose next to already-decided roles violates the anxiety-aware UX principle) and surfaced instead in a score-sorted Discovery queue with thumbs up/down/not-relevant feedback; daily discovery and a weekly digest run via Vercel Cron, not Supabase Edge Functions; LinkedIn/Handshake capture is a bookmarklet, not a browser extension (no store review, no per-browser maintenance); source coverage (relevance rate per source) is now measured, but no paid search API was evaluated or integrated — PLAN.md explicitly gates that decision behind this measurement existing first.
+See `docs/PHASES/phase-5.md`'s Notes section for the full list. Highlights: `JobSourceAdapter` (discover/normalize/healthCheck) with real Greenhouse/Lever adapters and a curated internship-feed adapter (Pitt CSC/Simplify's `listings.json`); discovery lands in a new `discovered` application stage, kept out of the main board/table (a firehose next to already-decided roles violates the anxiety-aware UX principle) and surfaced instead in a score-sorted Discovery queue with thumbs up/down/not-relevant feedback; discovery (every 3h) and the weekly digest run via Supabase pg_cron as of Phase 11 (originally Vercel Cron), not Supabase Edge Functions; LinkedIn/Handshake capture is a bookmarklet, not a browser extension (no store review, no per-browser maintenance); source coverage (relevance rate per source) is now measured, but no paid search API was evaluated or integrated — PLAN.md explicitly gates that decision behind this measurement existing first.
+
+## Notable decisions — Phase 11
+
+See `docs/PHASES/phase-11.md` / `docs/DECISIONS/0005-pg-cron-scheduling.md`
+for the full account. Highlights: all scheduled jobs moved from
+`vercel.json` (Vercel Hobby's 2-job/day cap meant most weren't actually
+firing) to Supabase `pg_cron`/`pg_net`, calling the same `/api/cron/*`
+routes with no route code changes — the bearer secret is stored once in
+Supabase Vault and looked up by name inside each scheduled statement, never
+committed; two routes are new — `sync-calendar` (Google Calendar had no
+automation at all before this, only a manual Settings button) and
+`deadline-reminders` (fills `notifications.kind = 'deadline'`, which existed
+since Phase 3 but nothing had ever created one — scans `tasks.due_date`,
+the universal board, so it covers recruiting/school/wellness/general in one
+query); last-run visibility uses pg_cron's own `cron.job_run_details` rather
+than a new bespoke table.
 
 ## Notable decisions from Phase 6
 
