@@ -83,8 +83,11 @@ gyst/
 │   │   │                     # popups' actual content), room-popup-content.tsx (shared Dialog chrome for both),
 │   │   │                     # growth-plant.tsx (the ambient growing-plant primitive, shared by the hub's
 │   │   │                     # XpGrowthVisual and Wellness's check-in-driven version, Phase 9D-2),
-│   │   │                     # collapsible-section.tsx (the "more" panel's native-<details> pattern, promoted
-│   │   │                     # here from Wellness's page.tsx once Recruiting became a second caller, Phase 9D-4)
+│   │   │                     # collapsible-section.tsx (native-<details> pattern, still Wellness's "more" panel
+│   │   │                     # and every room's md:hidden mobile fallback), room-side-tabs.tsx (desktop-only
+│   │   │                     # replacement for Recruiting's "more" panel — a persistent right-docked tab rail;
+│   │   │                     # click a tab, its content pane grows leftward, a pointerdown-outside listener
+│   │   │                     # closes it; one tab open at a time, per-tab width override) (Phase 9D-4)
 │   │   ├── companion/         # companion-blob.tsx (Phase 9C) — SVG blob + face, state-driven
 │   │   │                     # (fencing/studying/recruiting/resting/focused/idle from src/lib/companion.ts,
 │   │   │                     # no manual status-setting); launched globally via chat/companion-chat-launcher.tsx
@@ -100,7 +103,7 @@ gyst/
 │   │   │                       # data-controls (Phase 9A/9B)
 │   │   ├── settings/            # Google/Gmail integration cards, notification settings, recurring schedule
 │   │   ├── gmail/                # drafts section, review queue (Phase 7 UI, unchanged by the Phase 9D content split)
-│   │   ├── recruiting/            # opportunity/application/score/document/contact/draft UI (Phase 4) + discovery queue/sources/bookmarklet UI (Phase 5); deadline-timeline.tsx (replaced closing-soon.tsx/follow-ups-due.tsx, Phase 9D-4), weekly-goal-meter.tsx, group-effectiveness-chart.tsx (shared by source-effectiveness/role-family-conversion) (Phase 9D-4)
+│   │   ├── recruiting/            # opportunity/application/score/document/contact/draft UI (Phase 4) + discovery queue/sources/bookmarklet UI (Phase 5); deadline-timeline.tsx (replaced closing-soon.tsx/follow-ups-due.tsx, Phase 9D-4), weekly-goal-meter.tsx, group-effectiveness-chart.tsx (shared by source-effectiveness/role-family-conversion), pipeline-tab-content.tsx (stat-tile badges + search + the existing ApplicationsView — room-side-tabs.tsx's Pipeline tab content) (Phase 9D-4)
 │   │   ├── school/                # sync status card, courses/assignments, assessment review queue + Upcoming
 │   │   │                          # Assessments, syllabus upload/row/review-queue, milestone suggestions queue,
 │   │   │                          # actual-time log (Phase 6)

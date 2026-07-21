@@ -3,6 +3,7 @@ import { RoomHeader } from "@/components/room/room-header";
 import { RoomBackground } from "@/components/room/room-background";
 import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { CollapsibleSection } from "@/components/room/collapsible-section";
+import { RoomSideTabs } from "@/components/room/room-side-tabs";
 import { ROOMS } from "@/lib/rooms";
 import { OpportunityForm } from "@/components/recruiting/opportunity-form";
 import { ApplicationsView } from "@/components/recruiting/applications-view";
@@ -13,6 +14,7 @@ import { AnalyticsSection } from "@/components/recruiting/analytics-section";
 import { SourcesSection } from "@/components/recruiting/sources-section";
 import { DiscoveryQueue } from "@/components/recruiting/discovery-queue";
 import { BookmarkletCard } from "@/components/recruiting/bookmarklet-card";
+import { PipelineTabContent } from "@/components/recruiting/pipeline-tab-content";
 import type { ApplicationWithOpportunity } from "@/components/recruiting/types";
 import { isGhosted, type AnalyticsEvent } from "@/lib/recruiting-analytics";
 
@@ -88,7 +90,44 @@ export default async function RecruitingPage() {
         <AnalyticsSection />
       </RoomContentPanel>
 
-      <RoomContentPanel className="absolute inset-x-4 bottom-4 max-h-[40vh] md:inset-x-auto md:top-1/2 md:right-[3%] md:max-h-[80vh] md:w-[400px] md:-translate-y-1/2">
+      {/* Desktop: a persistent tab rail that expands leftward, one tab open at a time, closes on click-away. */}
+      <div className="absolute top-1/2 right-[3%] z-10 hidden -translate-y-1/2 md:flex">
+        <RoomSideTabs
+          tabs={[
+            {
+              id: "discovery",
+              label: "Discovery queue",
+              content: <DiscoveryQueue applications={discoveredApplications} />,
+            },
+            {
+              id: "pipeline",
+              label: "Pipeline",
+              width: "w-[min(820px,80vw)]",
+              content: (
+                <PipelineTabContent
+                  applications={pipelineApplications}
+                  ghostedIds={ghostedIds}
+                />
+              ),
+            },
+            { id: "documents", label: "Documents", content: <DocumentsSection /> },
+            { id: "contacts", label: "Contacts", content: <ContactsSection /> },
+            {
+              id: "sources",
+              label: "Sources & capture",
+              content: (
+                <>
+                  <SourcesSection />
+                  <BookmarkletCard />
+                </>
+              ),
+            },
+          ]}
+        />
+      </div>
+
+      {/* Mobile fallback: the tab-rail's expand-left/click-away doesn't translate below md, so this stays the plain stacked-accordion layout. */}
+      <RoomContentPanel className="absolute inset-x-4 bottom-4 max-h-[40vh] md:hidden">
         <h2 className="font-heading text-base font-semibold">More</h2>
         <CollapsibleSection title="Discovery queue">
           <DiscoveryQueue applications={discoveredApplications} />
