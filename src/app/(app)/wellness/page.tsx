@@ -4,6 +4,7 @@ import { RoomBackground } from "@/components/room/room-background";
 import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { GrowthPlant } from "@/components/room/growth-plant";
 import { CollapsibleSection } from "@/components/room/collapsible-section";
+import { RoomSideTabs } from "@/components/room/room-side-tabs";
 import { ROOMS } from "@/lib/rooms";
 import { getLocalDateString } from "@/lib/date-range";
 import {
@@ -123,7 +124,48 @@ export default async function WellnessPage() {
         </section>
       </RoomContentPanel>
 
-      <RoomContentPanel className="absolute inset-x-4 bottom-4 max-h-[38vh] md:inset-x-auto md:top-1/2 md:right-[4%] md:max-h-[75vh] md:w-[340px] md:-translate-y-1/2">
+      {/* Desktop: a persistent tab rail that expands leftward, one tab open at a time, closes on click-away. */}
+      <div className="absolute top-1/2 right-[4%] z-10 hidden -translate-y-1/2 md:flex">
+        <RoomSideTabs
+          tabs={[
+            {
+              id: "history",
+              label: "History",
+              content: <WellnessHistory checkIns={checkIns} />,
+            },
+            {
+              id: "health",
+              label: "Health metrics",
+              content: (
+                <HealthSummaryForm
+                  dateString={todayString}
+                  summaries={healthSummaries}
+                />
+              ),
+            },
+            {
+              id: "cycle",
+              label: "Cycle tracking",
+              content: <CycleImportCard observations={cycleObservations} />,
+            },
+            {
+              id: "data",
+              label: "Your data",
+              content: (
+                <>
+                  <p className="text-muted-foreground text-xs">
+                    Export everything you&rsquo;ve logged, or delete it all at once.
+                  </p>
+                  <WellnessDataControls />
+                </>
+              ),
+            },
+          ]}
+        />
+      </div>
+
+      {/* Mobile fallback: the tab-rail's expand-left/click-away doesn't translate below md, so this stays the plain stacked-accordion layout. */}
+      <RoomContentPanel className="absolute inset-x-4 bottom-4 max-h-[38vh] md:hidden">
         <h2 className="font-heading text-base font-semibold">More</h2>
         <CollapsibleSection title="History">
           <WellnessHistory checkIns={checkIns} />

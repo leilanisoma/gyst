@@ -46,11 +46,12 @@ gyst/
 │   │   │   │                 # memory/ subpage
 │   │   │   └── wellness/     # check-in form, weekly trend observations, history, manual health-metrics
 │   │   │                     # entry, cycle tracking, export/delete-all (Phase 9A/9B); themed as a greenhouse
-│   │   │                     # room (Phase 9D-2, reached via the filmstrip) — two RoomContentPanels placed
-│   │   │                     # over the art (check-in + trends always visible; history/health/cycle/data
-│   │   │                     # collapsed behind <details>), plus an ambient GrowthPlant fed by check-in
-│   │   │                     # consistency, not XP — this split-panel/collapse pattern is the default template
-│   │   │                     # for 9D-4/9D-5 unless their content clearly needs something different
+│   │   │                     # room (Phase 9D-2, reached via the filmstrip) — a left RoomContentPanel always
+│   │   │                     # visible (check-in + trends) plus an ambient GrowthPlant fed by check-in
+│   │   │                     # consistency (not XP); History/Health metrics/Cycle tracking/Your data live
+│   │   │                     # behind a room/room-side-tabs.tsx rail on desktop (md:hidden <details> accordion
+│   │   │                     # fallback on mobile) — the rail replaced this room's own original <details>
+│   │   │                     # accordion the same day Recruiting (9D-4) introduced it
 │   │   ├── api/chat/         # streaming chat turn endpoint (SSE), authenticated (Phase 8)
 │   │   ├── api/cron/         # discover-jobs (3h), weekly-digest, sync-canvas (daily), sync-gmail (hourly), sync-calendar (nightly), deadline-reminders (daily), purge-gmail-items (daily) — bearer-secret auth (CRON_SECRET), no user session; scheduled by Supabase pg_cron (Phase 11), not vercel.json
 │   │   ├── api/google/       # connect/callback route handlers (OAuth redirect + code exchange)
@@ -83,11 +84,12 @@ gyst/
 │   │   │                     # popups' actual content), room-popup-content.tsx (shared Dialog chrome for both),
 │   │   │                     # growth-plant.tsx (the ambient growing-plant primitive, shared by the hub's
 │   │   │                     # XpGrowthVisual and Wellness's check-in-driven version, Phase 9D-2),
-│   │   │                     # collapsible-section.tsx (native-<details> pattern, still Wellness's "more" panel
-│   │   │                     # and every room's md:hidden mobile fallback), room-side-tabs.tsx (desktop-only
-│   │   │                     # replacement for Recruiting's "more" panel — a persistent right-docked tab rail;
-│   │   │                     # click a tab, its content pane grows leftward, a pointerdown-outside listener
-│   │   │                     # closes it; one tab open at a time, per-tab width override) (Phase 9D-4)
+│   │   │                     # collapsible-section.tsx (native-<details> pattern — now only every room's
+│   │   │                     # md:hidden mobile fallback, since room-side-tabs.tsx took over the desktop "more"
+│   │   │                     # panel for both Wellness and Recruiting), room-side-tabs.tsx (desktop-only —
+│   │   │                     # a persistent right-docked tab rail; click a tab, its content pane grows
+│   │   │                     # leftward, a pointerdown-outside listener closes it; one tab open at a time,
+│   │   │                     # per-tab width override for Recruiting's wider Pipeline tab) (Phase 9D-4)
 │   │   ├── companion/         # companion-blob.tsx (Phase 9C) — SVG blob + face, state-driven
 │   │   │                     # (fencing/studying/recruiting/resting/focused/idle from src/lib/companion.ts,
 │   │   │                     # no manual status-setting); launched globally via chat/companion-chat-launcher.tsx
