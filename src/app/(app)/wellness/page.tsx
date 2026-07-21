@@ -1,9 +1,9 @@
-import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { RoomHeader } from "@/components/room/room-header";
 import { RoomBackground } from "@/components/room/room-background";
 import { RoomContentPanel } from "@/components/room/room-content-panel";
 import { GrowthPlant } from "@/components/room/growth-plant";
+import { CollapsibleSection } from "@/components/room/collapsible-section";
 import { ROOMS } from "@/lib/rooms";
 import { getLocalDateString } from "@/lib/date-range";
 import {
@@ -21,27 +21,6 @@ import { listCycleObservations } from "@/lib/health/cycle-observations";
 import { listDailySummaries } from "@/lib/health/daily-summaries";
 
 const HISTORY_LIMIT = 30;
-
-/** One collapsed-by-default section in the "more" panel — native `<details>`, no new dependency for something this simple. */
-function CollapsibleSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <details className="group border-border/60 border-b pb-3 last:border-b-0 last:pb-0">
-      <summary className="marker:content-none flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
-        {title}
-        <span className="text-muted-foreground text-xs transition-transform group-open:rotate-180">
-          ▾
-        </span>
-      </summary>
-      <div className="mt-3 flex flex-col gap-3">{children}</div>
-    </details>
-  );
-}
 
 export default async function WellnessPage() {
   const supabase = await createClient();

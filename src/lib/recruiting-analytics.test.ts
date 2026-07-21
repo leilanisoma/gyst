@@ -6,6 +6,8 @@ import {
   computeSourceCoverage,
   computeSourceEffectiveness,
   computeStageFunnel,
+  computeWeeklyGoalProgress,
+  isGhosted,
   type AnalyticsApplication,
   type AnalyticsEvent,
 } from "./recruiting-analytics";
@@ -242,5 +244,65 @@ describe("computeSourceCoverage", () => {
 
   it("returns an empty array for no applications", () => {
     expect(computeSourceCoverage([])).toEqual([]);
+  });
+});
+
+describe("isGhosted", () => {
+  const now = new Date("2026-07-21T00:00:00Z");
+
+  it("is true only for 'applied' with no movement in 60+ days", () => {
+    const events: AnalyticsEvent[] = [
+      { application_id: "a", to_stage: "applied", occurred_at: "2026-05-01T00:00:00Z" },
+    ];
+    expect(isGhosted({ id: "a", stage: "applied" }, events, now)).toBe(true);
+  });
+
+  it("is false when still within the threshold", () => {
+    const events: AnalyticsEvent[] = [
+      { application_id: "a", to_stage: "applied", occurred_at: "2026-07-01T00:00:00Z" },
+    ];
+    expect(isGhosted({ id: "a", stage: "applied" }, events, now)).toBe(false);
+  });
+
+  it("is false for any stage other than 'applied', even if stale", () => {
+    const events: AnalyticsEvent[] = [
+      { application_id: "a", to_stage: "rejected", occurred_at: "2026-01-01T00:00:00Z" },
+    ];
+    expect(isGhosted({ id: "a", stage: "rejected" }, events, now)).toBe(false);
+  });
+
+  it("is false with no event history at all", () => {
+    expect(isGhosted({ id: "a", stage: "applied" }, [], now)).toBe(false);
+  });
+});
+
+describe("computeWeeklyGoalProgress", () => {
+  // 2026-07-21 is a Tuesday; that week starts Monday 2026-07-20.
+  const now = new Date("2026-07-21T00:00:00Z");
+
+  it("counts distinct applications that reached 'applied' this week", () => {
+    const events: AnalyticsEvent[] = [
+      { application_id: "a", to_stage: "applied", occurred_at: "2026-07-20T00:00:00Z" },
+      { application_id: "b", to_stage: "applied", occurred_at: "2026-07-21T00:00:00Z" },
+      { application_id: "b", to_stage: "interview", occurred_at: "2026-07-21T01:00:00Z" },
+      { application_id: "c", to_stage: "applied", occurred_at: "2026-07-10T00:00:00Z" }, // last week
+    ];
+    expect(computeWeeklyGoalProgress(events, 5, now)).toEqual({
+      goal: 5,
+      actual: 2,
+      pace: "behind",
+    });
+  });
+
+  it("reports on_track within one of goal, ahead at/above it", () => {
+    const events: AnalyticsEvent[] = Array.from({ length: 4 }, (_, i) => ({
+      application_id: `a${i}`,
+      to_stage: "applied",
+      occurred_at: "2026-07-20T00:00:00Z",
+    }));
+    expect(computeWeeklyGoalProgress(events, 5, now).pace).toBe("on_track");
+
+    events.push({ application_id: "a4", to_stage: "applied", occurred_at: "2026-07-20T00:00:00Z" });
+    expect(computeWeeklyGoalProgress(events, 5, now).pace).toBe("ahead");
   });
 });

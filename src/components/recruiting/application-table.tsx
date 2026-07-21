@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -22,8 +24,10 @@ import { firstScore, sortByScore, type ApplicationWithOpportunity } from "./type
 
 export function ApplicationTable({
   applications: serverApplications,
+  ghostedIds,
 }: {
   applications: ApplicationWithOpportunity[];
+  ghostedIds?: Set<string>;
 }) {
   const [prevServer, setPrevServer] = useState(serverApplications);
   const [applications, setApplications] = useState(serverApplications);
@@ -64,6 +68,7 @@ export function ApplicationTable({
             <th className="p-3 font-medium">Stage</th>
             <th className="p-3 font-medium">Deadline</th>
             <th className="p-3 font-medium">Next action</th>
+            <th className="p-3 font-medium">Link</th>
           </tr>
         </thead>
         <tbody>
@@ -82,6 +87,11 @@ export function ApplicationTable({
                   >
                     {opportunity.title}
                   </button>
+                  {ghostedIds?.has(application.id) && (
+                    <Badge variant="destructive" className="ml-2">
+                      Ghosted
+                    </Badge>
+                  )}
                 </td>
                 <td className="p-3">{opportunity.company?.name ?? "—"}</td>
                 <td className="p-3">{ROLE_FAMILY_LABELS[opportunity.role_family]}</td>
@@ -119,6 +129,21 @@ export function ApplicationTable({
                     : "—"}
                 </td>
                 <td className="p-3">{application.next_action ?? "—"}</td>
+                <td className="p-3">
+                  {opportunity.url ? (
+                    <Link
+                      href={opportunity.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="View posting"
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <ExternalLink className="size-4" />
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </td>
               </tr>
             );
           })}

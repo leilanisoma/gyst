@@ -153,7 +153,25 @@ Ishani reported the flash was still there after this. The `loading.tsx` fix was 
 
 ## 9D-4 — Recruiting room: the office
 
-- [ ] Theme the Recruiting destination as an office/desk using the mechanics/tokens from 9D-1.
+- [x] Theme the Recruiting destination as an office/desk using the mechanics/tokens from 9D-1.
+
+**Done 2026-07-21**, bundled with a substantial functional expansion Ishani asked for in the same pass ("let's do the refactor for recruiting... a tracking dashboard, yada yada super functional shit") — asked clarifying questions first (scope: Recruiting only this session; functionality and visual theming together, not staged), same as 9D-2.
+
+Layout: same split-panel/collapse template as Wellness, sized up for Recruiting's much larger content — a left "Now" panel (add-opportunity form, `DeadlineTimeline`, `AnalyticsSection`) always visible over the office desk/chair/rug, a right "More" panel (Discovery queue, Pipeline board/table, Documents, Contacts, Sources & capture) collapsed behind `<details>` over the dresser.
+
+**New functionality, not just dressing:**
+- `DeadlineTimeline` (`src/lib/recruiting-timeline.ts` + `src/components/recruiting/deadline-timeline.tsx`) replaces the old separate `ClosingSoon`/`FollowUpsDue` text-list cards — one date-sorted timeline merging opportunity deadlines and application next-actions, since both were really the same "what's coming up" question asked twice.
+- `isGhosted`/`GHOSTED_THRESHOLD_DAYS` (`src/lib/recruiting-analytics.ts`) — an application sitting in `applied` with no stage movement for 60+ days. Surfaced as a dashboard count and a per-row badge in the table.
+- Weekly application goal (`recruiting_preferences.weekly_application_goal`, same jsonb column as `target_grad_year`, no migration) + `computeWeeklyGoalProgress` + `WeeklyGoalMeter` — counts distinct applications that reached `applied` this week via `application_events`, not `created_at` (an opportunity can sit `saved` for weeks before actually being submitted).
+- `ApplicationTable` gained a direct link-to-posting column and the ghosted badge — the "general overview" ask (role/company/link/stage in one place). Scoped to the table only, not the Kanban board (which already had a posting link on its cards and is a different, already-visual working surface).
+
+**Dashboard visuals, per the dataviz skill:** ran the skill properly (`choosing-a-form.md`/`color-formula.md`) rather than eyeballing colors. Findings:
+- The stage funnel is ordinal (position in a sequence), not categorical — kept one hue with a lightness step per stage rather than a rainbow.
+- Weekly goal progress is "a single ratio against a limit," i.e. a Meter, not a chart — `WeeklyGoalMeter`, fill colored by pace (on-track vs behind), not a gauge/pie.
+- Source-effectiveness and role-family-conversion (`GroupEffectivenessChart`, new, shared by both) are genuine 3-series comparisons (saved/applied+/offers per nominal category) — ran `scripts/validate_palette.js` from the dataviz skill against this app's real `--chart-1..5` oklch tokens (converted to hex via a canvas pixel readback, since Chromium preserves `oklch()` in `getComputedStyle` rather than resolving it). **Found a real, pre-existing gap**: the tokens fail the six-checks validator in both modes — light mode's chart-3 fails contrast (1.95:1) on its own; night mode fails outright, every one of the 5 hues sits above the dark-mode lightness band. Worked around it for this feature by using the one 3-slot subset that validates clean in light mode (chart-1/chart-2/chart-5, always with direct value labels — mandatory secondary encoding for its WARN-band adjacent pairs) and flagging night mode's categorical palette as a real follow-up, not fixed here — redesigning it is a bigger, separate task than "add a recruiting dashboard."
+- Deadline/timeline is a sorted list with status-colored markers, not a formal chart — the skill's own guidance ("sometimes the right form is not a chart") for a handful of dated items.
+
+Visually verified against the running dev server via Playwright, same pattern as Wellness — including seeding temporary test data (companies/opportunities/applications/events) directly in the (otherwise completely empty — 0 real applications exist yet) live dev database to actually see the dashboard/timeline/ghosted-badge render with real values, then deleting all of it afterward via the service-role client, confirmed back to 0 applications. Caught and fixed one real layout bug this way: the two comparison charts used a `sm:grid-cols-2` grid, which responds to *viewport* width, not the ~400px panel's actual width — wrapped awkwardly at desktop sizes; changed to always-stacked.
 
 ## 9D-5 — School room: the study nook
 

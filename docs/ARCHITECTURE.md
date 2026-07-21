@@ -32,7 +32,7 @@ gyst/
 │   │   │   │                 # same content without duplicating queries; direct /settings nav still works too
 │   │   │   ├── gmail/        # same content/route split as settings/ (gmail-content.tsx) — reused by the hub's
 │   │   │   │                 # mailbox popup; the review queue/drafts UI itself is unchanged from Phase 7
-│   │   │   ├── recruiting/   # opportunities/applications/contacts/documents/analytics/discovery sources (Phase 4-5); actions split by concern (actions.ts, contacts-actions.ts, documents-actions.ts, drafts-actions.ts, feedback-actions.ts, sources-actions.ts); capture/ pre-fills the opportunity form from the bookmarklet; reached via the hub's sliding filmstrip (Phase 9D), themed as an office/desk (9D-4) not yet done
+│   │   │   ├── recruiting/   # opportunities/applications/contacts/documents/analytics/discovery sources (Phase 4-5); actions split by concern (actions.ts, contacts-actions.ts, documents-actions.ts, drafts-actions.ts, feedback-actions.ts, sources-actions.ts, updateWeeklyApplicationGoal added Phase 9D-4); capture/ pre-fills the opportunity form from the bookmarklet; reached via the hub's sliding filmstrip (Phase 9D), themed as an office/desk (9D-4) — split-panel layout, same template as Wellness
 │   │   │   ├── school/       # Canvas sync status, courses/assignments, assessment candidates + Upcoming Assessments,
 │   │   │   │                 # syllabus upload/extraction review, milestone suggestions, actual-time log (Phase 6);
 │   │   │   │                 # actions split by concern (actions.ts, assessment-actions.ts, documents-actions.ts,
@@ -82,7 +82,9 @@ gyst/
 │   │   │                     # mailbox/thermostat), planner-popup.tsx + journal-popup-body.tsx (the hub's two
 │   │   │                     # popups' actual content), room-popup-content.tsx (shared Dialog chrome for both),
 │   │   │                     # growth-plant.tsx (the ambient growing-plant primitive, shared by the hub's
-│   │   │                     # XpGrowthVisual and Wellness's check-in-driven version, Phase 9D-2)
+│   │   │                     # XpGrowthVisual and Wellness's check-in-driven version, Phase 9D-2),
+│   │   │                     # collapsible-section.tsx (the "more" panel's native-<details> pattern, promoted
+│   │   │                     # here from Wellness's page.tsx once Recruiting became a second caller, Phase 9D-4)
 │   │   ├── companion/         # companion-blob.tsx (Phase 9C) — SVG blob + face, state-driven
 │   │   │                     # (fencing/studying/recruiting/resting/focused/idle from src/lib/companion.ts,
 │   │   │                     # no manual status-setting); launched globally via chat/companion-chat-launcher.tsx
@@ -98,7 +100,7 @@ gyst/
 │   │   │                       # data-controls (Phase 9A/9B)
 │   │   ├── settings/            # Google/Gmail integration cards, notification settings, recurring schedule
 │   │   ├── gmail/                # drafts section, review queue (Phase 7 UI, unchanged by the Phase 9D content split)
-│   │   ├── recruiting/            # opportunity/application/score/document/contact/draft UI (Phase 4) + discovery queue/sources/bookmarklet UI (Phase 5)
+│   │   ├── recruiting/            # opportunity/application/score/document/contact/draft UI (Phase 4) + discovery queue/sources/bookmarklet UI (Phase 5); deadline-timeline.tsx (replaced closing-soon.tsx/follow-ups-due.tsx, Phase 9D-4), weekly-goal-meter.tsx, group-effectiveness-chart.tsx (shared by source-effectiveness/role-family-conversion) (Phase 9D-4)
 │   │   ├── school/                # sync status card, courses/assignments, assessment review queue + Upcoming
 │   │   │                          # Assessments, syllabus upload/row/review-queue, milestone suggestions queue,
 │   │   │                          # actual-time log (Phase 6)
@@ -153,9 +155,16 @@ gyst/
 │       ├── tasks.ts            # task status/priority/area constants
 │       ├── recruiting.ts          # role family/stage/relationship/document-kind constants + fingerprinting
 │       ├── companies.ts          # findOrCreateCompany — shared by manual capture and discovery ingestion
-│       ├── recruiting-preferences.ts # getTargetGradYear — shared scoring input
+│       ├── recruiting-preferences.ts # getTargetGradYear + getWeeklyApplicationGoal/setWeeklyApplicationGoal
+│       │                       # (same recruiting_preferences jsonb column, new key — Phase 9D-4) — shared
+│       │                       # scoring/dashboard inputs
 │       ├── job-scoring.ts          # deterministic PLAN.md §9 scoring engine (unit-tested)
-│       ├── recruiting-analytics.ts # funnel/response-time/source-effectiveness/source-coverage (unit-tested)
+│       ├── recruiting-analytics.ts # funnel/response-time/source-effectiveness/source-coverage (unit-tested);
+│       │                       # isGhosted (60+ days in 'applied' with no stage movement) and
+│       │                       # computeWeeklyGoalProgress added Phase 9D-4
+│       ├── recruiting-timeline.ts  # computeDeadlineTimeline — merges opportunity deadlines and application
+│       │                       # next-actions into one sorted timeline (Phase 9D-4, replaced the separate
+│       │                       # ClosingSoon/FollowUpsDue components)
 │       ├── health/              # cycle-observations.ts, daily-summaries.ts — manual health-metrics/cycle entry
 │       │                       # (Phase 9B, after the native HealthKit companion was abandoned — see phase-9.md)
 │       ├── wellness.ts          # WellnessCheckIn type, weeklyTrendObservations (descriptive-only trend text,

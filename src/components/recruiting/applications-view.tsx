@@ -9,8 +9,10 @@ import type { ApplicationWithOpportunity } from "./types";
 
 export function ApplicationsView({
   applications,
+  ghostedIds,
 }: {
   applications: ApplicationWithOpportunity[];
+  ghostedIds?: Set<string>;
 }) {
   const [view, setView] = useState<"board" | "table">("board");
 
@@ -46,7 +48,7 @@ export function ApplicationsView({
       {view === "board" ? (
         <ApplicationBoard applications={applications} />
       ) : (
-        <ApplicationTable applications={applications} />
+        <ApplicationTable applications={applications} ghostedIds={ghostedIds} />
       )}
     </div>
   );

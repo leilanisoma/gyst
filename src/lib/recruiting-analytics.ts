@@ -65,7 +65,7 @@ export function computeApplicationsPerWeek(
   }));
 }
 
-function startOfWeek(date: Date): Date {
+export function startOfWeek(date: Date): Date {
   const d = new Date(
     Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
   );
@@ -175,4 +175,63 @@ export function computeSourceCoverage(applications: AnalyticsApplication[]): Sou
       relevanceRate: total > 0 ? (total - excluded) / total : 0,
     }))
     .sort((a, b) => b.total - a.total);
+}
+
+/** Days with no movement before an `applied` application counts as gone quiet, not just slow. */
+export const GHOSTED_THRESHOLD_DAYS = 60;
+
+/**
+ * True when an application has sat in `applied` with no further stage
+ * transition for `GHOSTED_THRESHOLD_DAYS`+ — a real recruiter silently
+ * dropping contact, distinct from "rejected" (an explicit outcome) or just
+ * "slow" (under the threshold). Only ever true for `applied`, since any
+ * other current stage means a later event already fired.
+ */
+export function isGhosted(
+  application: { id: string; stage: ApplicationStage },
+  events: AnalyticsEvent[],
+  now: Date = new Date(),
+): boolean {
+  if (application.stage !== "applied") return false;
+  const own = events.filter((e) => e.application_id === application.id);
+  if (own.length === 0) return false;
+  const latest = own.reduce(
+    (max, e) => (e.occurred_at > max ? e.occurred_at : max),
+    own[0].occurred_at,
+  );
+  const daysSince = (now.getTime() - new Date(latest).getTime()) / 86_400_000;
+  return daysSince >= GHOSTED_THRESHOLD_DAYS;
+}
+
+export type WeeklyGoalProgress = {
+  goal: number;
+  actual: number;
+  pace: "ahead" | "on_track" | "behind";
+};
+
+/**
+ * This week's count of applications that actually reached `applied`
+ * (Monday-anchored, by the `applied` transition event, not by
+ * `created_at` — an opportunity can sit `saved` for weeks before it's
+ * actually submitted, so `created_at` would measure "added to pipeline,"
+ * not "applied") against the user's goal — feeds the dashboard's goal
+ * meter. "on_track" allows a small buffer (1 short of goal) so an ordinary
+ * Tuesday doesn't read as "behind."
+ */
+export function computeWeeklyGoalProgress(
+  events: AnalyticsEvent[],
+  goal: number,
+  now: Date = new Date(),
+): WeeklyGoalProgress {
+  const weekStart = startOfWeek(now).toISOString().slice(0, 10);
+  const actual = new Set(
+    events
+      .filter(
+        (e) => e.to_stage === "applied" && e.occurred_at.slice(0, 10) >= weekStart,
+      )
+      .map((e) => e.application_id),
+  ).size;
+  const pace: WeeklyGoalProgress["pace"] =
+    actual >= goal ? "ahead" : actual >= goal - 1 ? "on_track" : "behind";
+  return { goal, actual, pace };
 }

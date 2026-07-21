@@ -9,7 +9,7 @@ import {
 } from "@/lib/recruiting";
 import { buildJobScoreRow, scoreOpportunity } from "@/lib/job-scoring";
 import { findOrCreateCompany } from "@/lib/companies";
-import { getTargetGradYear } from "@/lib/recruiting-preferences";
+import { getTargetGradYear, setWeeklyApplicationGoal } from "@/lib/recruiting-preferences";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -279,6 +279,21 @@ export async function updateApplicationDetails(
     return { ok: false, error: error.message };
   }
 
+  revalidatePath("/recruiting");
+  return { ok: true };
+}
+
+export async function updateWeeklyApplicationGoal(goal: number): Promise<ActionResult> {
+  if (!Number.isFinite(goal) || goal < 1 || goal > 50) {
+    return { ok: false, error: "Goal must be between 1 and 50." };
+  }
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+  await setWeeklyApplicationGoal(supabase, user.id, Math.round(goal));
   revalidatePath("/recruiting");
   return { ok: true };
 }
