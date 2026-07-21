@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { registerTool, clampLimit } from "./types";
+import { toPgVector } from "../embedding";
 
 const argsSchema = z.object({
   query: z.string().min(1),
@@ -30,7 +31,7 @@ registerTool({
     const embedding = await ctx.embedText(args.query);
     const { data, error } = await ctx.supabase.rpc("match_memory_items", {
       p_user_id: ctx.userId,
-      p_query_embedding: embedding,
+      p_query_embedding: toPgVector(embedding),
       p_match_count: clampLimit(args.limit, 5, 10),
     });
     if (error) throw new Error(error.message);
@@ -64,7 +65,7 @@ registerTool({
       "match_document_chunks",
       {
         p_user_id: ctx.userId,
-        p_query_embedding: embedding,
+        p_query_embedding: toPgVector(embedding),
         p_match_count: clampLimit(args.limit, 5, 10),
       },
     );

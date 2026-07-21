@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { registerTool } from "./types";
+import { toPgVector } from "../embedding";
 
 const MEMORY_KINDS = ["fact", "preference", "goal", "decision"] as const;
 
@@ -57,7 +58,7 @@ registerTool({
         source: args.trigger,
         source_message_id: ctx.sourceMessageId,
         status: "pending",
-        embedding,
+        embedding: embedding ? toPgVector(embedding) : null,
       })
       .select("id")
       .single();

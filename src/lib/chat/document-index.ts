@@ -4,6 +4,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import type { AIClient } from "@/ai/client";
 import { extractPdfPages } from "@/lib/syllabus/pdf-text";
 import { chunkPages, chunkText, type TextChunk } from "./chunk-text";
+import { toPgVector } from "./embedding";
 
 export type IndexDocumentResult =
   | { ok: true; chunksIndexed: number; chunksReused: number }
@@ -68,7 +69,7 @@ export async function indexDocumentForSearch(
     .eq("document_id", documentId);
   if (existingError) return { ok: false, error: existingError.message };
 
-  const embeddingByHash = new Map<string, unknown>();
+  const embeddingByHash = new Map<string, string>();
   for (const row of existing ?? []) {
     if (row.embedding != null)
       embeddingByHash.set(row.content_hash, row.embedding);
@@ -82,18 +83,19 @@ export async function indexDocumentForSearch(
     content: string;
     content_hash: string;
     page: number | null;
-    embedding: unknown;
+    embedding: string;
   }[] = [];
 
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
     const hash = hashContent(chunk.content);
     const cached = embeddingByHash.get(hash);
-    let embedding: unknown = cached;
+    let embedding: string;
     if (cached !== undefined) {
       reused++;
+      embedding = cached;
     } else {
-      embedding = await aiClient.embedText(chunk.content);
+      embedding = toPgVector(await aiClient.embedText(chunk.content));
     }
     rows.push({
       user_id: userId,
@@ -114,7 +116,7 @@ export async function indexDocumentForSearch(
 
   const { error: insertError } = await supabase
     .from("document_chunks")
-    .insert(rows as never);
+    .insert(rows);
   if (insertError) return { ok: false, error: insertError.message };
 
   return { ok: true, chunksIndexed: rows.length, chunksReused: reused };

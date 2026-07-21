@@ -259,6 +259,8 @@ describe("save_memory", () => {
       status: "pending",
       source: "explicit",
       kind: "preference",
+      // pgvector's wire format is a text literal, not a JSON array (src/lib/chat/embedding.ts).
+      embedding: "[0.5,0.6]",
     });
   });
 
@@ -330,7 +332,8 @@ describe("search_memory", () => {
     ];
     db.rpcHandlers.match_memory_items = (args) => {
       expect(args.p_user_id).toBe("user-1");
-      expect(args.p_query_embedding).toEqual([0.1, 0.2, 0.3]);
+      // pgvector's wire format is a text literal, not a JSON array (src/lib/chat/embedding.ts).
+      expect(args.p_query_embedding).toBe("[0.1,0.2,0.3]");
       return { data: matches, error: null };
     };
     const tool = getRegisteredTool("search_memory")!;
