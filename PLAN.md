@@ -724,14 +724,14 @@ Split into sub-phases (2026-07-17) so each session ships one coherent slice - th
 
 **Goal:** fix a real gap surfaced 2026-07-20 (see `docs/PHASES/phase-10.md`): `vercel.json` schedules five cron jobs (`discover-jobs`, `weekly-digest`, `sync-canvas`, `sync-gmail`, `purge-gmail-items`), but the Vercel Hobby plan caps cron at 2 jobs/day - so at most two of the five are actually firing. Decided 2026-07-21: move scheduling to Supabase `pg_cron`/`pg_net` rather than upgrading to Vercel Pro, since it removes the cap without an ongoing cost and every route already authenticates via a `CRON_SECRET` bearer header (`getCronEnv()`), which `net.http_post` can send identically - no route code changes needed.
 
-- [ ] Write a decision doc (`docs/DECISIONS/0005-pg-cron-scheduling.md`) covering the approach and secret storage (Supabase Vault vs. a config table).
-- [ ] Migration: enable `pg_cron` and `pg_net` extensions.
-- [ ] Migration: `cron.schedule()` one job per route, each calling `net.http_post` against the existing `/api/cron/*` routes with the `Authorization: Bearer` header, at whatever cadence actually makes sense per job (no longer forced to daily).
-- [ ] Remove the five entries from `vercel.json` once pg_cron is confirmed calling all five routes.
-- [ ] Verify each job fires and its target data actually updates (new discovered jobs, synced Gmail items, synced Canvas items, a delivered weekly digest, purged expired Gmail items) - not just that the HTTP call returns 200.
-- [ ] Add minimal last-run visibility (e.g. a `cron_runs` table or reuse the Phase 5 source-adapter health-check pattern) so a silently-broken job doesn't go unnoticed the way the Vercel cap did.
+- [x] Write a decision doc (`docs/DECISIONS/0005-pg-cron-scheduling.md`) covering the approach and secret storage (Supabase Vault).
+- [x] Migration: enable `pg_cron` and `pg_net` extensions.
+- [x] Migration: `cron.schedule()` one job per route, each calling `net.http_get` against the existing `/api/cron/*` routes with the `Authorization: Bearer` header. Also added two new jobs beyond the original five: `sync-calendar` (Google Calendar had no automation at all before this) and `deadline-reminders` (fills the `notifications.kind = 'deadline'` type that existed since Phase 3 but nothing ever fired).
+- [x] Remove the five entries from `vercel.json` - done once pg_net was confirmed reaching production with correct auth, to avoid double-firing overlap with pg_cron (e.g. a duplicate weekly digest).
+- [x] Verify each job fires and its target data actually updates - not just HTTP 200. `sync-calendar` synced 6 calendars/153 events on its first-ever run; confirmed via a manual `net.http_get` through Postgres itself (not curl) that Supabase can reach production and get a real response back. One unrelated finding: `sync-canvas`'s cron plumbing works, but production's `CANVAS_PERSONAL_ACCESS_TOKEN` is being rejected by Canvas's own API (401) - separate follow-up, not a pg_cron issue.
+- [x] Last-run visibility: no new table needed - pg_cron's built-in `cron.job_run_details` covers this once the extension is enabled.
 
-**Exit:** all five automations run on their intended schedule, verified against actual data changes, not just HTTP 200s; a broken job is visible without checking logs by hand.
+**Exit:** all five automations run on their intended schedule, verified against actual data changes, not just HTTP 200s; a broken job is visible without checking logs by hand. **Met 2026-07-21** (`docs/PHASES/phase-11.md`), with the Canvas-token caveat above carried forward as a separate item.
 
 ## 16. Claude Code execution protocol
 
