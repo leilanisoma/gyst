@@ -105,7 +105,7 @@ gyst/
 │   │   │                       # data-controls (Phase 9A/9B)
 │   │   ├── settings/            # Google/Gmail integration cards, notification settings, recurring schedule
 │   │   ├── gmail/                # drafts section, review queue (Phase 7 UI, unchanged by the Phase 9D content split)
-│   │   ├── recruiting/            # opportunity/application/score/document/contact/draft UI (Phase 4) + discovery queue/sources/bookmarklet UI (Phase 5); deadline-timeline.tsx (replaced closing-soon.tsx/follow-ups-due.tsx, Phase 9D-4), weekly-goal-meter.tsx, group-effectiveness-chart.tsx (shared by source-effectiveness/role-family-conversion), pipeline-tab-content.tsx (stat-tile badges + search + the existing ApplicationsView — room-side-tabs.tsx's Pipeline tab content) (Phase 9D-4)
+│   │   ├── recruiting/            # opportunity/application/score/document/contact/draft UI (Phase 4) + discovery queue/sources/bookmarklet UI (Phase 5); deadline-timeline.tsx (replaced closing-soon.tsx/follow-ups-due.tsx, Phase 9D-4), weekly-goal-meter.tsx, group-effectiveness-chart.tsx (shared by source-effectiveness/role-family-conversion), pipeline-tab-content.tsx (stat-tile badges + search + ApplicationsView — room-side-tabs.tsx's Pipeline tab content) (Phase 9D-4); application-board.tsx/application-column.tsx/application-card.tsx (the drag-and-drop Kanban view, Phase 4) deleted same day — ApplicationsView now always renders ApplicationTable, a plain grid-lined table with a Select dropdown per row for stage, no board/table toggle
 │   │   ├── school/                # sync status card, courses/assignments, assessment review queue + Upcoming
 │   │   │                          # Assessments, syllabus upload/row/review-queue, milestone suggestions queue,
 │   │   │                          # actual-time log (Phase 6)
@@ -224,7 +224,7 @@ gyst/
 | Styling | Tailwind CSS v4 + shadcn/ui (Base UI primitives), a warm "cozy" cream/terracotta theme |
 | Database | Supabase Postgres, linked project, migrations in `supabase/migrations/` |
 | Auth | Supabase Auth password sign-in (`docs/DECISIONS/0004-password-auth-for-login.md`), restricted to `ALLOWED_USER_EMAIL` at both the DB (trigger on `auth.users`) and app (`src/proxy.ts`) layers; RLS (`auth.uid() = user_id`/`id`) on every table |
-| Drag-and-drop | @dnd-kit/core (Kanban board) |
+| Drag-and-drop | @dnd-kit/core — the universal Tasks Kanban board only; Recruiting's board/table toggle was replaced by a single spreadsheet-style table (Phase 9D-4) |
 | Validation | Zod (env vars, AI extraction schemas) |
 | Testing | Vitest + React Testing Library (unit/component), Playwright installed for e2e (not yet used for a checked-in suite — verification so far has been ad hoc scripts run and discarded per session) |
 | Type generation | `npm run db:types` regenerates `src/lib/supabase/database.types.ts` from the live schema |

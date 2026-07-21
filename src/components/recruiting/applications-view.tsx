@@ -1,12 +1,8 @@
-"use client";
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ApplicationBoard } from "./application-board";
 import { ApplicationTable } from "./application-table";
 import type { ApplicationWithOpportunity } from "./types";
 
+/** Spreadsheet-style table only now — the Kanban board (drag-and-drop columns) was dropped in favor of one plain table with a stage dropdown per row. */
 export function ApplicationsView({
   applications,
   ghostedIds,
@@ -14,8 +10,6 @@ export function ApplicationsView({
   applications: ApplicationWithOpportunity[];
   ghostedIds?: Set<string>;
 }) {
-  const [view, setView] = useState<"board" | "table">("board");
-
   if (applications.length === 0) {
     return (
       <Card>
@@ -27,29 +21,5 @@ export function ApplicationsView({
     );
   }
 
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant={view === "board" ? "default" : "outline"}
-          onClick={() => setView("board")}
-        >
-          Board
-        </Button>
-        <Button
-          size="sm"
-          variant={view === "table" ? "default" : "outline"}
-          onClick={() => setView("table")}
-        >
-          Table
-        </Button>
-      </div>
-      {view === "board" ? (
-        <ApplicationBoard applications={applications} />
-      ) : (
-        <ApplicationTable applications={applications} ghostedIds={ghostedIds} />
-      )}
-    </div>
-  );
+  return <ApplicationTable applications={applications} ghostedIds={ghostedIds} />;
 }

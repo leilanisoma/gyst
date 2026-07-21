@@ -183,6 +183,15 @@ Ishani's next ask, same session: "for the 'more' when i click on it it should ex
 - Verified live via Playwright: collapsed rail, Discovery queue expanding, Pipeline expanding (search box + "0 total" stat tile, since the dev database has no real applications), and a deliberate click on the empty room area confirming the panel actually closes. No console errors.
 - **Applied to Wellness's "More" panel too, same session** ("fix the wellness one too") — confirmed `RoomSideTabs` really was the drop-in reuse it was written to be: History/Health metrics/Cycle tracking/Your data became four rail tabs, no new sizing/behavior work needed since none of Wellness's sections need Pipeline's wide-table treatment. Mobile keeps its own `md:hidden` accordion fallback, same pattern as Recruiting. Verified live: collapsed rail, Health metrics expanding left with the real form inside, click-away closing it, and the mobile accordion still intact.
 
+### Same-day follow-up: Pipeline drops the Kanban board entirely
+
+Ishani's next ask: "change the pipeline kanban to just be sorta excel spreadsheet style with dropdown for what stage." `ApplicationTable` already had exactly this (a `<Select>` dropdown per row) — the actual change was removing the board option, not building anything new.
+
+- Deleted `application-board.tsx`, `application-column.tsx`, `application-card.tsx` (the drag-and-drop Kanban view) — confirmed via grep they had no other callers before deleting. `@dnd-kit/core` stays a dependency; the universal Tasks board (Phase 1/2) still uses it, unrelated to this change.
+- `ApplicationsView` simplified to drop the board/table toggle `useState` and buttons — it's now just an empty-state check that otherwise always renders `ApplicationTable`. No prop/signature changes, so `pipeline-tab-content.tsx` and the mobile fallback needed no changes.
+- `ApplicationTable` restyled toward an actual spreadsheet look: `border-collapse` with a real border on every cell (was borderless except a top rule between rows), tighter `p-2` padding (was `p-3`), subtle zebra striping (`even:bg-muted/15`), and the stage `<Select>` trimmed to a transparent border that only appears on hover — reads as an editable cell rather than a floating form control sitting inside a cell.
+- Verified live: seeded two temporary test applications, confirmed the table renders as a real grid with a working stage dropdown (all 13 stages, current value checked), then deleted only the two rows this test added — a third, pre-existing "AI Engineering Intern @ PWC" application already existed in the dev database (not from any of this session's seeding) and was deliberately left untouched.
+
 ## 9D-5 — School room: the study nook
 
 - [ ] Theme the School destination as a study nook using the mechanics/tokens from 9D-1, including how the fuller task board/detail view is presented there (see open questions).

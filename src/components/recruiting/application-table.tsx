@@ -58,17 +58,17 @@ export function ApplicationTable({
 
   return (
     <div className="overflow-x-auto rounded-xl border">
-      <table className="w-full text-sm">
+      <table className="w-full border-collapse text-sm">
         <thead className="bg-muted/40 text-muted-foreground text-left text-xs">
           <tr>
-            <th className="p-3 font-medium">Role</th>
-            <th className="p-3 font-medium">Company</th>
-            <th className="p-3 font-medium">Role family</th>
-            <th className="p-3 font-medium">Score</th>
-            <th className="p-3 font-medium">Stage</th>
-            <th className="p-3 font-medium">Deadline</th>
-            <th className="p-3 font-medium">Next action</th>
-            <th className="p-3 font-medium">Link</th>
+            <th className="border-border border p-2 font-medium">Role</th>
+            <th className="border-border border p-2 font-medium">Company</th>
+            <th className="border-border border p-2 font-medium">Role family</th>
+            <th className="border-border border p-2 font-medium">Score</th>
+            <th className="border-border border p-2 font-medium">Stage</th>
+            <th className="border-border border p-2 font-medium">Deadline</th>
+            <th className="border-border border p-2 font-medium">Next action</th>
+            <th className="border-border border p-2 font-medium">Link</th>
           </tr>
         </thead>
         <tbody>
@@ -78,8 +78,8 @@ export function ApplicationTable({
             const score = firstScore(opportunity.job_scores);
 
             return (
-              <tr key={application.id} className="border-t">
-                <td className="p-3 font-medium">
+              <tr key={application.id} className="even:bg-muted/15">
+                <td className="border-border border p-2 font-medium">
                   <button
                     type="button"
                     onClick={() => setDetailApplicationId(application.id)}
@@ -93,9 +93,9 @@ export function ApplicationTable({
                     </Badge>
                   )}
                 </td>
-                <td className="p-3">{opportunity.company?.name ?? "—"}</td>
-                <td className="p-3">{ROLE_FAMILY_LABELS[opportunity.role_family]}</td>
-                <td className="p-3">
+                <td className="border-border border p-2">{opportunity.company?.name ?? "—"}</td>
+                <td className="border-border border p-2">{ROLE_FAMILY_LABELS[opportunity.role_family]}</td>
+                <td className="border-border border p-2">
                   {score ? (
                     <Badge variant={score.excluded ? "destructive" : "outline"}>
                       {score.excluded ? score.exclusion_reason : `${score.total_score}/100`}
@@ -104,14 +104,14 @@ export function ApplicationTable({
                     "—"
                   )}
                 </td>
-                <td className="p-3">
+                <td className="border-border border p-1">
                   <Select
                     value={application.stage}
                     onValueChange={(value) =>
                       value && changeStage(application.id, value as ApplicationStage)
                     }
                   >
-                    <SelectTrigger className="h-8 w-40">
+                    <SelectTrigger className="h-8 w-40 border-transparent shadow-none hover:border-border">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -123,13 +123,13 @@ export function ApplicationTable({
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="p-3">
+                <td className="border-border border p-2">
                   {opportunity.deadline
                     ? new Date(opportunity.deadline).toLocaleDateString()
                     : "—"}
                 </td>
-                <td className="p-3">{application.next_action ?? "—"}</td>
-                <td className="p-3">
+                <td className="border-border border p-2">{application.next_action ?? "—"}</td>
+                <td className="border-border border p-2">
                   {opportunity.url ? (
                     <Link
                       href={opportunity.url}
