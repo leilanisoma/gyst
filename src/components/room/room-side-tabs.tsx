@@ -23,6 +23,21 @@ export type RoomSideTabDef = {
 export function RoomSideTabs({ tabs }: { tabs: RoomSideTabDef[] }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const active = tabs.find((t) => t.id === activeId) ?? null;
+
+  // Stays mounted through the close animation (unlike `active`, which goes
+  // null the instant a tab is deselected) so the glass content shrinks away
+  // with the width transition instead of popping out instantly, leaving the
+  // wrapper's `overflow-hidden` box to visibly collapse over nothing.
+  // Adjusted during render (React's documented pattern for "derive state
+  // from a changed value," not an effect) rather than in a useEffect, which
+  // would double-render and trip the lint rule against setState-in-effect.
+  const [renderedTab, setRenderedTab] = useState<RoomSideTabDef | null>(null);
+  const [prevActive, setPrevActive] = useState(active);
+  if (active !== prevActive) {
+    setPrevActive(active);
+    if (active) setRenderedTab(active);
+  }
 
   useEffect(() => {
     if (!activeId) return;
@@ -47,20 +62,31 @@ export function RoomSideTabs({ tabs }: { tabs: RoomSideTabDef[] }) {
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [activeId]);
 
-  const active = tabs.find((t) => t.id === activeId) ?? null;
-
   return (
     <div ref={containerRef} className="flex items-stretch">
       <div
         className={cn(
-          "room-glass overflow-hidden rounded-3xl transition-[width] duration-300 ease-out",
+          "overflow-hidden transition-[width] duration-300 ease-out",
           active ? (active.width ?? "w-[400px]") : "w-0",
         )}
+        onTransitionEnd={() => {
+          // Only clear once fully closed — an open/switch transition
+          // ending shouldn't touch renderedTab (it's already correct).
+          if (!active) setRenderedTab(null);
+        }}
       >
-        {active && (
-          <div className="flex max-h-[80vh] flex-col gap-3 overflow-y-auto p-6">
-            <h2 className="font-heading text-base font-semibold">{active.label}</h2>
-            {active.content}
+        {/* room-glass (border/shadow/sheen) lives on this inner div, which only
+            mounts while renderedTab is set — putting it on the width-
+            transitioning wrapper above left a 1px-border-plus-shadow sliver
+            visible even at w-0, since border/box-shadow aren't clipped by
+            width. Keyed off renderedTab (not `active`) so the content stays
+            mounted and visibly shrinks with the wrapper during close,
+            instead of popping out instantly and leaving nothing to see
+            collapse. */}
+        {renderedTab && (
+          <div className="room-glass flex h-full max-h-[80vh] w-full flex-col gap-3 overflow-y-auto rounded-3xl p-6">
+            <h2 className="font-heading text-base font-semibold">{renderedTab.label}</h2>
+            {renderedTab.content}
           </div>
         )}
       </div>

@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AmbientObjectPopup } from "@/components/room/ambient-object-popup";
+import { JournalPopupBody } from "@/components/room/journal-popup-body";
 import { PlannerPopup } from "@/components/room/planner-popup";
 import { RoomBackground } from "@/components/room/room-background";
 import { AMBIENT_OBJECTS } from "@/lib/rooms";
 import { CaptureForm } from "@/components/capture/capture-form";
+import { InboxList } from "@/app/(app)/inbox/inbox-list";
 import { GmailContent } from "@/app/(app)/gmail/gmail-content";
 import { SettingsContent } from "@/app/(app)/settings/settings-content";
+import { isAIExtractionEnabled } from "@/ai";
 import { CheckInCard } from "@/components/today/check-in-card";
 import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
@@ -99,6 +102,13 @@ export default async function TodayPage({
     .eq("horizon", "weekly")
     .eq("status", "active")
     .order("target_date", { ascending: true });
+
+  const { data: inboxItems } = await supabase
+    .from("inbox_items")
+    .select("id, raw_text, created_at")
+    .eq("status", "inbox")
+    .order("created_at", { ascending: false });
+  const aiExtractionEnabled = isAIExtractionEnabled();
 
   const { data: xpEvents } = await supabase
     .from("xp_events")
@@ -223,18 +233,27 @@ export default async function TodayPage({
         accent={AMBIENT_OBJECTS.inbox.accent}
         className="absolute top-[74%] left-[42%] w-32"
       >
-        <CaptureForm />
-        <TopOutcomesCard
-          plan={(dailyPlan as DailyPlan | null) ?? null}
-          dateString={todayString}
+        <JournalPopupBody
+          quickContent={
+            <>
+              <CaptureForm />
+              <TopOutcomesCard
+                plan={(dailyPlan as DailyPlan | null) ?? null}
+                dateString={todayString}
+              />
+              <CheckInCard
+                checkIn={(checkIn as CheckIn | null) ?? null}
+                dateString={todayString}
+              />
+            </>
+          }
+          fullInboxContent={
+            <InboxList
+              items={inboxItems ?? []}
+              aiExtractionEnabled={aiExtractionEnabled}
+            />
+          }
         />
-        <CheckInCard
-          checkIn={(checkIn as CheckIn | null) ?? null}
-          dateString={todayString}
-        />
-        <Link href="/inbox" className="text-muted-foreground text-xs underline">
-          View full inbox
-        </Link>
       </AmbientObjectPopup>
       <AmbientObjectPopup
         id="gmail"

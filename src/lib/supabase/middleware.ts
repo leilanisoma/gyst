@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getClientEnv } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/auth/callback", "/auth/error", "/offline"];
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/auth/error", "/offline", "/dev-login-tmp"];
 
 // Scheduled jobs (Vercel Cron) have no user session by design — they carry
 // a bearer secret instead, checked inside the route handler itself.

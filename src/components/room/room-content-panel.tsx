@@ -21,7 +21,7 @@ export function RoomContentPanel({
   return (
     <div
       className={cn(
-        "room-glass relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 overflow-y-auto rounded-3xl p-6",
+        "room-glass relative z-10 mx-auto flex max-h-[85vh] w-full max-w-3xl flex-col gap-6 overflow-y-auto rounded-3xl p-6",
         className,
       )}
     >
