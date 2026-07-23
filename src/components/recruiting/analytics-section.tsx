@@ -74,7 +74,7 @@ export async function AnalyticsSection() {
   ).length;
 
   const funnel = computeStageFunnel(analyticsEvents);
-  const weekly = computeApplicationsPerWeek(analyticsApps, 8);
+  const weekly = computeApplicationsPerWeek(analyticsEvents, 8);
   const medianResponseDays = computeMedianResponseDays(analyticsEvents);
   const bySource = computeSourceEffectiveness(analyticsApps);
   const byRoleFamily = computeRoleFamilyConversion(analyticsApps);
@@ -99,12 +99,15 @@ export async function AnalyticsSection() {
           <p className="text-muted-foreground text-xs">Applications per week</p>
           <div className="mt-1 flex items-end gap-1.5">
             {weekly.map((week) => (
-              <div key={week.weekStart} className="flex flex-col items-center gap-1">
+              <div
+                key={week.weekStart}
+                className="flex flex-1 flex-col items-center gap-1"
+              >
                 <span className="text-muted-foreground text-[10px] tabular-nums">
                   {week.count}
                 </span>
                 <div
-                  className="bg-primary w-4 rounded-t-sm"
+                  className="bg-primary w-full rounded-t-sm"
                   style={{ height: `${Math.max(4, (week.count / maxWeekly) * 48)}px` }}
                   title={`${week.weekStart}: ${week.count}`}
                 />

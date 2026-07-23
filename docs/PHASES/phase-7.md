@@ -21,11 +21,13 @@ entire inbox. Source: `PLAN.md` §15 Phase 7, §8, §12.
 >
 > Architecturally satisfied, not empirically proven against a real Gmail
 > account — the same caveat every phase with a browser-based OAuth consent
-> flow has flagged (Phase 3/4/5/6). What's built: extraction only ever runs
-> against messages matching a user-configured search query/label (never the
-> whole inbox, satisfying "irrelevant personal mail is not stored" by
-> construction — there's no default query, so an unconfigured connection
-> scans nothing); this app's code never calls a Gmail send endpoint anywhere
+> flow has flagged (Phase 3/4/5/6). What's built: extraction runs against
+> messages matching a Gmail search query — the user's own if configured,
+> otherwise a default that covers the whole mailbox except Promotions,
+> Social, Spam, and Trash (revised 2026-07-23; see 7.3 notes) — so
+> "irrelevant personal mail is not stored" is satisfied at the category
+> level rather than by scanning nothing until configured; this app's code
+> never calls a Gmail send endpoint anywhere
 > (grep for `/send` in `src/lib/gmail/client.ts` — it doesn't exist), only
 > `drafts.create`, satisfying "no email is sent"; "tested messages produce
 > correct suggestions" is covered by `client.test.ts`/`sync.test.ts`/
@@ -66,9 +68,8 @@ entire inbox. Source: `PLAN.md` §15 Phase 7, §8, §12.
 
 ### 7.3 notes
 
-- **No default search query — sync refuses to run with none configured.** `runGmailSync` (`src/lib/gmail/sync.ts`) checks `integration.settings.search_query` before calling the Gmail API at all and returns a clear error if it's unset. This is what makes "begin with user-created labels or strict searches" true by construction rather than by convention — there's no fallback that would ever read the whole inbox.
+- **Revised 2026-07-23 — sync now defaults to the whole mailbox instead of refusing to run.** The original "no default search query" design (below) turned out to be too restrictive in practice: with no query ever configured, Gmail sync ran for over a week without extracting anything. `runGmailSync` (`src/lib/gmail/sync.ts`) now falls back to `DEFAULT_GMAIL_SEARCH_QUERY` (`src/lib/gmail/integration.ts`) — `-category:promotions -category:social -in:spam -in:trash` — when `integration.settings.search_query` is unset, so ads/newsletters/social/spam never reach the AI extraction call, but everything else in the mailbox does. The user can still narrow this to a specific label/query in Settings.
 - **The query is a raw Gmail search string** (e.g. `label:job-search`, `from:recruiting@school.edu OR label:interviews`), not a structured label picker — Gmail's own search syntax already supports label/sender/subject filters, and building a picker UI over the Gmail Labels API would be a second way to express the same thing PLAN.md's task text offers as alternatives ("labels *or* strict searches"). Revisit only if a raw query proves too fiddly in practice.
-- **`listMessageIds`/`getMessage` (`src/lib/gmail/client.ts`) never take a query-less path** — there's no "list everything" function in this client at all, so even a future bug in `runGmailSync` couldn't accidentally trigger a full-mailbox scan; the capability doesn't exist below the sync layer either.
 - Configured from the same `GmailIntegrationCard` Settings section as 7.2 (`search_query` input + Save, calling `setGmailSearchQuery`).
 
 ### 7.4 notes

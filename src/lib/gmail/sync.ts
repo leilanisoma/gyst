@@ -4,6 +4,7 @@ import { getMessage, listMessageIds } from "./client";
 import { extractGmailItemsFromMessage } from "./extract";
 import {
   DEFAULT_GMAIL_RETENTION_DAYS,
+  DEFAULT_GMAIL_SEARCH_QUERY,
   getGmailIntegration,
   markGmailError,
   markGmailSynced,
@@ -17,12 +18,13 @@ export type RunGmailSyncResult =
   | { ok: false; error: string };
 
 /**
- * Scans only messages matching the user-configured Gmail search query
- * (PLAN.md §15 task 7.3 — never the whole inbox; there's no default query,
- * so sync refuses to run until one is set), extracts candidates from each
- * message not already processed, and logs one `sync_runs` row for the pass.
- * `gmail_processed_messages` means a message is only ever fetched/extracted
- * once, regardless of how many times sync re-runs.
+ * Scans messages matching the Gmail search query — the user's own
+ * `search_query` if they've set one, otherwise `DEFAULT_GMAIL_SEARCH_QUERY`
+ * (the whole mailbox minus Promotions/Social/Spam/Trash) — extracts
+ * candidates from each message not already processed, and logs one
+ * `sync_runs` row for the pass. `gmail_processed_messages` means a message
+ * is only ever fetched/extracted once, regardless of how many times sync
+ * re-runs.
  */
 export async function runGmailSync(
   supabase: SupabaseServerClient,
@@ -42,14 +44,7 @@ export async function runGmailSync(
   }
 
   const integration = await getGmailIntegration(supabase, userId);
-  const query = integration?.settings.search_query?.trim();
-  if (!query) {
-    return {
-      ok: false,
-      error:
-        "Set a Gmail search query or label in Settings before syncing — GYST never scans the whole inbox.",
-    };
-  }
+  const query = integration?.settings.search_query?.trim() || DEFAULT_GMAIL_SEARCH_QUERY;
   const retentionDays =
     integration?.settings.retention_days ?? DEFAULT_GMAIL_RETENTION_DAYS;
 

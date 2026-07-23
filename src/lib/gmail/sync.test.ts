@@ -19,6 +19,7 @@ vi.mock("./tokens", () => ({
 function reset() {
   state.refs = [];
   state.messages = {};
+  vi.clearAllMocks();
 }
 
 function seedIntegration(db: FakeSupabase, settings: Record<string, unknown>) {
@@ -28,15 +29,31 @@ function seedIntegration(db: FakeSupabase, settings: Record<string, unknown>) {
 }
 
 describe("runGmailSync", () => {
-  it("refuses to run without a configured search query (task 7.3 — never scan the whole inbox)", async () => {
+  it("falls back to the default whole-mailbox-minus-promotions query when none is configured", async () => {
     reset();
+    state.refs = [{ id: "m1", threadId: "t1" }];
+    state.messages.m1 = {
+      id: "m1",
+      threadId: "t1",
+      subject: "Interview",
+      from: "recruiter@company.com",
+      messageIdHeader: "<abc@mail.gmail.com>",
+      snippet: "...",
+      bodyText: "...",
+    };
     const { runGmailSync } = await import("./sync");
     const db = new FakeSupabase();
     seedIntegration(db, {});
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await runGmailSync(db as any, "user-1");
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toContain("search query");
+    expect(result).toMatchObject({ ok: true, messagesScanned: 1 });
+
+    const client = await import("./client");
+    expect(vi.mocked(client.listMessageIds)).toHaveBeenCalledWith(
+      "fake-access-token",
+      "-category:promotions -category:social -in:spam -in:trash",
+    );
   });
 
   it("errors clearly when Gmail isn't connected", async () => {

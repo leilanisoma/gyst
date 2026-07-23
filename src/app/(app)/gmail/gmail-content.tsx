@@ -80,20 +80,10 @@ export async function GmailContent() {
   const hasComposeScope = integration.granted_scopes.includes(
     GMAIL_SCOPES.compose,
   );
-  const hasSearchQuery = Boolean(integration.settings.search_query?.trim());
 
   return (
     <>
       <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
-      {!hasSearchQuery && (
-        <p className="text-muted-foreground max-w-md text-sm">
-          Set a Gmail search query or label in{" "}
-          <Link href="/settings" className="underline">
-            Settings
-          </Link>{" "}
-          before syncing — GYST never scans the whole inbox.
-        </p>
-      )}
       <GmailReviewQueue items={items} />
       <GmailDraftsSection drafts={drafts} hasComposeScope={hasComposeScope} />
     </>

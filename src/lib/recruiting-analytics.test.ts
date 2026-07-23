@@ -41,42 +41,87 @@ describe("computeStageFunnel", () => {
     expect(funnel.find((f) => f.stage === "applied")?.reached).toBe(1);
     expect(funnel.find((f) => f.stage === "interview")?.reached).toBe(0);
   });
+
+  it("credits an application with reaching `applied` even if the stage dropdown skipped straight past it", () => {
+    const events: AnalyticsEvent[] = [
+      {
+        application_id: "a",
+        to_stage: "saved",
+        occurred_at: "2026-07-01T00:00:00Z",
+      },
+      // Jumped straight from "saved" to "interview" — no explicit "applied" event.
+      {
+        application_id: "a",
+        to_stage: "interview",
+        occurred_at: "2026-07-03T00:00:00Z",
+      },
+    ];
+    const funnel = computeStageFunnel(events);
+    expect(funnel.find((f) => f.stage === "applied")?.reached).toBe(1);
+    expect(funnel.find((f) => f.stage === "interview")?.reached).toBe(1);
+    expect(funnel.find((f) => f.stage === "offer")?.reached).toBe(0);
+  });
 });
 
 describe("computeApplicationsPerWeek", () => {
-  it("buckets applications into ISO weeks", () => {
-    const apps: AnalyticsApplication[] = [
+  it("buckets applied-stage transitions into ISO weeks", () => {
+    const events: AnalyticsEvent[] = [
       {
-        id: "1",
-        stage: "saved",
-        created_at: "2026-07-06T00:00:00Z",
-        source: "manual",
-        role_family: "other",
-        excluded: false,
+        application_id: "1",
+        to_stage: "applied",
+        occurred_at: "2026-07-06T00:00:00Z",
       },
       {
-        id: "2",
-        stage: "saved",
-        created_at: "2026-07-08T00:00:00Z",
-        source: "manual",
-        role_family: "other",
-        excluded: false,
+        application_id: "2",
+        to_stage: "applied",
+        occurred_at: "2026-07-08T00:00:00Z",
       },
       {
-        id: "3",
-        stage: "saved",
-        created_at: "2026-06-29T00:00:00Z",
-        source: "manual",
-        role_family: "other",
-        excluded: false,
+        application_id: "3",
+        to_stage: "applied",
+        occurred_at: "2026-06-29T00:00:00Z",
+      },
+      // Non-"applied" transitions (e.g. entering the discovery queue) don't count.
+      {
+        application_id: "4",
+        to_stage: "discovered",
+        occurred_at: "2026-07-08T00:00:00Z",
       },
     ];
     const now = new Date("2026-07-12T00:00:00Z");
-    const weeks = computeApplicationsPerWeek(apps, 3, now);
+    const weeks = computeApplicationsPerWeek(events, 3, now);
     expect(weeks).toHaveLength(3);
     // 2026-07-06 (Monday) and 2026-07-08 fall in the same week.
     expect(weeks[weeks.length - 1].count).toBe(2);
     expect(weeks[weeks.length - 2].count).toBe(1);
+  });
+
+  it("counts an application once, in the week it first reached applied-or-later, not once per later event", () => {
+    const events: AnalyticsEvent[] = [
+      {
+        application_id: "1",
+        to_stage: "applied",
+        occurred_at: "2026-07-06T00:00:00Z",
+      },
+      // Same application, later stage, later week — shouldn't add a second count.
+      {
+        application_id: "1",
+        to_stage: "interview",
+        occurred_at: "2026-07-15T00:00:00Z",
+      },
+      // Skipped straight to "offer" in week 2 with no "applied" event at all.
+      {
+        application_id: "2",
+        to_stage: "offer",
+        occurred_at: "2026-07-08T00:00:00Z",
+      },
+    ];
+    const now = new Date("2026-07-19T00:00:00Z");
+    const weeks = computeApplicationsPerWeek(events, 3, now);
+    // Week of 2026-07-06: applications 1 and 2 both first qualify here.
+    expect(weeks[weeks.length - 2].count).toBe(2);
+    // Week of 2026-07-13: application 1's later "interview" event doesn't recount it.
+    expect(weeks[weeks.length - 1].count).toBe(0);
   });
 });
 
@@ -292,6 +337,15 @@ describe("computeWeeklyGoalProgress", () => {
       actual: 2,
       pace: "behind",
     });
+  });
+
+  it("credits an application that skipped straight to a later stage this week", () => {
+    const events: AnalyticsEvent[] = [
+      { application_id: "a", to_stage: "applied", occurred_at: "2026-07-20T00:00:00Z" },
+      // No "applied" event at all — went straight from "saved" to "offer".
+      { application_id: "d", to_stage: "offer", occurred_at: "2026-07-21T00:00:00Z" },
+    ];
+    expect(computeWeeklyGoalProgress(events, 5, now)).toMatchObject({ actual: 2 });
   });
 
   it("reports on_track within one of goal, ahead at/above it", () => {

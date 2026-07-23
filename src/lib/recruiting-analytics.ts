@@ -23,23 +23,58 @@ export type AnalyticsEvent = {
 /** Funnel milestones worth reporting — excludes the negative-outcome stages. */
 const FUNNEL_STAGES = APPLICATION_BOARD_STAGES.filter((s) => s !== "rejected");
 
+/**
+ * `FUNNEL_STAGES`' order doubles as the pipeline's forward progression —
+ * used to credit an application with reaching an earlier milestone (e.g.
+ * `applied`) even when the user jumped the stage dropdown straight to a
+ * later one (e.g. `interview`) without ever explicitly selecting `applied`
+ * first. Without this, that application would never show a `to_stage:
+ * "applied"` event at all and every applied-based metric would silently
+ * miss it.
+ */
+const PROGRESSION_RANK = new Map<ApplicationStage, number>(
+  FUNNEL_STAGES.map((stage, index) => [stage, index]),
+);
+
+/** Earliest `occurred_at` per application at which it reached `milestone` or any later stage. */
+function firstReachedDates(
+  events: AnalyticsEvent[],
+  milestone: ApplicationStage,
+): Map<string, string> {
+  const targetRank = PROGRESSION_RANK.get(milestone) ?? Infinity;
+  const firstByApplication = new Map<string, string>();
+  for (const event of events) {
+    const rank = PROGRESSION_RANK.get(event.to_stage as ApplicationStage);
+    if (rank === undefined || rank < targetRank) continue;
+    const existing = firstByApplication.get(event.application_id);
+    if (!existing || event.occurred_at < existing) {
+      firstByApplication.set(event.application_id, event.occurred_at);
+    }
+  }
+  return firstByApplication;
+}
+
 export type FunnelStep = { stage: ApplicationStage; label: string; reached: number };
 
-/** For each milestone, how many applications ever had an event transitioning into it. */
+/** For each milestone, how many applications ever reached it or a later stage. */
 export function computeStageFunnel(events: AnalyticsEvent[]): FunnelStep[] {
-  return FUNNEL_STAGES.map((stage) => {
-    const reached = new Set(
-      events.filter((e) => e.to_stage === stage).map((e) => e.application_id),
-    ).size;
-    return { stage, label: APPLICATION_STAGE_LABELS[stage], reached };
-  });
+  return FUNNEL_STAGES.map((stage) => ({
+    stage,
+    label: APPLICATION_STAGE_LABELS[stage],
+    reached: firstReachedDates(events, stage).size,
+  }));
 }
 
 export type WeeklyCount = { weekStart: string; count: number };
 
-/** Applications created per ISO week, oldest first, for the last `weeks` weeks. */
+/**
+ * Applications reaching `applied` (or skipping straight past it to a later
+ * stage) per ISO week, oldest first, for the last `weeks` weeks — each
+ * application counts once, in the week it first qualified, not once per
+ * qualifying event.
+ */
 export function computeApplicationsPerWeek(
-  applications: AnalyticsApplication[],
+  events: AnalyticsEvent[],
   weeks: number,
   now: Date = new Date(),
 ): WeeklyCount[] {
@@ -52,8 +87,8 @@ export function computeApplicationsPerWeek(
   }
 
   const counts = new Map(weekStarts.map((w) => [w, 0]));
-  for (const app of applications) {
-    const week = startOfWeek(new Date(app.created_at)).toISOString().slice(0, 10);
+  for (const occurredAt of firstReachedDates(events, "applied").values()) {
+    const week = startOfWeek(new Date(occurredAt)).toISOString().slice(0, 10);
     if (counts.has(week)) {
       counts.set(week, (counts.get(week) ?? 0) + 1);
     }
@@ -210,13 +245,14 @@ export type WeeklyGoalProgress = {
 };
 
 /**
- * This week's count of applications that actually reached `applied`
- * (Monday-anchored, by the `applied` transition event, not by
- * `created_at` — an opportunity can sit `saved` for weeks before it's
- * actually submitted, so `created_at` would measure "added to pipeline,"
- * not "applied") against the user's goal — feeds the dashboard's goal
- * meter. "on_track" allows a small buffer (1 short of goal) so an ordinary
- * Tuesday doesn't read as "behind."
+ * This week's count of applications that actually reached `applied` or
+ * skipped straight past it to a later stage (Monday-anchored, by the
+ * earliest qualifying transition event, not by `created_at` — an
+ * opportunity can sit `saved` for weeks before it's actually submitted, so
+ * `created_at` would measure "added to pipeline," not "applied") against
+ * the user's goal — feeds the dashboard's goal meter. "on_track" allows a
+ * small buffer (1 short of goal) so an ordinary Tuesday doesn't read as
+ * "behind."
  */
 export function computeWeeklyGoalProgress(
   events: AnalyticsEvent[],
@@ -224,13 +260,9 @@ export function computeWeeklyGoalProgress(
   now: Date = new Date(),
 ): WeeklyGoalProgress {
   const weekStart = startOfWeek(now).toISOString().slice(0, 10);
-  const actual = new Set(
-    events
-      .filter(
-        (e) => e.to_stage === "applied" && e.occurred_at.slice(0, 10) >= weekStart,
-      )
-      .map((e) => e.application_id),
-  ).size;
+  const actual = [...firstReachedDates(events, "applied").values()].filter(
+    (occurredAt) => occurredAt.slice(0, 10) >= weekStart,
+  ).length;
   const pace: WeeklyGoalProgress["pace"] =
     actual >= goal ? "ahead" : actual >= goal - 1 ? "on_track" : "behind";
   return { goal, actual, pace };

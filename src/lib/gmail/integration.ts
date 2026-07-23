@@ -8,8 +8,17 @@ const PROVIDER = "gmail" as const;
 /** Default when a user hasn't set one (task 7.8) — narrow, per DATA_CLASSIFICATION.md's "Highly sensitive" tier for Gmail content. */
 export const DEFAULT_GMAIL_RETENTION_DAYS = 30;
 
+/**
+ * Used when the user hasn't set a custom `search_query` — scans the whole
+ * mailbox except Promotions/Social/Spam/Trash, so ad and newsletter noise
+ * never reaches the AI extraction call. The user can still narrow this to a
+ * specific label/query in Settings if they want a tighter scope.
+ */
+export const DEFAULT_GMAIL_SEARCH_QUERY =
+  "-category:promotions -category:social -in:spam -in:trash";
+
 export type GmailIntegrationSettings = {
-  /** Gmail search query (e.g. `label:job-search`) scoping sync — required before any sync runs (task 7.3, never scan the whole inbox). */
+  /** Gmail search query (e.g. `label:job-search`) narrowing sync's scope. Falls back to `DEFAULT_GMAIL_SEARCH_QUERY` when unset. */
   search_query?: string;
   /** How long an extracted item's excerpt is kept before the purge cron deletes it (task 7.8). */
   retention_days?: number;

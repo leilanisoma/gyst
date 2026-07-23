@@ -56,9 +56,9 @@ export async function getProfile(
 export type GmailMessageRef = { id: string; threadId: string };
 
 /**
- * Lists message IDs matching a Gmail search query (task 7.3 — this app never
- * lists/reads the whole inbox, only whatever the user scopes it to via
- * `q`, e.g. a label search like `label:job-search`).
+ * Lists message IDs matching a Gmail search query — either the user's own
+ * scope (e.g. a label search like `label:job-search`) or sync's default
+ * whole-mailbox-minus-promotions query (see `DEFAULT_GMAIL_SEARCH_QUERY`).
  */
 export async function listMessageIds(
   accessToken: string,

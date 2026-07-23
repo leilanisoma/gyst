@@ -146,15 +146,15 @@ export function GmailIntegrationCard({
       <div className="flex flex-col gap-2 border-t pt-3">
         <h3 className="text-sm font-medium">Search scope</h3>
         <p className="text-muted-foreground text-sm">
-          Gmail search query or label scoping what GYST reads — e.g.{" "}
-          <code>label:job-search</code>. Sync refuses to run until this is
-          set; GYST never scans the whole inbox.
+          By default, sync reads your whole mailbox except Promotions,
+          Social, Spam, and Trash. Optionally narrow that to a Gmail search
+          query or label — e.g. <code>label:job-search</code>.
         </p>
         <div className="flex gap-2">
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="label:job-search"
+            placeholder="Default: whole mailbox, minus promotions/social"
             className="max-w-56"
           />
           <Button size="sm" variant="outline" disabled={isPending} onClick={saveSearchQuery}>
