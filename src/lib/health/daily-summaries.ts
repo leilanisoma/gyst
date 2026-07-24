@@ -4,16 +4,15 @@ import type { createClient } from "@/lib/supabase/server";
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 /**
- * The exact allowlist PLAN.md §8 names ("sleep, workouts, activity, resting
- * heart rate") — anything outside this shape is a validation error, not
- * silently accepted. Entered manually in the webapp (Phase 9B was descoped
- * from a native HealthKit sync — see docs/PHASES/phase-9.md).
+ * The exact allowlist PLAN.md §8 names ("sleep, workouts, activity") —
+ * anything outside this shape is a validation error, not silently accepted.
+ * Entered manually in the webapp (Phase 9B was descoped from a native
+ * HealthKit sync — see docs/PHASES/phase-9.md).
  */
 export const dailySummaryMetricSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM-DD"),
   sleep_minutes: z.number().int().min(0).max(24 * 60).nullable().optional(),
   steps: z.number().int().min(0).nullable().optional(),
-  resting_heart_rate: z.number().int().min(0).max(300).nullable().optional(),
   active_energy_kcal: z.number().min(0).nullable().optional(),
   workout_minutes: z.number().int().min(0).max(24 * 60).nullable().optional(),
 });
@@ -41,7 +40,6 @@ export async function upsertDailySummaries(
     summary_date: summary.date,
     sleep_minutes: summary.sleep_minutes ?? null,
     steps: summary.steps ?? null,
-    resting_heart_rate: summary.resting_heart_rate ?? null,
     active_energy_kcal: summary.active_energy_kcal ?? null,
     workout_minutes: summary.workout_minutes ?? null,
     source: "manual_entry",
@@ -65,7 +63,7 @@ export async function listDailySummaries(
   const { data } = await supabase
     .from("health_daily_summaries")
     .select(
-      "id, summary_date, sleep_minutes, steps, resting_heart_rate, active_energy_kcal, workout_minutes",
+      "id, summary_date, sleep_minutes, steps, active_energy_kcal, workout_minutes",
     )
     .eq("user_id", userId)
     .order("summary_date", { ascending: false });
@@ -75,7 +73,6 @@ export async function listDailySummaries(
     date: row.summary_date,
     sleep_minutes: row.sleep_minutes,
     steps: row.steps,
-    resting_heart_rate: row.resting_heart_rate,
     active_energy_kcal: row.active_energy_kcal,
     workout_minutes: row.workout_minutes,
   }));

@@ -18,6 +18,46 @@ import type { ScheduleCategory } from "@/lib/recurring-schedules";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+function isValidTimeZone(timezone: string): boolean {
+  try {
+    new Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * `profiles.timezone` is the single source of truth every date/time
+ * computation in the app reads from (Today's timeline, Wellness/School
+ * check-in dates, scheduling, notification quiet hours, chat's date
+ * awareness) — it defaults to `'UTC'` at the DB level
+ * (`20260712000001_profiles.sql`) and had no UI to change it until now.
+ */
+export async function updateTimezone(timezone: string): Promise<ActionResult> {
+  if (!isValidTimeZone(timezone)) {
+    return { ok: false, error: "Not a recognized timezone." };
+  }
+
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ timezone })
+    .eq("id", user.id);
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export type RecurringScheduleInput = {
   title: string;
   category: ScheduleCategory;

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { createClient } from "@/lib/supabase/server";
 import { decryptSecret, encryptSecret } from "@/lib/crypto";
 
@@ -24,7 +25,16 @@ export const ALLOWED_SYMPTOMS: Symptom[] = [
 
 export type CycleObservationSource = "manual_entry" | "manual_csv";
 
-export type CycleObservation = {
+/** Fertility-monitor hormone readings, tested every other day rather than daily. */
+export type HormoneReadings = {
+  on_period: boolean | null;
+  lh: number | null;
+  e3g: number | null;
+  pdg: number | null;
+  fsh: number | null;
+};
+
+export type CycleObservation = HormoneReadings & {
   id: string;
   observation_date: string;
   flow: Flow | null;
@@ -39,6 +49,18 @@ export type ParsedCycleCsvRow = {
   symptoms: Symptom[];
   note: string | null;
 };
+
+/** Manual single-day entry — the hormone readings, not the CSV import path. */
+export const cycleObservationEntrySchema = z.object({
+  observation_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM-DD"),
+  on_period: z.boolean().nullable().optional(),
+  lh: z.number().min(0).nullable().optional(),
+  e3g: z.number().min(0).nullable().optional(),
+  pdg: z.number().min(0).nullable().optional(),
+  fsh: z.number().min(0).nullable().optional(),
+});
+
+export type CycleObservationEntry = z.infer<typeof cycleObservationEntrySchema>;
 
 export type CycleCsvParseResult = {
   rows: ParsedCycleCsvRow[];
@@ -184,7 +206,9 @@ export async function listCycleObservations(
 ): Promise<CycleObservation[]> {
   const { data } = await supabase
     .from("cycle_observations")
-    .select("id, observation_date, flow, symptoms, note_encrypted, source")
+    .select(
+      "id, observation_date, flow, symptoms, note_encrypted, source, on_period, lh, e3g, pdg, fsh",
+    )
     .eq("user_id", userId)
     .order("observation_date", { ascending: false });
 
@@ -195,7 +219,45 @@ export async function listCycleObservations(
     symptoms: row.symptoms,
     note: row.note_encrypted ? decryptSecret(row.note_encrypted) : null,
     source: row.source as CycleObservationSource,
+    on_period: row.on_period,
+    lh: row.lh,
+    e3g: row.e3g,
+    pdg: row.pdg,
+    fsh: row.fsh,
   }));
+}
+
+/**
+ * Manual single-day entry for fertility-monitor hormone readings (LH, E3G,
+ * PdG, FSH — tested every other day) plus a simple period on/off flag.
+ * Separate from `upsertCycleObservations` (the CSV import path) since the
+ * payload here only ever touches these five columns — an upsert on
+ * conflict only sets the columns present in the object, so this can't
+ * clobber flow/symptoms/note that a CSV import already stored for the same
+ * date.
+ */
+export async function upsertCycleObservationEntry(
+  supabase: SupabaseServerClient,
+  userId: string,
+  entry: CycleObservationEntry,
+): Promise<ActionResult> {
+  const { error } = await supabase.from("cycle_observations").upsert(
+    {
+      user_id: userId,
+      observation_date: entry.observation_date,
+      on_period: entry.on_period ?? null,
+      lh: entry.lh ?? null,
+      e3g: entry.e3g ?? null,
+      pdg: entry.pdg ?? null,
+      fsh: entry.fsh ?? null,
+    },
+    { onConflict: "user_id,observation_date" },
+  );
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 export async function deleteCycleObservation(

@@ -197,6 +197,19 @@ this schema before writing, the same guard the deleted sync endpoint used
 to apply to a device's payload — the enforcement point moved from an API
 route to a server action, but the shape it enforces didn't change.
 
+**2026-07-23 update: hormone readings + period flag, resting heart rate dropped.**
+Ishani tests LH/E3G/PdG/FSH on a fertility monitor every other day, which
+doesn't fit the CSV-paste workflow, so `cycle_observations` gained
+`on_period`/`lh`/`e3g`/`pdg`/`fsh` columns (migration
+`20260723000001_cycle_hormone_tracking.sql`) plus a manual single-day entry
+form (`CycleEntryForm`, `upsertCycleObservationEntry` in
+`src/lib/health/cycle-observations.ts`) alongside the existing CSV import —
+the two paths write disjoint column sets, so upserting one never clobbers
+data the other already stored for the same date (verified in
+`cycle-observations.test.ts`). Separately, `resting_heart_rate` was dropped
+from `health_daily_summaries` (schema, `dailySummaryMetricSchema`,
+`HealthSummaryForm`) — no longer tracked, migration in the same file.
+
 **Cycle data's CSV import is intentionally strict, not lenient.** PLAN.md
 §8 rules out scraping and rules out assuming an API; the remaining option
 it names is manual/CSV. `parseCycleCsv`

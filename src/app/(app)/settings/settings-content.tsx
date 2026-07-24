@@ -3,6 +3,7 @@ import { InstallInstructions } from "@/components/pwa/install-instructions";
 import { GoogleIntegrationCard } from "@/components/settings/google-integration-card";
 import { GmailIntegrationCard } from "@/components/settings/gmail-integration-card";
 import { NotificationSettingsCard } from "@/components/settings/notification-settings-card";
+import { TimezoneSelect } from "@/components/settings/timezone-select";
 import { RecurringScheduleForm } from "@/components/settings/recurring-schedule-form";
 import { RecurringScheduleList } from "@/components/settings/recurring-schedule-list";
 import { listCalendars } from "@/lib/google/calendar";
@@ -93,9 +94,11 @@ export async function SettingsContent() {
           <dt className="text-muted-foreground">Email</dt>
           <dd>{profile?.email ?? data.user?.email}</dd>
         </div>
-        <div className="border-border flex justify-between border-b py-2">
+        <div className="border-border flex items-center justify-between border-b py-2">
           <dt className="text-muted-foreground">Timezone</dt>
-          <dd>{profile?.timezone ?? "UTC"}</dd>
+          <dd>
+            <TimezoneSelect timezone={profile?.timezone ?? "UTC"} />
+          </dd>
         </div>
       </dl>
       <p className="text-muted-foreground text-base">

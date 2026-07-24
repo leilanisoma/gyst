@@ -111,10 +111,15 @@ export function CycleImportCard({
               >
                 <span>
                   {observation.observation_date}
+                  {observation.on_period ? " · on period" : ""}
                   {observation.flow ? ` · ${observation.flow}` : ""}
                   {observation.symptoms.length > 0
                     ? ` · ${observation.symptoms.join(", ")}`
                     : ""}
+                  {observation.lh != null ? ` · LH ${observation.lh}` : ""}
+                  {observation.fsh != null ? ` · FSH ${observation.fsh}` : ""}
+                  {observation.e3g != null ? ` · E3G ${observation.e3g}` : ""}
+                  {observation.pdg != null ? ` · PdG ${observation.pdg}` : ""}
                 </span>
                 <button
                   type="button"

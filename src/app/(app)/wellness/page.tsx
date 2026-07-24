@@ -17,6 +17,7 @@ import { WellnessCheckInForm } from "@/components/wellness/wellness-check-in-for
 import { WellnessHistory } from "@/components/wellness/wellness-history";
 import { WellnessDataControls } from "@/components/wellness/wellness-data-controls";
 import { CycleImportCard } from "@/components/wellness/cycle-import-card";
+import { CycleEntryForm } from "@/components/wellness/cycle-entry-form";
 import { HealthSummaryForm } from "@/components/wellness/health-summary-form";
 import { listCycleObservations } from "@/lib/health/cycle-observations";
 import { listDailySummaries } from "@/lib/health/daily-summaries";
@@ -83,17 +84,8 @@ export default async function WellnessPage() {
       <RoomContentPanel className="absolute inset-x-4 top-16 max-h-[40vh] md:inset-x-auto md:top-1/2 md:left-[4%] md:max-h-[75vh] md:w-[380px] md:-translate-y-1/2">
         <RoomHeader {...ROOMS.wellness} />
         <p className="text-muted-foreground text-sm">
-          Lightweight, optional check-ins for supportive awareness — not a
-          tracker to optimize. Every field is skippable.
+          Lightweight, optional check-ins for supportive awareness. Every field is skippable.
         </p>
-
-        <section className="border-border bg-muted/40 text-muted-foreground rounded-lg border p-3 text-xs">
-          This is not medical advice. If a period stops or something feels
-          concerning, please talk with a qualified clinician — GYST only
-          reflects back what you tell it, in plain language, with no diagnosis
-          or causal claims. This data is private: it&rsquo;s kept out of chat
-          and general AI context unless you attach it to a question yourself.
-        </section>
 
         <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
           <h2 className="text-sm font-semibold">Today&rsquo;s check-in</h2>
@@ -146,7 +138,14 @@ export default async function WellnessPage() {
             {
               id: "cycle",
               label: "Cycle tracking",
-              content: <CycleImportCard observations={cycleObservations} />,
+              content: (
+                <>
+                  <CycleEntryForm dateString={todayString} />
+                  <div className="border-t pt-3">
+                    <CycleImportCard observations={cycleObservations} />
+                  </div>
+                </>
+              ),
             },
             {
               id: "data",
@@ -177,7 +176,10 @@ export default async function WellnessPage() {
           />
         </CollapsibleSection>
         <CollapsibleSection title="Cycle tracking (optional)">
-          <CycleImportCard observations={cycleObservations} />
+          <CycleEntryForm dateString={todayString} />
+          <div className="border-t pt-3">
+            <CycleImportCard observations={cycleObservations} />
+          </div>
         </CollapsibleSection>
         <CollapsibleSection title="Your data">
           <p className="text-muted-foreground text-xs">

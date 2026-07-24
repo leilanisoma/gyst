@@ -633,10 +633,15 @@ export type Database = {
       cycle_observations: {
         Row: {
           created_at: string
+          e3g: number | null
           flow: string | null
+          fsh: number | null
           id: string
+          lh: number | null
           note_encrypted: string | null
           observation_date: string
+          on_period: boolean | null
+          pdg: number | null
           source: string
           symptoms: string[]
           updated_at: string
@@ -644,10 +649,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          e3g?: number | null
           flow?: string | null
+          fsh?: number | null
           id?: string
+          lh?: number | null
           note_encrypted?: string | null
           observation_date: string
+          on_period?: boolean | null
+          pdg?: number | null
           source?: string
           symptoms?: string[]
           updated_at?: string
@@ -655,10 +665,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          e3g?: number | null
           flow?: string | null
+          fsh?: number | null
           id?: string
+          lh?: number | null
           note_encrypted?: string | null
           observation_date?: string
+          on_period?: boolean | null
+          pdg?: number | null
           source?: string
           symptoms?: string[]
           updated_at?: string
@@ -1171,7 +1186,6 @@ export type Database = {
           active_energy_kcal: number | null
           created_at: string
           id: string
-          resting_heart_rate: number | null
           sleep_minutes: number | null
           source: string
           steps: number | null
@@ -1185,7 +1199,6 @@ export type Database = {
           active_energy_kcal?: number | null
           created_at?: string
           id?: string
-          resting_heart_rate?: number | null
           sleep_minutes?: number | null
           source?: string
           steps?: number | null
@@ -1199,7 +1212,6 @@ export type Database = {
           active_energy_kcal?: number | null
           created_at?: string
           id?: string
-          resting_heart_rate?: number | null
           sleep_minutes?: number | null
           source?: string
           steps?: number | null
@@ -2248,6 +2260,7 @@ export type Database = {
       tasks: {
         Row: {
           area: string
+          course_id: string | null
           created_at: string
           deadline_notified_at: string | null
           due_date: string | null
@@ -2271,6 +2284,7 @@ export type Database = {
         }
         Insert: {
           area?: string
+          course_id?: string | null
           created_at?: string
           deadline_notified_at?: string | null
           due_date?: string | null
@@ -2294,6 +2308,7 @@ export type Database = {
         }
         Update: {
           area?: string
+          course_id?: string | null
           created_at?: string
           deadline_notified_at?: string | null
           due_date?: string | null
@@ -2316,6 +2331,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_goal_id_fkey"
             columns: ["goal_id"]
@@ -2476,6 +2498,8 @@ export type Database = {
       work_estimates: {
         Row: {
           actual_minutes: number | null
+          category: string | null
+          course_id: string | null
           created_at: string
           estimator_version: string
           id: string
@@ -2486,6 +2510,8 @@ export type Database = {
         }
         Insert: {
           actual_minutes?: number | null
+          category?: string | null
+          course_id?: string | null
           created_at?: string
           estimator_version?: string
           id?: string
@@ -2496,6 +2522,8 @@ export type Database = {
         }
         Update: {
           actual_minutes?: number | null
+          category?: string | null
+          course_id?: string | null
           created_at?: string
           estimator_version?: string
           id?: string
@@ -2505,6 +2533,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "work_estimates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "work_estimates_task_id_fkey"
             columns: ["task_id"]

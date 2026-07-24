@@ -15,6 +15,7 @@ import { FixedTimeline } from "@/components/today/fixed-timeline";
 import { OverwhelmMode } from "@/components/today/overwhelm-mode";
 import { RolloverReviewList } from "@/components/today/rollover-review-list";
 import { TaskSummaryList } from "@/components/today/task-summary-list";
+import { AddTaskForm } from "@/components/tasks/add-task-form";
 import { TimeBlockSuggestions } from "@/components/today/time-block-suggestions";
 import { TopOutcomesCard } from "@/components/today/top-outcomes-card";
 import { WeeklyGoalsList } from "@/components/today/weekly-goals-list";
@@ -289,6 +290,7 @@ function TodayView({
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold">Due today</h2>
         <TaskSummaryList tasks={dueToday} emptyMessage="Nothing due today." />
+        <AddTaskForm area="general" defaultDueDate={now.toISOString()} />
       </section>
     </>
   );

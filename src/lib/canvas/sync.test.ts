@@ -60,6 +60,64 @@ describe("runCanvasSync", () => {
     expect(db.tables.sync_runs[0]).toMatchObject({ status: "success" });
   });
 
+  it("calibrates a recurring category's estimate against logged actual time in the same course", async () => {
+    reset();
+    state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];
+    state.assignmentsByCourse[1] = [
+      {
+        id: 100,
+        name: "Quiz 1",
+        due_at: "2026-08-01T00:00:00Z",
+        points_possible: null,
+        submission_types: ["online_quiz"],
+        html_url: "https://canvas.example.edu/assignments/100",
+        submission: null,
+      },
+    ];
+
+    const { runCanvasSync } = await import("./sync");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = new FakeSupabase() as any;
+    await runCanvasSync(db, "user-1");
+    expect(db.tables.work_estimates[0]).toMatchObject({
+      predicted_minutes: 30,
+      estimator_version: "v1",
+      category: "quiz",
+    });
+
+    // Ishani logs that Quiz 1 actually only took 15 minutes.
+    db.tables.work_estimates[0].actual_minutes = 15;
+
+    // Next week's quiz shows up on the next sync.
+    state.assignmentsByCourse[1].push({
+      id: 101,
+      name: "Quiz 2",
+      due_at: "2026-08-08T00:00:00Z",
+      points_possible: null,
+      submission_types: ["online_quiz"],
+      html_url: "https://canvas.example.edu/assignments/101",
+      submission: null,
+    });
+
+    await runCanvasSync(db, "user-1");
+
+    const quiz2Task = db.tables.tasks.find((t: { title: string }) => t.title === "Quiz 2");
+    const quiz2Estimate = db.tables.work_estimates.find(
+      (e: { task_id: string }) => e.task_id === quiz2Task.id,
+    );
+    expect(quiz2Task.estimated_minutes).toBe(15);
+    expect(quiz2Estimate).toMatchObject({
+      predicted_minutes: 15,
+      estimator_version: "v2",
+      category: "quiz",
+    });
+
+    // Quiz 1's own estimate is untouched by the second sync — it was
+    // already submitted-status-independent, but re-syncing shouldn't wipe
+    // the actual_minutes the user just logged.
+    expect(db.tables.work_estimates[0].actual_minutes).toBe(15);
+  });
+
   it("marks the mirrored task completed once Canvas reports the assignment submitted, without recreating it", async () => {
     reset();
     state.courses = [{ id: 1, name: "CS 101", course_code: "CS101", term: null }];

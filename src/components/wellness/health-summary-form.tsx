@@ -34,7 +34,6 @@ export function HealthSummaryForm({
   const [date, setDate] = useState(dateString);
   const [sleepMinutes, setSleepMinutes] = useState("");
   const [steps, setSteps] = useState("");
-  const [restingHeartRate, setRestingHeartRate] = useState("");
   const [activeEnergyKcal, setActiveEnergyKcal] = useState("");
   const [workoutMinutes, setWorkoutMinutes] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -43,7 +42,6 @@ export function HealthSummaryForm({
     setDate(dateString);
     setSleepMinutes("");
     setSteps("");
-    setRestingHeartRate("");
     setActiveEnergyKcal("");
     setWorkoutMinutes("");
   }
@@ -54,7 +52,6 @@ export function HealthSummaryForm({
         date,
         sleep_minutes: toNumberOrNull(sleepMinutes),
         steps: toNumberOrNull(steps),
-        resting_heart_rate: toNumberOrNull(restingHeartRate),
         active_energy_kcal: toNumberOrNull(activeEnergyKcal),
         workout_minutes: toNumberOrNull(workoutMinutes),
       });
@@ -79,7 +76,7 @@ export function HealthSummaryForm({
   function deleteAll() {
     if (
       !window.confirm(
-        "Delete every logged health entry (sleep, steps, heart rate, workouts)? This can't be undone.",
+        "Delete every logged health entry (sleep, steps, energy, workouts)? This can't be undone.",
       )
     ) {
       return;
@@ -95,8 +92,8 @@ export function HealthSummaryForm({
     <div className="flex flex-col gap-3">
       <p className="text-muted-foreground text-xs">
         No native iPhone companion exists — Apple Watch data (steps, sleep,
-        resting heart rate, active energy, workout minutes) is logged here by
-        hand for a given day.
+        active energy, workout minutes) is logged here by hand for a given
+        day.
       </p>
 
       <div className="flex flex-col gap-1.5">
@@ -134,16 +131,6 @@ export function HealthSummaryForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="health-summary-hr">Resting heart rate (bpm)</Label>
-          <Input
-            id="health-summary-hr"
-            type="number"
-            min={0}
-            value={restingHeartRate}
-            onChange={(event) => setRestingHeartRate(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
           <Label htmlFor="health-summary-energy">Active energy (kcal)</Label>
           <Input
             id="health-summary-energy"
@@ -153,17 +140,16 @@ export function HealthSummaryForm({
             onChange={(event) => setActiveEnergyKcal(event.target.value)}
           />
         </div>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="health-summary-workout">Workout (minutes)</Label>
-        <Input
-          id="health-summary-workout"
-          type="number"
-          min={0}
-          value={workoutMinutes}
-          onChange={(event) => setWorkoutMinutes(event.target.value)}
-        />
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="health-summary-workout">Workout (minutes)</Label>
+          <Input
+            id="health-summary-workout"
+            type="number"
+            min={0}
+            value={workoutMinutes}
+            onChange={(event) => setWorkoutMinutes(event.target.value)}
+          />
+        </div>
       </div>
 
       <Button onClick={save} disabled={isPending} size="sm" className="self-start">

@@ -22,6 +22,8 @@ export const TASK_AREAS = [
   "wellness",
 ] as const;
 
+export type TaskArea = (typeof TASK_AREAS)[number];
+
 export type Task = {
   id: string;
   title: string;
@@ -32,4 +34,10 @@ export type Task = {
   estimated_minutes: number | null;
   due_date: string | null;
   rollover_count: number;
+  /** Optional — only present on queries that select/join it (currently just School's task list). */
+  course_id?: string | null;
+  course_title?: string | null;
+  /** From a joined `work_estimates` row — only Canvas-sourced tasks have one. `actual_minutes == null` with `predicted_minutes` set means this task still needs its actual time logged once completed. */
+  predicted_minutes?: number | null;
+  actual_minutes?: number | null;
 };

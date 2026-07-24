@@ -1,10 +1,12 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { FakeSupabase } from "@/lib/test/fake-supabase";
 import {
+  cycleObservationEntrySchema,
   deleteAllCycleObservations,
   deleteCycleObservation,
   listCycleObservations,
   parseCycleCsv,
+  upsertCycleObservationEntry,
   upsertCycleObservations,
 } from "./cycle-observations";
 
@@ -135,6 +137,91 @@ describe("upsertCycleObservations / listCycleObservations", () => {
     );
     expect(supabase.tables.cycle_observations).toHaveLength(1);
     expect(supabase.tables.cycle_observations[0].flow).toBe("heavy");
+  });
+});
+
+describe("cycleObservationEntrySchema", () => {
+  it("accepts a well-formed hormone entry", () => {
+    const result = cycleObservationEntrySchema.safeParse({
+      observation_date: "2026-07-15",
+      on_period: true,
+      lh: 12.5,
+      e3g: 40,
+      pdg: 2.1,
+      fsh: 6,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a negative hormone reading", () => {
+    const result = cycleObservationEntrySchema.safeParse({
+      observation_date: "2026-07-15",
+      lh: -1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a malformed date", () => {
+    const result = cycleObservationEntrySchema.safeParse({
+      observation_date: "07/15/2026",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("upsertCycleObservationEntry", () => {
+  it("inserts a new row with just the hormone/period fields set", async () => {
+    const supabase = db();
+    const result = await upsertCycleObservationEntry(supabase, "user-1", {
+      observation_date: "2026-07-15",
+      on_period: true,
+      lh: 12.5,
+      e3g: null,
+      pdg: null,
+      fsh: 6,
+    });
+    expect(result).toEqual({ ok: true });
+    expect(supabase.tables.cycle_observations[0]).toMatchObject({
+      user_id: "user-1",
+      observation_date: "2026-07-15",
+      on_period: true,
+      lh: 12.5,
+      fsh: 6,
+    });
+  });
+
+  it("upserts on (user_id, observation_date) without clobbering flow/symptoms from a prior CSV import", async () => {
+    const supabase = db();
+    await upsertCycleObservations(
+      supabase,
+      "user-1",
+      [
+        {
+          observation_date: "2026-07-15",
+          flow: "medium",
+          symptoms: ["cramps"],
+          note: null,
+        },
+      ],
+      "manual_csv",
+    );
+
+    await upsertCycleObservationEntry(supabase, "user-1", {
+      observation_date: "2026-07-15",
+      on_period: true,
+      lh: 12.5,
+      e3g: null,
+      pdg: null,
+      fsh: null,
+    });
+
+    expect(supabase.tables.cycle_observations).toHaveLength(1);
+    expect(supabase.tables.cycle_observations[0]).toMatchObject({
+      flow: "medium",
+      symptoms: ["cramps"],
+      on_period: true,
+      lh: 12.5,
+    });
   });
 });
 

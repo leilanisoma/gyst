@@ -76,6 +76,9 @@ export function TaskCard({
       </div>
       <div className="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
         <Badge variant="secondary">{task.area}</Badge>
+        {task.course_title && (
+          <Badge variant="outline">{task.course_title}</Badge>
+        )}
         {task.due_date && (
           <span>{new Date(task.due_date).toLocaleDateString()}</span>
         )}

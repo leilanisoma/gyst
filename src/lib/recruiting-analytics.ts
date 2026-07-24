@@ -20,20 +20,22 @@ export type AnalyticsEvent = {
   occurred_at: string;
 };
 
-/** Funnel milestones worth reporting — excludes the negative-outcome stages. */
-const FUNNEL_STAGES = APPLICATION_BOARD_STAGES.filter((s) => s !== "rejected");
+/** Forward-progression milestones — excludes the negative-outcome stage. */
+const PROGRESSION_STAGES = APPLICATION_BOARD_STAGES.filter((s) => s !== "rejected");
 
 /**
- * `FUNNEL_STAGES`' order doubles as the pipeline's forward progression —
+ * `PROGRESSION_STAGES`' order doubles as the pipeline's forward progression —
  * used to credit an application with reaching an earlier milestone (e.g.
  * `applied`) even when the user jumped the stage dropdown straight to a
  * later one (e.g. `interview`) without ever explicitly selecting `applied`
  * first. Without this, that application would never show a `to_stage:
  * "applied"` event at all and every applied-based metric would silently
- * miss it.
+ * miss it. Used by `computeApplicationsPerWeek`/`computeWeeklyGoalProgress`
+ * (both "ever reached" metrics), not by `computeStageFunnel` (a current-stage
+ * snapshot).
  */
 const PROGRESSION_RANK = new Map<ApplicationStage, number>(
-  FUNNEL_STAGES.map((stage, index) => [stage, index]),
+  PROGRESSION_STAGES.map((stage, index) => [stage, index]),
 );
 
 /** Earliest `occurred_at` per application at which it reached `milestone` or any later stage. */
@@ -54,14 +56,23 @@ function firstReachedDates(
   return firstByApplication;
 }
 
-export type FunnelStep = { stage: ApplicationStage; label: string; reached: number };
+export type FunnelStep = { stage: ApplicationStage; label: string; count: number };
 
-/** For each milestone, how many applications ever reached it or a later stage. */
-export function computeStageFunnel(events: AnalyticsEvent[]): FunnelStep[] {
-  return FUNNEL_STAGES.map((stage) => ({
+/**
+ * How many applications currently sit at each stage right now — a live
+ * snapshot, not a cumulative "ever reached" funnel. `rejected` gets its own
+ * bar rather than being excluded, since under this view it's just wherever
+ * some applications currently are, not a milestone to progress past.
+ */
+export function computeStageFunnel(applications: AnalyticsApplication[]): FunnelStep[] {
+  const counts = new Map<ApplicationStage, number>();
+  for (const app of applications) {
+    counts.set(app.stage, (counts.get(app.stage) ?? 0) + 1);
+  }
+  return APPLICATION_BOARD_STAGES.map((stage) => ({
     stage,
     label: APPLICATION_STAGE_LABELS[stage],
-    reached: firstReachedDates(events, stage).size,
+    count: counts.get(stage) ?? 0,
   }));
 }
 

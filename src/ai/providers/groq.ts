@@ -18,7 +18,8 @@ const GMAIL_JSON_SHAPE =
   `"date": string | null, "requestedAction": string | null, ` +
   `"confidence": number}]}`;
 
-class GroqApiError extends Error {
+/** Exported so callers (`src/lib/gmail/extract.ts`) can detect a request-too-large/rate-limit response and retry elsewhere with the full, untruncated input rather than giving up. */
+export class GroqApiError extends Error {
   constructor(
     message: string,
     public status: number,

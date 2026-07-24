@@ -12,12 +12,15 @@ import type {
   WellnessCheckIn,
 } from "@/lib/wellness";
 import {
+  cycleObservationEntrySchema,
   deleteAllCycleObservations,
   deleteCycleObservation,
   listCycleObservations,
   parseCycleCsv,
+  upsertCycleObservationEntry,
   upsertCycleObservations,
   type CycleObservation,
+  type CycleObservationEntry,
 } from "@/lib/health/cycle-observations";
 import {
   dailySummaryMetricSchema,
@@ -192,6 +195,35 @@ export async function getCycleObservationsList(): Promise<CycleObservation[]> {
     return [];
   }
   return listCycleObservations(supabase, user.id);
+}
+
+/**
+ * Manual single-day entry for fertility-monitor hormone readings (LH, E3G,
+ * PdG, FSH) plus a period on/off flag — separate from the CSV import path,
+ * which is for flow/symptoms/note bulk backfill.
+ */
+export async function saveCycleObservationEntry(
+  input: CycleObservationEntry,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const parsed = cycleObservationEntrySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid entry." };
+  }
+
+  const result = await upsertCycleObservationEntry(supabase, user.id, parsed.data);
+  if (!result.ok) {
+    return { ok: false, error: result.error };
+  }
+
+  revalidatePath("/wellness");
+  return { ok: true };
 }
 
 export async function deleteCycleObservationEntry(id: string): Promise<ActionResult> {

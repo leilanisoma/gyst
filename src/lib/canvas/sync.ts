@@ -1,7 +1,12 @@
 import type { createClient } from "@/lib/supabase/server";
 import { listAssignments, listCalendarEvents, listCourses } from "./client";
 import { markCanvasError, markCanvasSynced } from "./integration";
-import { estimateAssignmentMinutes } from "./estimate";
+import {
+  calibrateEstimateMinutes,
+  categorizeAssignment,
+  estimateAssignmentMinutes,
+  type PriorEstimate,
+} from "./estimate";
 import { classifyAssessmentCandidate } from "./assessment-candidates";
 import { createMilestoneSuggestions } from "@/lib/milestones";
 import { isLikelyDuplicateEvent } from "@/lib/dedupe";
@@ -81,6 +86,28 @@ export async function runCanvasSync(
       coursesUpserted++;
       courseIdByCanvasId.set(course.id, courseRow.id);
 
+      // Calibration history for this course (task 6.8's "future estimator
+      // version") — every prior assignment with logged actual time,
+      // grouped by kind of work, so e.g. a recurring weekly quiz's
+      // estimate adjusts toward how long quizzes in *this* course actually
+      // take, not just the flat v1 heuristic.
+      const { data: priorEstimateRows } = await supabase
+        .from("work_estimates")
+        .select("category, predicted_minutes, actual_minutes")
+        .eq("course_id", courseRow.id)
+        .not("actual_minutes", "is", null);
+
+      const priorEstimatesByCategory = new Map<string, PriorEstimate[]>();
+      for (const row of priorEstimateRows ?? []) {
+        if (!row.category || row.actual_minutes == null) continue;
+        const existing = priorEstimatesByCategory.get(row.category) ?? [];
+        existing.push({
+          predicted_minutes: row.predicted_minutes,
+          actual_minutes: row.actual_minutes,
+        });
+        priorEstimatesByCategory.set(row.category, existing);
+      }
+
       const assignments = await listAssignments(course.id);
       for (const assignment of assignments) {
         const submitted = assignmentIsSubmitted(assignment);
@@ -129,7 +156,14 @@ export async function runCanvasSync(
           continue;
         }
 
-        const estimatedMinutes = estimateAssignmentMinutes(assignment);
+        const category = categorizeAssignment(assignment);
+        const baseEstimatedMinutes = estimateAssignmentMinutes(assignment);
+        const priorForCategory = priorEstimatesByCategory.get(category) ?? [];
+        const estimatedMinutes = calibrateEstimateMinutes(
+          baseEstimatedMinutes,
+          priorForCategory,
+        );
+        const estimatorVersion = priorForCategory.length > 0 ? "v2" : "v1";
         const { data: taskRow, error: taskError } = await supabase
           .from("tasks")
           .upsert(
@@ -160,8 +194,10 @@ export async function runCanvasSync(
           {
             user_id: userId,
             task_id: taskRow.id,
+            course_id: courseRow.id,
+            category,
             predicted_minutes: estimatedMinutes,
-            estimator_version: "v1",
+            estimator_version: estimatorVersion,
           },
           { onConflict: "task_id" },
         );

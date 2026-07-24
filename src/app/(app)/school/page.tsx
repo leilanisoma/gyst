@@ -2,9 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { RoomHeader } from "@/components/room/room-header";
 import { RoomBackground } from "@/components/room/room-background";
 import { RoomContentPanel } from "@/components/room/room-content-panel";
+import { CollapsibleSection } from "@/components/room/collapsible-section";
+import { RoomSideTabs } from "@/components/room/room-side-tabs";
+import { GrowthPlant } from "@/components/room/growth-plant";
 import { ROOMS } from "@/lib/rooms";
 import { isCanvasConfigured } from "@/lib/env";
 import { getCanvasIntegration } from "@/lib/canvas/integration";
+import { schoolGrowthStage, schoolTaskCompletionRate } from "@/lib/school-growth";
 import { CanvasSyncCard } from "@/components/school/canvas-sync-card";
 import { CoursesSection } from "@/components/school/courses-section";
 import {
@@ -24,10 +28,8 @@ import {
   MilestoneSuggestionsQueue,
   type MilestoneSuggestionRow,
 } from "@/components/school/milestone-suggestions-queue";
-import {
-  ActualTimeLog,
-  type ActualTimeLogRow,
-} from "@/components/school/actual-time-log";
+import { TaskBoard } from "@/components/tasks/task-board";
+import type { Task } from "@/lib/tasks";
 import type {
   AssessmentKind,
   AssessmentPreparationStatus,
@@ -128,50 +130,143 @@ export default async function SchoolPage() {
   const milestoneSuggestions: MilestoneSuggestionRow[] =
     milestoneSuggestionRows ?? [];
 
-  const { data: completedSchoolTasks } = await supabase
+  const { data: schoolTaskRows } = await supabase
     .from("tasks")
-    .select("id, title, work_estimates(predicted_minutes, actual_minutes)")
+    .select(
+      "id, title, notes, area, status, priority, estimated_minutes, due_date, rollover_count, course_id, course:courses(title), work_estimates(predicted_minutes, actual_minutes)",
+    )
     .eq("area", "school")
-    .eq("status", "completed");
+    .order("created_at", { ascending: true });
 
-  const actualTimeLogRows: ActualTimeLogRow[] = (completedSchoolTasks ?? [])
-    .map((task) => ({
-      id: task.id,
-      title: task.title,
-      estimate: task.work_estimates[0] ?? null,
-    }))
-    .filter((task) => task.estimate && task.estimate.actual_minutes == null)
-    .map((task) => ({
-      taskId: task.id,
-      title: task.title,
-      predictedMinutes: task.estimate?.predicted_minutes ?? null,
-    }));
+  const schoolTasks: Task[] = (schoolTaskRows ?? []).map((row) => {
+    const estimate = row.work_estimates[0] ?? null;
+    return {
+      ...row,
+      course_title: (row.course as { title: string } | null)?.title ?? null,
+      predicted_minutes: estimate?.predicted_minutes ?? null,
+      actual_minutes: estimate?.actual_minutes ?? null,
+    };
+  }) as Task[];
+
+  const courseOptions = (courses ?? []).map((c) => ({
+    id: c.id,
+    title: c.title,
+  }));
+  const completionRate = schoolTaskCompletionRate(schoolTasks);
+  const growthStage = schoolGrowthStage(completionRate);
 
   return (
-    <main className="relative isolate flex h-screen flex-col items-center justify-center p-4">
+    <main className="relative isolate h-screen overflow-hidden">
       <RoomBackground room={ROOMS.school.background} />
-      <RoomContentPanel>
-        <div className="flex flex-col gap-2">
-          <RoomHeader {...ROOMS.school} />
-          <p className="text-muted-foreground text-sm">
-            Canvas courses, deadlines, and study planning.
-          </p>
-        </div>
-        <CanvasSyncCard
-          configured={configured}
-          status={integration?.status ?? "not_connected"}
-          lastSyncedAt={integration?.last_synced_at ?? null}
-          error={integration?.error ?? null}
+
+      <div
+        className="absolute top-[60%] left-[47%] z-10 hidden md:block"
+        style={{ filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.35))" }}
+      >
+        <GrowthPlant
+          stage={growthStage}
+          brightness={0.75 + completionRate * 0.4}
+          ariaLabel={`Growing steadily — ${Math.round(completionRate * 100)}% of school tasks completed`}
+          title={`${Math.round(completionRate * 100)}% of school tasks completed`}
+          size={3.2}
+          pot
+          leafColor="var(--chart-1)"
         />
+      </div>
+
+      <RoomContentPanel className="absolute inset-x-4 top-16 max-h-[40vh] md:inset-x-auto md:top-1/2 md:left-[4%] md:max-h-[80vh] md:w-[400px] md:-translate-y-1/2">
+        <RoomHeader {...ROOMS.school} />
+        <p className="text-muted-foreground text-sm">
+          Canvas courses, deadlines, and study planning.
+        </p>
+
         <AssessmentReviewQueue candidates={candidates} />
         <MilestoneSuggestionsQueue suggestions={milestoneSuggestions} />
-        <UpcomingAssessments assessments={upcomingAssessments} />
-        <CoursesSection courses={courses ?? []} />
-        <SyllabusSection
-          courses={(courses ?? []).map((c) => ({ id: c.id, title: c.title }))}
-        />
         <SyllabusItemsReviewQueue items={syllabusItems} />
-        <ActualTimeLog rows={actualTimeLogRows} />
+      </RoomContentPanel>
+
+      {/* Desktop: a persistent tab rail that expands leftward, one tab open at a time, closes on click-away. */}
+      <div className="absolute top-1/2 right-[4%] z-10 hidden -translate-y-1/2 md:flex">
+        <RoomSideTabs
+          tabs={[
+            {
+              id: "tasks",
+              label: "Tasks",
+              width: "w-[min(720px,80vw)]",
+              content: (
+                <TaskBoard
+                  tasks={schoolTasks}
+                  area="school"
+                  courses={courseOptions}
+                  instanceId="school-tasks-desktop"
+                />
+              ),
+            },
+            {
+              id: "canvas",
+              label: "Canvas sync",
+              content: (
+                <CanvasSyncCard
+                  configured={configured}
+                  status={integration?.status ?? "not_connected"}
+                  lastSyncedAt={integration?.last_synced_at ?? null}
+                  error={integration?.error ?? null}
+                />
+              ),
+            },
+            {
+              id: "courses",
+              label: "Courses",
+              content: <CoursesSection courses={courses ?? []} />,
+            },
+            {
+              id: "syllabus",
+              label: "Syllabus",
+              content: (
+                <SyllabusSection
+                  courses={courseOptions}
+                />
+              ),
+            },
+            {
+              id: "assessments",
+              label: "Upcoming assessments",
+              content: <UpcomingAssessments assessments={upcomingAssessments} />,
+            },
+          ]}
+        />
+      </div>
+
+      {/* Mobile fallback: the tab-rail's expand-left/click-away doesn't translate below md, so this stays the plain stacked-accordion layout. */}
+      <RoomContentPanel className="absolute inset-x-4 bottom-4 max-h-[40vh] md:hidden">
+        <h2 className="font-heading text-base font-semibold">More</h2>
+        <CollapsibleSection title="Tasks">
+          <TaskBoard
+            tasks={schoolTasks}
+            area="school"
+            courses={courseOptions}
+            instanceId="school-tasks-mobile"
+          />
+        </CollapsibleSection>
+        <CollapsibleSection title="Canvas sync">
+          <CanvasSyncCard
+            configured={configured}
+            status={integration?.status ?? "not_connected"}
+            lastSyncedAt={integration?.last_synced_at ?? null}
+            error={integration?.error ?? null}
+          />
+        </CollapsibleSection>
+        <CollapsibleSection title="Courses">
+          <CoursesSection courses={courses ?? []} />
+        </CollapsibleSection>
+        <CollapsibleSection title="Syllabus">
+          <SyllabusSection
+            courses={courseOptions}
+          />
+        </CollapsibleSection>
+        <CollapsibleSection title="Upcoming assessments">
+          <UpcomingAssessments assessments={upcomingAssessments} />
+        </CollapsibleSection>
       </RoomContentPanel>
     </main>
   );

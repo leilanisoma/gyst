@@ -13,53 +13,28 @@ import {
 } from "./recruiting-analytics";
 
 describe("computeStageFunnel", () => {
-  it("counts distinct applications reaching each milestone", () => {
-    const events: AnalyticsEvent[] = [
-      {
-        application_id: "a",
-        to_stage: "saved",
-        occurred_at: "2026-07-01T00:00:00Z",
-      },
-      {
-        application_id: "a",
-        to_stage: "applied",
-        occurred_at: "2026-07-02T00:00:00Z",
-      },
-      {
-        application_id: "a",
-        to_stage: "rejected",
-        occurred_at: "2026-07-05T00:00:00Z",
-      },
-      {
-        application_id: "b",
-        to_stage: "saved",
-        occurred_at: "2026-07-01T00:00:00Z",
-      },
-    ];
-    const funnel = computeStageFunnel(events);
-    expect(funnel.find((f) => f.stage === "saved")?.reached).toBe(2);
-    expect(funnel.find((f) => f.stage === "applied")?.reached).toBe(1);
-    expect(funnel.find((f) => f.stage === "interview")?.reached).toBe(0);
+  const app = (id: string, stage: AnalyticsApplication["stage"]): AnalyticsApplication => ({
+    id,
+    stage,
+    created_at: "2026-07-01T00:00:00Z",
+    source: "manual",
+    role_family: "other",
+    excluded: false,
   });
 
-  it("credits an application with reaching `applied` even if the stage dropdown skipped straight past it", () => {
-    const events: AnalyticsEvent[] = [
-      {
-        application_id: "a",
-        to_stage: "saved",
-        occurred_at: "2026-07-01T00:00:00Z",
-      },
-      // Jumped straight from "saved" to "interview" — no explicit "applied" event.
-      {
-        application_id: "a",
-        to_stage: "interview",
-        occurred_at: "2026-07-03T00:00:00Z",
-      },
-    ];
-    const funnel = computeStageFunnel(events);
-    expect(funnel.find((f) => f.stage === "applied")?.reached).toBe(1);
-    expect(funnel.find((f) => f.stage === "interview")?.reached).toBe(1);
-    expect(funnel.find((f) => f.stage === "offer")?.reached).toBe(0);
+  it("counts applications by their current stage, not by history", () => {
+    const apps = [app("a", "interview"), app("b", "saved"), app("c", "saved")];
+    const funnel = computeStageFunnel(apps);
+    expect(funnel.find((f) => f.stage === "saved")?.count).toBe(2);
+    expect(funnel.find((f) => f.stage === "interview")?.count).toBe(1);
+    expect(funnel.find((f) => f.stage === "applied")?.count).toBe(0);
+  });
+
+  it("gives rejected its own bar instead of excluding it", () => {
+    const apps = [app("a", "rejected"), app("b", "rejected"), app("c", "offer")];
+    const funnel = computeStageFunnel(apps);
+    expect(funnel.find((f) => f.stage === "rejected")?.count).toBe(2);
+    expect(funnel.find((f) => f.stage === "offer")?.count).toBe(1);
   });
 });
 

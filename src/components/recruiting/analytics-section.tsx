@@ -73,13 +73,14 @@ export async function AnalyticsSection() {
     isGhosted({ id: app.id, stage: app.stage as ApplicationStage }, analyticsEvents),
   ).length;
 
-  const funnel = computeStageFunnel(analyticsEvents);
+  const funnel = computeStageFunnel(analyticsApps);
   const weekly = computeApplicationsPerWeek(analyticsEvents, 8);
   const medianResponseDays = computeMedianResponseDays(analyticsEvents);
   const bySource = computeSourceEffectiveness(analyticsApps);
   const byRoleFamily = computeRoleFamilyConversion(analyticsApps);
   const sourceCoverage = computeSourceCoverage(analyticsApps);
   const maxWeekly = Math.max(1, ...weekly.map((w) => w.count));
+  const maxFunnel = Math.max(1, ...funnel.map((f) => f.count));
 
   return (
     <Card>
@@ -117,7 +118,7 @@ export async function AnalyticsSection() {
         </div>
 
         <div>
-          <p className="text-muted-foreground text-xs">Stage funnel (ever reached)</p>
+          <p className="text-muted-foreground text-xs">Stage funnel (current stage)</p>
           <div className="mt-1 flex flex-col gap-1">
             {funnel.map((step, i) => (
               <div key={step.stage} className="flex items-center gap-2 text-xs">
@@ -126,16 +127,12 @@ export async function AnalyticsSection() {
                   <div
                     className="bg-primary h-2 rounded-full"
                     style={{
-                      width: `${
-                        funnel[0].reached > 0
-                          ? (step.reached / funnel[0].reached) * 100
-                          : 0
-                      }%`,
+                      width: `${(step.count / maxFunnel) * 100}%`,
                       opacity: 0.5 + (0.5 * (i + 1)) / funnel.length,
                     }}
                   />
                 </div>
-                <span className="w-6 text-right tabular-nums">{step.reached}</span>
+                <span className="w-6 text-right tabular-nums">{step.count}</span>
               </div>
             ))}
           </div>

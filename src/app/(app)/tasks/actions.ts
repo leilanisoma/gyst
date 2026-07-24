@@ -8,12 +8,62 @@ import {
   reducedEstimate,
   reducedPriority,
 } from "@/lib/rollover";
-import type { TaskPriority, TaskStatus } from "@/lib/tasks";
+import type { TaskArea, TaskPriority, TaskStatus } from "@/lib/tasks";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+export type CreateTaskInput = {
+  title: string;
+  area: TaskArea;
+  /** Set when adding from a due-date-bucketed list (e.g. Today's "Due today") so the new task actually appears there — omitted on the plain task boards, which show every task regardless of due date. */
+  due_date?: string | null;
+  /** Only meaningful for school-area tasks — which class this is for. */
+  course_id?: string | null;
+};
+
+export type CreateTaskResult = ActionResult & { id?: string };
+
+/** Direct task creation — deliberately bypasses Inbox. A "+ Add task" button already knows it's a task; Inbox is for the ambiguous "sort this out later" capture case. */
+export async function createTask(
+  input: CreateTaskInput,
+): Promise<CreateTaskResult> {
+  const title = input.title.trim();
+  if (!title) {
+    return { ok: false, error: "Title can't be empty." };
+  }
+
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+  if (!user) {
+    return { ok: false, error: "Not signed in." };
+  }
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert({
+      user_id: user.id,
+      title,
+      area: input.area,
+      due_date: input.due_date ?? null,
+      course_id: input.course_id ?? null,
+      source: "manual",
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/tasks");
+  revalidatePath("/");
+  revalidatePath("/school");
+  return { ok: true, id: data.id };
 }
 
 export async function updateTaskStatus(

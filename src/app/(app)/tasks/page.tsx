@@ -4,12 +4,22 @@ import type { Task } from "@/lib/tasks";
 
 export default async function TasksPage() {
   const supabase = await createClient();
-  const { data: tasks } = await supabase
+  const { data: taskRows } = await supabase
     .from("tasks")
     .select(
-      "id, title, notes, area, status, priority, estimated_minutes, due_date, rollover_count",
+      "id, title, notes, area, status, priority, estimated_minutes, due_date, rollover_count, course_id, course:courses(title), work_estimates(predicted_minutes, actual_minutes)",
     )
     .order("created_at", { ascending: true });
+
+  const tasks: Task[] = (taskRows ?? []).map((row) => {
+    const estimate = row.work_estimates[0] ?? null;
+    return {
+      ...row,
+      course_title: (row.course as { title: string } | null)?.title ?? null,
+      predicted_minutes: estimate?.predicted_minutes ?? null,
+      actual_minutes: estimate?.actual_minutes ?? null,
+    };
+  }) as Task[];
 
   return (
     <main className="flex flex-1 flex-col gap-6 p-6">
@@ -20,7 +30,7 @@ export default async function TasksPage() {
           keyboard.
         </p>
       </div>
-      <TaskBoard tasks={(tasks ?? []) as Task[]} />
+      <TaskBoard tasks={tasks} />
     </main>
   );
 }
